@@ -10,6 +10,19 @@ const nextConfig = {
     NEXTAUTH_URL: 'https://sof-car.eu',
     SITE_URL: 'https://sof-car.eu',
   },
+  // Image configuration
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+    ],
+  },
   // Security headers - временно коментирано за development
   // async headers() {
   //   return [

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -19,9 +20,37 @@ interface CarCardProps {
   car: CarData;
   onBook: (car: CarData) => void;
   t: (key: string, values?: Record<string, unknown>) => string;
+  rentalDates?: {
+    start: Date | null;
+    end: Date | null;
+  };
 }
 
-export function CarCard({ car, onBook, t }: CarCardProps) {
+export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
+  console.log(car);
+
+  // Calculate total price for the rental period
+  const calculateTotalPrice = () => {
+    if (!rentalDates?.start || !rentalDates?.end) {
+      return car.price; // Return daily price if no dates
+    }
+
+    const diffTime = Math.abs(
+      rentalDates.end.getTime() - rentalDates.start.getTime()
+    );
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return car.price * diffDays;
+  };
+
+  const totalPrice = calculateTotalPrice();
+  const totalDays =
+    rentalDates?.start && rentalDates?.end
+      ? Math.ceil(
+          Math.abs(rentalDates.end.getTime() - rentalDates.start.getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : 1;
+
   return (
     <Card
       sx={{
@@ -69,13 +98,12 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
         }}
       >
         {car.imageUrl ? (
-          <img
+          <Image
             src={car.imageUrl}
             alt={`${car.make} ${car.model}`}
+            fill
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
             }}
           />
         ) : (
@@ -97,14 +125,15 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
           {car.make} {car.model}
         </Typography>
 
-        {/* Car Class */}
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ marginBottom: 1 }}
-        >
-          {t('class')}: {car.class}
-        </Typography>
+        {/* Car Class and Year */}
+        <Box sx={{ display: 'flex', gap: 2, marginBottom: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('booking.class')}: {car.class}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('booking.year')}: {car.year}
+          </Typography>
+        </Box>
 
         {/* Description */}
         <Typography
@@ -123,6 +152,17 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
 
         {/* Price Section */}
         <Box sx={{ marginBottom: 2 }}>
+          {/* Daily Price */}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: '0.875rem', marginBottom: 0.5 }}
+          >
+            {t('booking.pricePerDay')}: {(car.price * 1.96).toFixed(0)} лв / ≈
+            {car.price.toFixed(2)} €
+          </Typography>
+
+          {/* Total Price */}
           <Typography
             variant="h5"
             component="div"
@@ -134,7 +174,7 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
               gap: 1,
             }}
           >
-            {(car.price * 1.96).toFixed(0)} лв
+            {(totalPrice * 1.96).toFixed(0)} лв
           </Typography>
           <Typography
             variant="body2"
@@ -142,7 +182,8 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
             sx={{ fontSize: '0.875rem' }}
           >
             <Euro sx={{ fontSize: 16, marginRight: 0.5 }} />≈{' '}
-            {car.price.toFixed(2)} €
+            {totalPrice.toFixed(2)} € за {totalDays}{' '}
+            {totalDays === 1 ? 'ден' : 'дни'}
           </Typography>
         </Box>
 
@@ -153,14 +194,14 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
             color="text.secondary"
             sx={{ marginBottom: 1, fontWeight: 500 }}
           >
-            {t('priceIncludes')}:
+            {t('booking.priceIncludes')}:
           </Typography>
           <Grid container spacing={1}>
             <Grid size={{ xs: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
                 <Typography variant="body2" fontSize="0.75rem">
-                  {t('unlimitedMileage')}
+                  {t('booking.unlimitedMileage')}
                 </Typography>
               </Box>
             </Grid>
@@ -168,7 +209,7 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
                 <Typography variant="body2" fontSize="0.75rem">
-                  {t('insurance')}
+                  {t('booking.insurance')}
                 </Typography>
               </Box>
             </Grid>
@@ -176,7 +217,7 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
                 <Typography variant="body2" fontSize="0.75rem">
-                  {t('assistance')}
+                  {t('booking.assistance')}
                 </Typography>
               </Box>
             </Grid>
@@ -184,7 +225,7 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
                 <Typography variant="body2" fontSize="0.75rem">
-                  {t('fuel')}
+                  {t('booking.fuel')}
                 </Typography>
               </Box>
             </Grid>
@@ -206,7 +247,7 @@ export function CarCard({ car, onBook, t }: CarCardProps) {
             fontWeight: 'bold',
           }}
         >
-          {t('bookButton')}
+          {t('booking.bookButton')}
         </Button>
       </CardActions>
     </Card>

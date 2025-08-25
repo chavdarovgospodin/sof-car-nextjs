@@ -20,8 +20,14 @@ import { CarCard } from '../CarCard/CarCard';
 import { CarData } from '../../services/googleSheets';
 import { useAvailableCars, useBookCar } from '../../hooks/useGoogleSheets';
 import { BookingForm } from '../BookingForm/BookingForm';
+import bgTranslations from '../../locales/bg/common.json';
+import enTranslations from '../../locales/en/common.json';
 
-export function BookingPageClient() {
+interface BookingPageClientProps {
+  lang: string;
+}
+
+export function BookingPageClient({ lang }: BookingPageClientProps) {
   const [selectedCar, setSelectedCar] = useState<CarData | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [searchDates, setSearchDates] = useState<{
@@ -44,7 +50,6 @@ export function BookingPageClient() {
       end: getDefaultTime(tomorrow),
     };
   });
-  const [locale, setLocale] = useState('bg');
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -54,16 +59,6 @@ export function BookingPageClient() {
     message: '',
     severity: 'success',
   });
-
-  useEffect(() => {
-    // Определяме локала от URL
-    const path = window.location.pathname;
-    if (path.includes('/en/')) {
-      setLocale('en');
-    } else {
-      setLocale('bg');
-    }
-  }, []);
 
   // Флаг дали трябва да правим търсене
   const [shouldSearch, setShouldSearch] = useState(false);
@@ -89,46 +84,8 @@ export function BookingPageClient() {
     setShouldSearch(true); // Активираме търсенето
   };
 
-  // Четем дати от localStorage и правим автоматично търсене само ако има такива
-  useEffect(() => {
-    // Проверяваме дали сме в браузъра
-    if (typeof window !== 'undefined') {
-      const savedDates = localStorage.getItem('quickBookingDates');
-      if (savedDates) {
-        try {
-          const parsed = JSON.parse(savedDates);
-          const startDate = new Date(
-            `${parsed.pickupDate}T${parsed.pickupTime}`
-          );
-          const endDate = new Date(`${parsed.returnDate}T${parsed.returnTime}`);
-
-          // Проверяваме дали датите са валидни (не са в миналото)
-          const now = new Date();
-          if (startDate < now || endDate < now) {
-            // Датите са в миналото - изчистваме ги
-            localStorage.removeItem('quickBookingDates');
-            return;
-          }
-
-          // Обновяваме state-а с новите дати
-          setSearchDates({ start: startDate, end: endDate });
-
-          // Правим автоматично търсене
-          const timer = setTimeout(() => {
-            handleSearch(startDate, endDate);
-            // Изчистваме localStorage СЛЕД успешното търсене
-            localStorage.removeItem('quickBookingDates');
-          }, 100);
-
-          return () => clearTimeout(timer);
-        } catch (error) {
-          console.error('Error parsing saved dates:', error);
-          // Ако има грешка при парсването, изчистваме localStorage
-          localStorage.removeItem('quickBookingDates');
-        }
-      }
-    }
-  }, []); // Празен dependency array - само при първо зареждане
+  // URL parameters are now handled in DateSearch component
+  // No need for localStorage logic here
 
   const handleBook = (car: CarData) => {
     setSelectedCar(car);
@@ -161,7 +118,7 @@ export function BookingPageClient() {
         setSnackbar({
           open: true,
           message:
-            locale === 'en'
+            lang === 'en'
               ? 'Car booked successfully!'
               : 'Автомобилът е запазен успешно!',
           severity: 'success',
@@ -175,7 +132,7 @@ export function BookingPageClient() {
       setSnackbar({
         open: true,
         message:
-          locale === 'en'
+          lang === 'en'
             ? 'Error booking car'
             : 'Грешка при запазване на автомобил',
         severity: 'error',
@@ -188,66 +145,30 @@ export function BookingPageClient() {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const translations = {
-    bg: {
-      pageTitle: 'Резервирай автомобил',
-      pageSubtitle: 'Избери своя автомобил и резервирай за предпочитаните дати',
-      foundCars: 'Намерени {count} автомобила',
-      forPeriod: 'за периода',
-      noCarsFound: 'Няма налични автомобили за избраните дати',
-      selectDatesMessage: 'Изберете дати за да видите наличните автомобили',
-      bookTitle: 'Резервирай',
-      cancelButton: 'Отказ',
-      searchTitle: 'Търси автомобил за наем',
-      startDate: 'Начална дата и час',
-      endDate: 'Крайна дата и час',
-      searchButton: 'Търси автомобили',
-      dateRangeInfo: 'Минимален период: 5 ден | Максимален период: 30 дни',
-      bookButton: 'Резервирай',
-      requestOfferButton: 'Оферта по e-mail',
-      class: 'Клас',
-      priceIncludes: 'Цената включва',
-      unlimitedMileage: 'Неограничени километри',
-      insurance: 'Застраховка',
-      assistance: 'Пътна помощ',
-      fuel: 'Гориво',
-    },
-    en: {
-      pageTitle: 'Book a Car',
-      pageSubtitle: 'Choose your car and book for preferred dates',
-      foundCars: 'Found {count} cars',
-      forPeriod: 'for the period',
-      noCarsFound: 'No available cars for selected dates',
-      selectDatesMessage: 'Select dates to see available cars',
-      bookTitle: 'Book',
-      cancelButton: 'Cancel',
-      searchTitle: 'Search for a car to rent',
-      startDate: 'Start Date & Time',
-      endDate: 'End Date & Time',
-      searchButton: 'Search Cars',
-      dateRangeInfo: 'Minimum period: 1 day | Maximum period: 30 days',
-      bookButton: 'Book',
-      requestOfferButton: 'Request Quote by Email',
-      class: 'Class',
-      priceIncludes: 'Price includes',
-      unlimitedMileage: 'Unlimited mileage',
-      insurance: 'Insurance',
-      assistance: 'Roadside assistance',
-      fuel: 'Fuel',
-    },
-  };
+  // Създаваме t функцията локално с подадения lang
+  const t = (key: string, values?: Record<string, unknown>): string => {
+    const keys = key.split('.');
+    let value: unknown = lang === 'en' ? enTranslations : bgTranslations;
 
-  const t = (key: string, values?: Record<string, unknown>) => {
-    let message =
-      translations[locale as keyof typeof translations]?.[
-        key as keyof typeof translations.bg
-      ] || key;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = (value as Record<string, unknown>)[k];
+      } else {
+        console.warn(`Translation key not found: ${key} for language: ${lang}`);
+        return key;
+      }
+    }
+
+    let result = typeof value === 'string' ? value : key;
+
+    // Заменяме placeholders с реални стойности
     if (values) {
       Object.keys(values).forEach((k) => {
-        message = message.replace(`{${k}}`, String(values[k]));
+        result = result.replace(`{${k}}`, String(values[k]));
       });
     }
-    return message;
+
+    return result;
   };
 
   return (
@@ -259,10 +180,10 @@ export function BookingPageClient() {
             component="h1"
             sx={{ color: '#1976d2', fontWeight: 'bold', marginBottom: 2 }}
           >
-            {t('pageTitle')}
+            {t('booking.pageTitle')}
           </Typography>
           <Typography variant="h6" color="text.secondary">
-            {t('pageSubtitle')}
+            {t('booking.pageSubtitle')}
           </Typography>
         </Box>
 
@@ -270,7 +191,7 @@ export function BookingPageClient() {
 
         {error && (
           <Alert severity="error" sx={{ marginBottom: 3 }}>
-            {locale === 'en'
+            {lang === 'en'
               ? 'Error searching cars'
               : 'Грешка при търсене на автомобили'}
           </Alert>
@@ -284,7 +205,7 @@ export function BookingPageClient() {
           <>
             <Box sx={{ marginBottom: 3 }}>
               <Typography variant="h5" sx={{ marginBottom: 1 }}>
-                {t('foundCars', { count: filteredCars.length })}
+                {t('booking.foundCars', { count: filteredCars.length })}
                 {searchDates.start && searchDates.end && (
                   <Box
                     component="span"
@@ -305,7 +226,7 @@ export function BookingPageClient() {
                       component="span"
                       sx={{ color: '#1976d2', fontWeight: 600 }}
                     >
-                      {t('forPeriod')}
+                      {t('booking.forPeriod')}
                     </Typography>
                     <Box
                       sx={{
@@ -323,7 +244,7 @@ export function BookingPageClient() {
                         sx={{ fontWeight: 600, color: '#333' }}
                       >
                         {searchDates.start.toLocaleDateString(
-                          locale === 'en' ? 'en-US' : 'bg-BG'
+                          lang === 'en' ? 'en-US' : 'bg-BG'
                         )}
                       </Typography>
                       <Typography
@@ -338,7 +259,7 @@ export function BookingPageClient() {
                         }}
                       >
                         {searchDates.start.toLocaleTimeString(
-                          locale === 'en' ? 'en-US' : 'bg-BG',
+                          lang === 'en' ? 'en-US' : 'bg-BG',
                           { hour: '2-digit', minute: '2-digit' }
                         )}
                       </Typography>
@@ -365,7 +286,7 @@ export function BookingPageClient() {
                         sx={{ fontWeight: 600, color: '#333' }}
                       >
                         {searchDates.end.toLocaleDateString(
-                          locale === 'en' ? 'en-US' : 'bg-BG'
+                          lang === 'en' ? 'en-US' : 'bg-BG'
                         )}
                       </Typography>
                       <Typography
@@ -380,7 +301,7 @@ export function BookingPageClient() {
                         }}
                       >
                         {searchDates.end.toLocaleTimeString(
-                          locale === 'en' ? 'en-US' : 'bg-BG',
+                          lang === 'en' ? 'en-US' : 'bg-BG',
                           { hour: '2-digit', minute: '2-digit' }
                         )}
                       </Typography>
@@ -396,7 +317,12 @@ export function BookingPageClient() {
                 console.log('Car image URL:', car.imageUrl);
                 return (
                   <Grid key={car.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                    <CarCard car={car} onBook={handleBook} t={t} />
+                    <CarCard
+                      car={car}
+                      onBook={handleBook}
+                      t={t}
+                      rentalDates={searchDates}
+                    />
                   </Grid>
                 );
               })}
@@ -410,8 +336,8 @@ export function BookingPageClient() {
               sx={{ marginBottom: 2 }}
             >
               {searchDates.start && searchDates.end
-                ? t('noCarsFound')
-                : t('selectDatesMessage')}
+                ? t('booking.noCarsFound')
+                : t('booking.selectDatesMessage')}
             </Typography>
           </Box>
         )}
@@ -423,7 +349,7 @@ export function BookingPageClient() {
           fullWidth
         >
           <DialogTitle>
-            {t('bookTitle')} {selectedCar?.make} {selectedCar?.model}
+            {t('booking.title')} {selectedCar?.make} {selectedCar?.model}
           </DialogTitle>
           <DialogContent>
             {selectedCar && (
@@ -437,9 +363,7 @@ export function BookingPageClient() {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseBookingForm}>
-              {t('cancelButton')}
-            </Button>
+            <Button onClick={handleCloseBookingForm}>Отказ</Button>
           </DialogActions>
         </Dialog>
 

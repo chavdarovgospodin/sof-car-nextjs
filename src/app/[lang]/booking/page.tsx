@@ -6,10 +6,11 @@ export async function generateStaticParams() {
   return [{ lang: 'bg' }, { lang: 'en' }];
 }
 
-export default function BookingPage({
+export default async function BookingPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
 }) {
-  return <BookingPageClient />;
+  const resolvedParams = await params;
+  return <BookingPageClient lang={resolvedParams.lang} />;
 }

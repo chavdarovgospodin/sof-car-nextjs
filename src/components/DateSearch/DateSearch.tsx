@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Box,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Grid,
-  Alert,
-} from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Box, Paper, Button, Typography, Grid, Alert } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Search, CalendarToday, AccessTime } from '@mui/icons-material';
+import {
+  calculateDays,
+  getDefaultTime,
+  getMaxEndDate,
+  getMinEndDate,
+  roundToNearest15Minutes,
+  encodeDateRange,
+  decodeDateRange,
+} from '@/utils/dateUtils';
 
 interface DateSearchProps {
   onSearch: (startDate: Date | null, endDate: Date | null) => void;
@@ -26,51 +28,55 @@ export const DateSearch: React.FC<DateSearchProps> = ({
   isLoading = false,
   t,
 }) => {
-  // Дефолтен час 9:00 сутринта
-  const getDefaultTime = (date: Date): Date => {
-    const defaultDate = new Date(date);
-    defaultDate.setHours(9, 0, 0, 0);
-    return defaultDate;
-  };
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const hasInitialized = useRef(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const [startDate, setStartDate] = useState<Date | null>(() => {
-    const today = new Date();
-    return getDefaultTime(today);
-  });
-  const [endDate, setEndDate] = useState<Date | null>(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return getDefaultTime(tomorrow);
   });
+  const [endDate, setEndDate] = useState<Date | null>(() => {
+    const fiveDaysLater = new Date();
+    fiveDaysLater.setDate(fiveDaysLater.getDate() + 6); // tomorrow + 5 days
+    return getDefaultTime(fiveDaysLater);
+  });
   const [error, setError] = useState<string>('');
 
-  // Функция за закръгляне на минутите до най-близките 15 минути
-  const roundToNearest15Minutes = (date: Date): Date => {
-    const minutes = date.getMinutes();
-    const roundedMinutes = Math.round(minutes / 15) * 15;
-    const newDate = new Date(date);
-    newDate.setMinutes(roundedMinutes, 0, 0);
-    return newDate;
-  };
+  // Load dates from URL parameters on component mount
+  useEffect(() => {
+    const dateParam = searchParams.get('d'); // Use 'd' for date range
 
-  // Функция за изчисляване на дните между две дати
-  const calculateDays = (start: Date, end: Date): number => {
-    const diffTime = end.getTime() - start.getTime();
-    const diffHours = diffTime / (1000 * 60 * 60);
-    const diffDays = diffHours / 24;
+    if (dateParam) {
+      try {
+        // Set loading state immediately
+        setIsInitializing(true);
 
-    // Ако е минало 24 часа, считаме за 2 дни
-    if (diffHours > 24) {
-      return Math.ceil(diffDays);
+        // Decode the compressed date range
+        const { startDate: start, endDate: end } = decodeDateRange(dateParam);
+
+        // Validate dates
+        if (start && end && start < end && start > new Date()) {
+          setStartDate(start);
+          setEndDate(end);
+
+          // Only trigger search on initial load, not from URL updates
+          if (!hasInitialized.current) {
+            hasInitialized.current = true;
+            // Trigger search immediately without delay
+            onSearch(start, end);
+          }
+        }
+      } catch (error) {
+        console.warn('Invalid date parameter in URL:', error);
+      } finally {
+        // Always clear loading state
+        setIsInitializing(false);
+      }
     }
-
-    // Ако е под 24 часа, но е след полунощ, считаме за 1 ден
-    if (start.getDate() !== end.getDate()) {
-      return 1;
-    }
-
-    return 0;
-  };
+  }, [searchParams]); // Remove onSearch from dependencies to prevent infinite loop
 
   const handleSearch = () => {
     if (!startDate || !endDate) {
@@ -83,38 +89,34 @@ export const DateSearch: React.FC<DateSearchProps> = ({
       return;
     }
 
-    // Поправяме валидацията - позволяваме днешната дата
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Нулираме часовете за сравнение
+    // Валидацията - не позволяваме днешната дата
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0); // Нулираме часовете за сравнение
 
-    if (startDate < today) {
-      setError('Началната дата не може да е в миналото');
+    if (startDate < tomorrow) {
+      setError('Началната дата трябва да е от утре нататък');
       return;
     }
 
     // Изчисляваме дните
     const days = calculateDays(startDate, endDate);
-    if (days === 0) {
-      setError('Минималният период е 1 ден');
+    if (days < 5) {
+      setError('Минималният период е 5 дни');
       return;
     }
 
     setError('');
+
+    // Encode dates in URL with compressed format
+    const params = new URLSearchParams();
+    const encodedDates = encodeDateRange(startDate, endDate);
+    params.set('d', encodedDates);
+
+    // Update URL without page reload
+    router.push(`?${params.toString()}`, { scroll: false });
+
     onSearch(startDate, endDate);
-  };
-
-  const getMinEndDate = () => {
-    if (!startDate) return undefined;
-    const minDate = new Date(startDate);
-    minDate.setMinutes(minDate.getMinutes() + 15); // Минимум 15 минути разлика
-    return minDate;
-  };
-
-  const getMaxEndDate = () => {
-    if (!startDate) return undefined;
-    const maxDate = new Date(startDate);
-    maxDate.setDate(maxDate.getDate() + 30); // Max 30 дни rental
-    return maxDate;
   };
 
   // Функция за обработка на промяна на начална дата
@@ -123,14 +125,18 @@ export const DateSearch: React.FC<DateSearchProps> = ({
       const roundedDate = roundToNearest15Minutes(newValue);
       setStartDate(roundedDate);
 
-      // Ако крайната дата е преди новата начална дата, я нулираме
-      if (endDate && endDate <= roundedDate) {
-        setEndDate(null);
-      }
+      // Автоматично задаваме крайната дата на 5 дни след началната
+      const fiveDaysLater = new Date(roundedDate);
+      fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
+      setEndDate(getDefaultTime(fiveDaysLater));
+
+      // Close the picker after selection
+      closeTimePicker();
     } else {
-      // Ако се нулира началната дата, задаваме дефолтна
-      const today = new Date();
-      setStartDate(getDefaultTime(today));
+      // Ако се нулира началната дата, задаваме дефолтна (утре 9:00)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setStartDate(getDefaultTime(tomorrow));
     }
     setError('');
   };
@@ -140,13 +146,32 @@ export const DateSearch: React.FC<DateSearchProps> = ({
     if (newValue) {
       const roundedDate = roundToNearest15Minutes(newValue);
       setEndDate(roundedDate);
+
+      // Close the picker after selection
+      closeTimePicker();
     } else {
-      // Ако се нулира крайната дата, задаваме дефолтна (утре 9:00)
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      setEndDate(getDefaultTime(tomorrow));
+      // Ако се нулира крайната дата, задаваме дефолтна (5 дни след началната дата)
+      if (startDate) {
+        const fiveDaysLater = new Date(startDate);
+        fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
+        setEndDate(getDefaultTime(fiveDaysLater));
+      } else {
+        const fiveDaysLater = new Date();
+        fiveDaysLater.setDate(fiveDaysLater.getDate() + 6); // tomorrow + 5 days
+        setEndDate(getDefaultTime(fiveDaysLater));
+      }
     }
     setError('');
+  };
+
+  // Helper function to close time picker after selection
+  const closeTimePicker = () => {
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.blur) {
+        activeElement.blur();
+      }
+    }, 100); // Small delay to ensure the picker has processed the selection
   };
 
   return (
@@ -161,6 +186,13 @@ export const DateSearch: React.FC<DateSearchProps> = ({
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
       }}
     >
+      {isInitializing && (
+        <Box sx={{ textAlign: 'center', py: 2, mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('booking.loadingDates')}
+          </Typography>
+        </Box>
+      )}
       <Typography
         variant="h4"
         component="h2"
@@ -172,23 +204,39 @@ export const DateSearch: React.FC<DateSearchProps> = ({
           fontSize: { xs: '1.5rem', md: '2rem' },
         }}
       >
-        {t('searchTitle')}
+        {t('booking.searchTitle')}
       </Typography>
 
       <Grid container spacing={4} alignItems="center">
         <Grid size={{ xs: 12, md: 4 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateTimePicker
-              label={t('startDate')}
+              disableHighlightToday
+              label={t('booking.startDate')}
               value={startDate}
+              disabled={isLoading || isInitializing || !startDate || !endDate}
               onChange={handleStartDateChange}
-              minDate={new Date()}
+              minDateTime={(() => {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+                return tomorrow;
+              })()}
               ampm={false}
               format="dd/MM/yyyy HH:mm"
+              closeOnSelect={true}
+              autoFocus={false}
               slotProps={{
                 textField: {
                   fullWidth: true,
                   variant: 'outlined',
+                  onClick: (e) => {
+                    // Open the date/time picker when clicking anywhere on the input
+                    const input = e.currentTarget.querySelector('input');
+                    if (input) {
+                      input.focus();
+                    }
+                  },
                   InputProps: {
                     startAdornment: (
                       <CalendarToday
@@ -197,12 +245,17 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                     ),
                   },
                   sx: {
+                    cursor: 'pointer',
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#1976d2',
                         },
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -210,6 +263,9 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                           borderWidth: 2,
                         },
                       },
+                    },
+                    '& .MuiInputBase-input': {
+                      cursor: 'pointer',
                     },
                   },
                 },
@@ -241,30 +297,44 @@ export const DateSearch: React.FC<DateSearchProps> = ({
         <Grid size={{ xs: 12, md: 4 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateTimePicker
-              label={t('endDate')}
+              label={t('booking.endDate')}
               value={endDate}
               onChange={handleEndDateChange}
-              minDate={getMinEndDate()}
-              maxDate={getMaxEndDate()}
-              disabled={!startDate}
+              minDateTime={startDate ? getMinEndDate(startDate) : undefined}
+              maxDateTime={startDate ? getMaxEndDate(startDate) : undefined}
+              disabled={isLoading || isInitializing || !startDate || !endDate}
               ampm={false}
               format="dd/MM/yyyy HH:mm"
+              closeOnSelect={true}
+              autoFocus={false}
               slotProps={{
                 textField: {
                   fullWidth: true,
                   variant: 'outlined',
+                  onClick: (e) => {
+                    // Open the date/time picker when clicking anywhere on the input
+                    const input = e.currentTarget.querySelector('input');
+                    if (input) {
+                      input.focus();
+                    }
+                  },
                   InputProps: {
                     startAdornment: (
                       <AccessTime sx={{ marginRight: 1, color: '#1976d2' }} />
                     ),
                   },
                   sx: {
+                    cursor: 'pointer',
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#1976d2',
                         },
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -272,6 +342,9 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                           borderWidth: 2,
                         },
                       },
+                    },
+                    '& .MuiInputBase-input': {
+                      cursor: 'pointer',
                     },
                     '& .MuiInputLabel-root': {
                       color: startDate ? '#1976d2' : '#666',
@@ -309,7 +382,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
             fullWidth
             size="large"
             onClick={handleSearch}
-            disabled={isLoading || !startDate || !endDate}
+            disabled={isLoading || isInitializing || !startDate || !endDate}
             startIcon={<Search />}
             sx={{
               backgroundColor: '#1976d2',
@@ -325,7 +398,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
             }}
           >
-            {isLoading ? 'Търся...' : t('searchButton')}
+            {isLoading ? 'Търся...' : t('booking.searchButton')}
           </Button>
         </Grid>
       </Grid>
@@ -354,7 +427,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
             fontWeight: 500,
           }}
         >
-          {t('dateRangeInfo')}
+          {t('booking.dateRangeInfo')}
         </Typography>
       </Box>
     </Paper>
