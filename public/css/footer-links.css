@@ -1,0 +1,35 @@
+/* Footer Links Styles */
+/* Стилове за footer линковете */
+
+/* Footer Links */
+.footer-links {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.footer-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin: 10px;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #3498db;
+  text-decoration: underline;
+}
+
+/* Responsive Footer Links */
+@media (max-width: 576px) {
+  .footer-links {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .footer-links a {
+    font-size: 0.85rem;
+  }
+}

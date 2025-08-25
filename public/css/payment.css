@@ -1,0 +1,156 @@
+/* Compact Payment Section */
+.payment-section-compact {
+  padding: 1em 0;
+  background: linear-gradient(359deg, #4c5c85 0%, #c2fbff 100%);
+  border-top: 1px solid #e0e0e0;
+}
+
+.payment-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2em;
+  flex-wrap: wrap;
+  margin-bottom: 0.5em;
+}
+
+/* Security Badge */
+.security-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  background: #4caf50;
+  color: white;
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+.security-badge i {
+  font-size: 1em;
+}
+
+/* Eco Badge */
+.eco-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  background: #2e7d32;
+  color: white;
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+.eco-badge i {
+  font-size: 1em;
+}
+
+/* Payment Cards Compact */
+.payment-cards-compact {
+  display: flex;
+  gap: 1em;
+  align-items: center;
+}
+
+.payment-cards-compact i {
+  font-size: 2.5em;
+  transition: transform 0.2s ease;
+}
+
+.payment-cards-compact .fa-cc-visa {
+  color: #1a1f71;
+}
+
+.payment-cards-compact .fa-cc-mastercard {
+  color: #eb001b;
+}
+
+.payment-cards-compact i:hover {
+  transform: scale(1.1);
+}
+
+/* Protection Badge */
+.protection-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  background: #2196f3;
+  color: white;
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 700;
+  border: 2px solid #1976d2;
+}
+
+.protection-badge i {
+  font-size: 1em;
+}
+
+/* Payment Note */
+.payment-note {
+  text-align: center;
+  font-size: 0.85em;
+  color: #fff;
+  margin: 0;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .payment-strip {
+    gap: 1em;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .security-badge,
+  .eco-badge,
+  .protection-badge {
+    font-size: 0.7em;
+    padding: 0.3em 0.6em;
+  }
+
+  .payment-cards-compact i {
+    font-size: 2em;
+  }
+
+  .payment-note {
+    font-size: 0.8em;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .payment-section-compact {
+    padding: 1.5em 0;
+  }
+
+  .payment-strip {
+    gap: 0.8em;
+    flex-wrap: wrap;
+  }
+
+  .security-badge,
+  .eco-badge,
+  .protection-badge {
+    font-size: 0.65em;
+    padding: 0.25em 0.5em;
+  }
+
+  .payment-cards-compact {
+    gap: 0.8em;
+  }
+
+  .payment-cards-compact i {
+    font-size: 1.8em;
+  }
+
+  .payment-note {
+    font-size: 0.75em;
+    margin-top: 0.5em;
+  }
+}

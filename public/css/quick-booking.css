@@ -1,0 +1,255 @@
+/* Quick Booking Form Styles */
+/* Стилове за бързата резервация на главната страница */
+
+.quick-booking-section {
+  padding: 4rem 0;
+  margin-top: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  position: relative;
+}
+
+.quick-booking-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #dee2e6, transparent);
+}
+
+.booking-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.booking-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.booking-header h2 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.booking-header p {
+  font-size: 1.2rem;
+  color: #6c757d;
+  margin-bottom: 3rem;
+}
+
+.booking-form {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 1.5rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  text-align: left;
+}
+
+.form-group:nth-child(4) {
+  display: flex;
+  justify-content: center;
+}
+
+.form-group #car-class {
+  height: 58px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid rgba(106, 104, 104, 0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+  background: white;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2980b9, #2574a9);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #27ae60, #229954);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #229954, #1e8449);
+  transform: translateY(-2px);
+}
+
+.price-result {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.price-info {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.days-count {
+  display: block;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.total-price {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.booking-errors {
+  background: #e74c3c;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.booking-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+  padding-left: 1rem;
+}
+
+.booking-info .info-item i.fas {
+  font-family: 'Font Awesome 5 Free' !important;
+  font-weight: 900 !important;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.info-item i {
+  color: #3498db;
+  font-size: 1.2rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Responsive Design for Quick Booking */
+@media (max-width: 992px) {
+  .quick-booking-section {
+    padding: 3rem 0;
+  }
+
+  .booking-header h2 {
+    font-size: 2rem;
+  }
+
+  .booking-form {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    grid-column: span 1 !important;
+  }
+
+  .form-group:nth-child(4) {
+    display: flex;
+    justify-content: center;
+  }
+
+  .booking-info {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-header h2 {
+    font-size: 1rem;
+  }
+
+  .booking-header p {
+    font-size: 0.8rem;
+  }
+
+  .booking-form {
+    padding: 1rem;
+  }
+
+  .btn-primary,
+  #continue-booking {
+    font-size: 12px;
+  }
+}

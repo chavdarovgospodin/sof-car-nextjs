@@ -1,0 +1,11 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Host
+Host: https://sof-car.eu
+
+# Sitemaps
+Sitemap: https://sof-car.eu/sitemap.xml
