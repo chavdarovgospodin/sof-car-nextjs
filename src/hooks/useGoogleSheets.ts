@@ -45,6 +45,7 @@ export function useBookCar() {
       clientName: string;
       clientPhone: string;
       clientEmail: string;
+      paymentMethod: string;
     }) => googleSheetsService.createReservation(bookingData),
     onSuccess: (data, variables) => {
       // Инвалидираме кеша за наличните автомобили

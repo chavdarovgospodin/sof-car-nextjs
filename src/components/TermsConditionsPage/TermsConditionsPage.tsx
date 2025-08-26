@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   Box,
   Container,
@@ -21,10 +22,17 @@ import {
   Payment,
   Business,
 } from '@mui/icons-material';
-import { useTranslations } from '@/hooks/useTranslations';
 
-export function TermsConditionsPage() {
-  const { currentLang } = useTranslations();
+interface TermsConditionsPageProps {
+  lang: Promise<string>;
+}
+
+export function TermsConditionsPage({ lang }: TermsConditionsPageProps) {
+  const [currentLang, setCurrentLang] = React.useState('bg');
+
+  React.useEffect(() => {
+    lang.then(setCurrentLang);
+  }, [lang]);
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>

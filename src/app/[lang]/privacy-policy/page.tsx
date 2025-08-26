@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { PrivacyPolicyPage } from '@/components/PrivacyPolicyPage/PrivacyPolicyPage';
 
 // Generate static params for static export
@@ -84,6 +85,14 @@ export async function generateMetadata({
   };
 }
 
-export default function PrivacyPolicyPageRoute() {
-  return <PrivacyPolicyPage />;
+export default function PrivacyPolicyPageRoute({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PrivacyPolicyPage lang={params.then((p) => p.lang)} />
+    </Suspense>
+  );
 }

@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { Button, Menu, MenuItem } from '@mui/material';
 import { useState } from 'react';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import { SUPPORTED_LANGUAGES } from '@/utils/constants';
 
 export function LanguageSwitcher() {
@@ -11,6 +12,9 @@ export function LanguageSwitcher() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const currentLang = pathname.split('/')[1] || 'bg';
+
+  // Use custom scroll lock hook
+  useScrollLock(Boolean(anchorEl));
 
   const handleLanguageChange = (langCode: string) => {
     const currentPath = pathname.replace(/^\/[a-z]{2}/, '');
@@ -57,6 +61,30 @@ export function LanguageSwitcher() {
         transformOrigin={{
           vertical: 'top',
           horizontal: 'right',
+        }}
+        disableScrollLock={true}
+        slotProps={{
+          paper: {
+            sx: {
+              overflow: 'visible',
+              mt: 1,
+              transition: 'all 0.2s ease-in-out',
+              '&:before': {
+                content: '""',
+                display: 'block',
+                position: 'absolute',
+                top: 0,
+                right: 20,
+                width: 0,
+                height: 0,
+                transform: 'translateX(50%)',
+                borderLeft: '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderBottom: '8px solid white',
+                filter: 'drop-shadow(0 -1px 2px rgba(0,0,0,0.1))',
+              },
+            },
+          },
         }}
       >
         {SUPPORTED_LANGUAGES.map((lang) => (

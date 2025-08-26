@@ -68,10 +68,3 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 export const DEFAULT_LANGUAGE = 'bg';
-
-export const BOOKING_STEPS = [
-  { id: 1, name: { bg: 'Информация за клиент', en: 'Customer Information' } },
-  { id: 2, name: { bg: 'Избор на автомобил', en: 'Car Selection' } },
-  { id: 3, name: { bg: 'Детайли за наема', en: 'Rental Details' } },
-  { id: 4, name: { bg: 'Плащане', en: 'Payment' } },
-];

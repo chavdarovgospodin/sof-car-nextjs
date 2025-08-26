@@ -16,6 +16,7 @@
   }
 }
 
+/* Prevent layout shift when scrollbar appears/disappears */
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -24,6 +25,15 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  /* Prevent layout shift when scrollbar appears/disappears */
+  overflow-y: scroll !important;
+  /* Ensure consistent scrollbar width */
+  scrollbar-gutter: stable;
+}
+
+/* Prevent layout shift on all browsers */
+html {
+  scrollbar-gutter: stable;
 }
 
 /* Custom scrollbar */
@@ -83,4 +93,71 @@ body {
 
 .fade-in {
   animation: fadeIn 0.5s ease-out;
+}
+
+/* Prevent layout shift when dropdowns open */
+.MuiMenu-root {
+  z-index: 1300 !important;
+}
+
+.MuiDrawer-root {
+  z-index: 1200 !important;
+}
+
+/* Ensure consistent positioning */
+.MuiMenu-paper {
+  margin-top: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+}
+
+/* Ensure dropdowns don't cause layout shifts */
+.MuiMenu-root,
+.MuiDrawer-root {
+  position: fixed !important;
+}
+
+/* Ensure consistent scrollbar behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent layout shift on dropdown open */
+.MuiMenu-root[data-popper-placement*='bottom'] .MuiMenu-paper {
+  margin-top: 8px !important;
+}
+
+.MuiMenu-root[data-popper-placement*='top'] .MuiMenu-paper {
+  margin-bottom: 8px !important;
+}
+
+/* Additional z-index management */
+.MuiPopper-root {
+  z-index: 1300 !important;
+}
+
+.MuiModal-root {
+  z-index: 1200 !important;
+}
+
+/* Ensure smooth animations */
+.MuiMenu-paper,
+.MuiDrawer-paper {
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Prevent any potential overflow issues */
+.MuiMenu-root {
+  overflow: visible !important;
+}
+
+/* Simple approach: prevent body overflow from changing */
+body {
+  /* Force scrollbar to always be visible */
+  overflow-y: scroll !important;
+}
+
+/* Override any Material-UI attempts to hide scrollbar */
+body[style*='overflow: hidden'] {
+  overflow-y: scroll !important;
 }

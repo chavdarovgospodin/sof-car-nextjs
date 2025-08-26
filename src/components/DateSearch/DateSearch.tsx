@@ -398,7 +398,9 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
             }}
           >
-            {isLoading ? 'Търся...' : t('booking.searchButton')}
+            {isLoading
+              ? t('booking.searchButtonLoading')
+              : t('booking.searchButton')}
           </Button>
         </Grid>
       </Grid>

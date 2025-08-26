@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   Box,
   Container,
@@ -22,10 +23,17 @@ import {
   LocationOn,
   Person,
 } from '@mui/icons-material';
-import { useTranslations } from '@/hooks/useTranslations';
 
-export function PrivacyPolicyPage() {
-  const { currentLang } = useTranslations();
+interface PrivacyPolicyPageProps {
+  lang: Promise<string>;
+}
+
+export function PrivacyPolicyPage({ lang }: PrivacyPolicyPageProps) {
+  const [currentLang, setCurrentLang] = React.useState('bg');
+
+  React.useEffect(() => {
+    lang.then(setCurrentLang);
+  }, [lang]);
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>

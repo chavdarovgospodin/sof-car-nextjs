@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { ServicesPage } from '@/components/ServicesPage/ServicesPage';
 
 // Generate static params for static export
@@ -84,6 +85,14 @@ export async function generateMetadata({
   };
 }
 
-export default function ServicesPageRoute() {
-  return <ServicesPage />;
+export default function ServicesPageRoute({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ServicesPage lang={params.then((p) => p.lang)} />
+    </Suspense>
+  );
 }

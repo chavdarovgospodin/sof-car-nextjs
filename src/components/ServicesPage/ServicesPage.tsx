@@ -15,16 +15,23 @@ import {
 import {
   DirectionsCar,
   Business,
-  Flight,
   CheckCircle,
   Speed,
   Security,
   Support,
 } from '@mui/icons-material';
-import { useTranslations } from '@/hooks/useTranslations';
+import React from 'react';
 
-export function ServicesPage() {
-  const { currentLang } = useTranslations();
+interface ServicesPageProps {
+  lang: Promise<string>;
+}
+
+export function ServicesPage({ lang }: ServicesPageProps) {
+  const [currentLang, setCurrentLang] = React.useState('bg');
+
+  React.useEffect(() => {
+    lang.then(setCurrentLang);
+  }, [lang]);
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>

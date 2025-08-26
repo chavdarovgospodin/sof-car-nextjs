@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import {
   Box,
   Container,
@@ -8,11 +8,6 @@ import {
   Grid,
   CircularProgress,
   Alert,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Snackbar,
 } from '@mui/material';
 import { DateSearch } from '../DateSearch/DateSearch';
@@ -101,6 +96,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
     clientName: string;
     clientPhone: string;
     clientEmail: string;
+    paymentMethod: string;
   }) => {
     if (!selectedCar || !searchDates.start || !searchDates.end) return;
 
@@ -187,7 +183,9 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
           </Typography>
         </Box>
 
-        <DateSearch onSearch={handleSearch} isLoading={isLoading} t={t} />
+        <Suspense fallback={<CircularProgress />}>
+          <DateSearch onSearch={handleSearch} isLoading={isLoading} t={t} />
+        </Suspense>
 
         {error && (
           <Alert severity="error" sx={{ marginBottom: 3 }}>
@@ -342,30 +340,17 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
           </Box>
         )}
 
-        <Dialog
-          open={showBookingForm}
-          onClose={handleCloseBookingForm}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {t('booking.title')} {selectedCar?.make} {selectedCar?.model}
-          </DialogTitle>
-          <DialogContent>
-            {selectedCar && (
-              <BookingForm
-                car={selectedCar}
-                searchDates={searchDates}
-                onSubmit={handleBookingSubmit}
-                isLoading={bookCarMutation.isPending}
-                t={t}
-              />
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseBookingForm}>Отказ</Button>
-          </DialogActions>
-        </Dialog>
+        {selectedCar && (
+          <BookingForm
+            car={selectedCar}
+            searchDates={searchDates}
+            onSubmit={handleBookingSubmit}
+            isLoading={bookCarMutation.isPending}
+            t={t}
+            open={showBookingForm}
+            onClose={handleCloseBookingForm}
+          />
+        )}
 
         <Snackbar
           open={snackbar.open}

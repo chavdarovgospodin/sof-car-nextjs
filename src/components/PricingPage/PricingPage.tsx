@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   Box,
   Container,
@@ -27,10 +28,17 @@ import {
   LocationOn,
   Flight,
 } from '@mui/icons-material';
-import { useTranslations } from '@/hooks/useTranslations';
 
-export function PricingPage() {
-  const { currentLang } = useTranslations();
+interface PricingPageProps {
+  lang: Promise<string>;
+}
+
+export function PricingPage({ lang }: PricingPageProps) {
+  const [currentLang, setCurrentLang] = React.useState('bg');
+
+  React.useEffect(() => {
+    lang.then(setCurrentLang);
+  }, [lang]);
 
   const pricingData = [
     {

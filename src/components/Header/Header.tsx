@@ -23,13 +23,12 @@ import {
   Close,
   ExpandMore,
   Info,
-  DirectionsCar,
-  ContactSupport,
 } from '@mui/icons-material';
 import { LanguageSwitcher } from '../LanguageSwitcher/LanguageSwitcher';
 import { APP_CONFIG } from '@/utils/constants';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useState } from 'react';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -39,6 +38,9 @@ export function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { t, currentLang } = useTranslations();
+
+  // Use custom scroll lock hook
+  useScrollLock(mobileOpen || Boolean(infoAnchorEl));
 
   const navigationItems = [
     {
@@ -249,6 +251,30 @@ export function Header() {
                 vertical: 'top',
                 horizontal: 'center',
               }}
+              disableScrollLock={true}
+              slotProps={{
+                paper: {
+                  sx: {
+                    overflow: 'visible',
+                    mt: 1,
+                    transition: 'all 0.2s ease-in-out',
+                    '&:before': {
+                      content: '""',
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      left: '50%',
+                      width: 0,
+                      height: 0,
+                      transform: 'translateX(-50%)',
+                      borderLeft: '8px solid transparent',
+                      borderRight: '8px solid transparent',
+                      borderBottom: '8px solid white',
+                      filter: 'drop-shadow(0 -1px 2px rgba(0,0,0,0.1))',
+                    },
+                  },
+                },
+              }}
             >
               {infoItems.map((infoItem) => (
                 <MenuItem
@@ -319,6 +345,7 @@ export function Header() {
         onClose={handleDrawerToggle}
         ModalProps={{
           keepMounted: true,
+          disableScrollLock: true,
         }}
         sx={{
           display: { xs: 'block', md: 'none' },

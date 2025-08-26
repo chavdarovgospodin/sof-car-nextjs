@@ -17,6 +17,7 @@ export interface BookingData {
   clientName: string;
   clientPhone: string;
   clientEmail: string;
+  paymentMethod: string;
 }
 
 export interface BookingResponse {
