@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { googleSheetsService, CarData } from '../services/googleSheets';
+import { googleSheetsService } from '../services/googleSheets';
 
 // Query keys
 export const googleSheetsKeys = {

@@ -27,8 +27,6 @@ interface CarCardProps {
 }
 
 export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
-  console.log(car);
-
   // Calculate total price for the rental period
   const calculateTotalPrice = () => {
     if (!rentalDates?.start || !rentalDates?.end) {

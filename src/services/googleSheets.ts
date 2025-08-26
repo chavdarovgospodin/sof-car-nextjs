@@ -7,7 +7,7 @@ export interface CarData {
   price: number;
   imageUrl: string;
   description: string;
-  minAvailable?: number;
+  minAvailable: number;
 }
 
 export interface BookingData {
@@ -46,19 +46,13 @@ export class GoogleSheetsService {
     startDate: string,
     endDate: string
   ): Promise<CarData[]> {
-    if (!this.webAppUrl) {
-      throw new Error('Google Apps Script Web App URL не е конфигуриран');
-    }
-
     try {
-      const url = new URL(this.webAppUrl);
-      url.searchParams.append('action', 'getAvailableCars');
-      url.searchParams.append('startDate', startDate);
-      url.searchParams.append('endDate', endDate);
-
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-      });
+      const response = await fetch(
+        `/api/cars?startDate=${startDate}&endDate=${endDate}`,
+        {
+          method: 'GET',
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -78,23 +72,42 @@ export class GoogleSheetsService {
   }
 
   /**
+   * Получава всички автомобили (за тестване)
+   */
+  async getAllCars(): Promise<CarData[]> {
+    try {
+      const response = await fetch('/api/cars/all', {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Грешка при получаване на данни');
+      }
+
+      return result.data || [];
+    } catch (error) {
+      console.error('Error in getAllCars:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Запазва автомобил (създава резервация)
    */
   async createReservation(bookingData: BookingData): Promise<BookingResponse> {
-    if (!this.webAppUrl) {
-      throw new Error('Google Apps Script Web App URL не е конфигуриран');
-    }
-
     try {
-      const response = await fetch(this.webAppUrl, {
+      const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          action: 'bookCar',
-          ...bookingData,
-        }),
+        body: JSON.stringify(bookingData),
       });
 
       if (!response.ok) {
@@ -107,7 +120,7 @@ export class GoogleSheetsService {
         throw new Error(result.error || 'Грешка при запазване на автомобил');
       }
 
-      return result.data;
+      return result;
     } catch (error) {
       console.error('Error in createReservation:', error);
       throw error;
@@ -131,6 +144,19 @@ export class GoogleSheetsService {
     } catch (error) {
       console.error('Error in checkAvailability:', error);
       return false;
+    }
+  }
+
+  /**
+   * Получава детайли за конкретен автомобил
+   */
+  async getCarById(carId: string): Promise<CarData | null> {
+    try {
+      const allCars = await this.getAllCars();
+      return allCars.find((car) => car.id === carId) || null;
+    } catch (error) {
+      console.error('Error in getCarById:', error);
+      return null;
     }
   }
 
