@@ -14,7 +14,18 @@ import {
   Divider,
 } from '@mui/material';
 import { DirectionsCar, CheckCircle, Euro } from '@mui/icons-material';
-import { CarData } from '../../services/googleSheets';
+// TODO: Replace with actual backend types when implemented
+interface CarData {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  class: string;
+  price: number;
+  imageUrl?: string;
+  available: boolean;
+  features: string[];
+}
 
 interface CarCardProps {
   car: CarData;
@@ -98,7 +109,7 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
         {car.imageUrl ? (
           <Image
             src={car.imageUrl}
-            alt={`${car.make} ${car.model}`}
+            alt={`${car.brand} ${car.model}`}
             fill
             style={{
               objectFit: 'contain',
@@ -120,7 +131,7 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
             color: '#1976d2',
           }}
         >
-          {car.make} {car.model}
+          {car.brand} {car.model}
         </Typography>
 
         {/* Car Class and Year */}
@@ -143,7 +154,7 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
             lineHeight: 1.4,
           }}
         >
-          {car.description}
+          {car.brand} {car.model} - {car.year} година
         </Typography>
 
         <Divider sx={{ marginY: 1 }} />

@@ -27,10 +27,11 @@ import {
 import { LanguageSwitcher } from '../LanguageSwitcher/LanguageSwitcher';
 import { APP_CONFIG } from '@/utils/constants';
 import { useTranslations } from '@/hooks/useTranslations';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useScrollLock } from '@/hooks/useScrollLock';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -38,26 +39,48 @@ export function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { t, currentLang } = useTranslations();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Use custom scroll lock hook
   useScrollLock(mobileOpen || Boolean(infoAnchorEl));
 
+  // Обработка на hash в URL-а за автоматично скролиране
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash) {
+        const sectionId = hash.substring(1); // Премахваме #
+        // Изчакваме малко за да се зареди страницата
+        setTimeout(() => {
+          scrollToSection(sectionId);
+          // Премахваме hash-а от URL-а след скролирането
+          history.replaceState(null, '', window.location.pathname);
+        }, 100);
+      }
+    }
+  }, [pathname]); // Dependency on pathname to re-run when route changes
+
   const navigationItems = [
     {
-      href: `/${currentLang}#about`,
+      sectionId: 'about',
       label: currentLang === 'bg' ? 'За нас' : 'About Us',
+      isScroll: true,
     },
     {
       href: `/${currentLang}/booking`,
       label: currentLang === 'bg' ? 'Резервация' : 'Reservation',
+      isScroll: false,
     },
     {
-      href: `/${currentLang}#offers`,
+      sectionId: 'offers',
       label: currentLang === 'bg' ? 'Автомобили' : 'Cars',
+      isScroll: true,
     },
     {
-      href: `/${currentLang}#footer`,
+      sectionId: 'contact',
       label: currentLang === 'bg' ? 'Контакти' : 'Contact',
+      isScroll: true,
     },
   ];
 
@@ -93,6 +116,34 @@ export function Header() {
     setInfoAnchorEl(null);
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  };
+
+  const handleNavigationClick = (item: {
+    isScroll: boolean;
+    sectionId?: string;
+    href?: string;
+  }) => {
+    if (item.isScroll && item.sectionId) {
+      // Ако сме на друга страница (не на главната), първо навигираме към главната
+      if (pathname !== `/${currentLang}` && pathname !== `/${currentLang}/`) {
+        // Навигираме към главната страница с hash за да знае useEffect-а къде да скролира
+        router.push(`/${currentLang}#${item.sectionId}`);
+      } else {
+        // Ако сме на главната страница, просто скролираме
+        scrollToSection(item.sectionId);
+      }
+    }
+    // За линкове без scroll (като booking) няма нужда от допълнителна логика
+  };
+
   const drawer = (
     <Box sx={{ width: 280 }}>
       <Box
@@ -120,15 +171,21 @@ export function Header() {
       <List sx={{ p: 2 }}>
         {navigationItems.map((item) => (
           <ListItem
-            key={item.href}
-            component="a"
-            href={item.href}
-            onClick={handleDrawerToggle}
+            key={item.sectionId || item.href}
+            component={item.isScroll ? 'div' : 'a'}
+            href={item.isScroll ? undefined : item.href}
+            onClick={() => {
+              handleNavigationClick(item);
+              if (item.isScroll) {
+                handleDrawerToggle();
+              }
+            }}
             sx={{
               textDecoration: 'none',
               color: 'inherit',
               borderRadius: 1,
               mb: 1,
+              cursor: 'pointer',
               '&:hover': {
                 backgroundColor: 'action.hover',
               },
@@ -208,12 +265,16 @@ export function Header() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {navigationItems.map((item) => (
               <Button
-                key={item.href}
-                href={item.href}
+                key={item.sectionId || item.href}
+                href={item.isScroll ? undefined : item.href}
+                onClick={
+                  item.isScroll ? () => handleNavigationClick(item) : undefined
+                }
                 color="inherit"
                 sx={{
                   textTransform: 'none',
                   fontWeight: 500,
+                  cursor: item.isScroll ? 'pointer' : 'default',
                   '&:hover': {
                     backgroundColor: 'action.hover',
                   },

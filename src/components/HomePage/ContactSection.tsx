@@ -19,7 +19,7 @@ export function ContactSection({
   onShowSnackbar,
 }: ContactSectionProps) {
   return (
-    <Box sx={{ py: { xs: 6, md: 8 }, backgroundColor: 'grey.50' }}>
+    <Box id="contact" sx={{ py: { xs: 6, md: 8 }, backgroundColor: 'grey.50' }}>
       {/* Call to Action Header */}
       <Box sx={{ py: { xs: 6, md: 4 }, color: 'primary.light' }}>
         <Container maxWidth="lg" sx={{ textAlign: 'center' }}>

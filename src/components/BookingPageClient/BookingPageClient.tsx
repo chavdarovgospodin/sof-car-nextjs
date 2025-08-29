@@ -12,8 +12,42 @@ import {
 } from '@mui/material';
 import { DateSearch } from '../DateSearch/DateSearch';
 import { CarCard } from '../CarCard/CarCard';
-import { CarData } from '../../services/googleSheets';
-import { useAvailableCars, useBookCar } from '../../hooks/useGoogleSheets';
+// TODO: Replace with actual backend types when implemented
+interface CarData {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  class: string;
+  price: number;
+  imageUrl?: string;
+  available: boolean;
+  features: string[];
+}
+
+// TODO: Replace with actual backend hooks when implemented
+const useAvailableCars = (
+  _startDate: string,
+  _endDate: string,
+  _shouldSearch: boolean
+) => {
+  return {
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: () => {},
+  };
+};
+
+const useBookCar = () => {
+  return {
+    mutate: (_data: unknown) => {},
+    mutateAsync: async (_data: unknown) => ({ success: true }),
+    isLoading: false,
+    isPending: false,
+    error: null,
+  };
+};
 import { BookingForm } from '../BookingForm/BookingForm';
 import bgTranslations from '../../locales/bg/common.json';
 import enTranslations from '../../locales/en/common.json';
@@ -60,7 +94,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
 
   // React Query hook за налични автомобили
   const {
-    data: filteredCars = [],
+    data: filteredCars = [] as CarData[],
     isLoading,
     error,
     refetch,

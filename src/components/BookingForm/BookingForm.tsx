@@ -22,7 +22,25 @@ import {
   FormControl,
   FormLabel,
 } from '@mui/material';
-import { BookingData, CarData } from '../../services/googleSheets';
+// TODO: Replace with actual backend types when implemented
+interface CarData {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  class: string;
+  price: number;
+  imageUrl?: string;
+  available: boolean;
+  features: string[];
+}
+
+interface BookingData {
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  paymentMethod: string;
+}
 import Joi from 'joi';
 import { Controller, useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
@@ -146,7 +164,7 @@ export function BookingForm({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {t('booking.title')} {car.make} {car.model}
+        {t('booking.title')} {car.brand} {car.model}
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
@@ -172,7 +190,7 @@ export function BookingForm({
                   sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}
                 >
                   <Chip
-                    label={`${car.make} ${car.model}`}
+                    label={`${car.brand} ${car.model}`}
                     color="primary"
                     variant="outlined"
                     sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}

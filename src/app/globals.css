@@ -16,7 +16,6 @@
   }
 }
 
-/* Prevent layout shift when scrollbar appears/disappears */
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -26,7 +25,7 @@ body {
     )
     rgb(var(--background-start-rgb));
   /* Prevent layout shift when scrollbar appears/disappears */
-  overflow-y: scroll !important;
+  overflow-y: scroll;
   /* Ensure consistent scrollbar width */
   scrollbar-gutter: stable;
 }
@@ -151,13 +150,32 @@ html {
   overflow: visible !important;
 }
 
-/* Simple approach: prevent body overflow from changing */
-body {
-  /* Force scrollbar to always be visible */
-  overflow-y: scroll !important;
+/* Smooth navigation highlighting */
+.nav-item-active {
+  transition: all 0.3s ease-in-out !important;
 }
 
-/* Override any Material-UI attempts to hide scrollbar */
-body[style*='overflow: hidden'] {
-  overflow-y: scroll !important;
+/* Enhanced scroll behavior for modern browsers */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Smooth scroll for all scrollable elements */
+  * {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  * {
+    scroll-behavior: auto;
+    transition: none !important;
+    animation: none !important;
+  }
 }

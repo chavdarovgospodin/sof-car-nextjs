@@ -1,17 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'export', // Статичен export за cPanel - временно коментирано за development
-  // trailingSlash: true, // Временно коментирано за development
-  // images: {
-  //   unoptimized: true, // За static export - временно коментирано за development
-  // },
-  // Environment variables
-  env: {
-    NEXTAUTH_URL: 'https://sof-car.eu',
-    SITE_URL: 'https://sof-car.eu',
-  },
-  // Image configuration
+  // output: 'export', // Статичен export за cPanel - временно премахнато за dev
+  // trailingSlash: true, // За production - временно премахнато за dev
   images: {
+    unoptimized: true, // За static export
     remotePatterns: [
       {
         protocol: 'https',
@@ -22,6 +14,11 @@ const nextConfig = {
         hostname: 'via.placeholder.com',
       },
     ],
+  },
+  // Environment variables
+  env: {
+    NEXTAUTH_URL: 'https://sof-car.eu',
+    SITE_URL: 'https://sof-car.eu',
   },
   // Security headers - временно коментирано за development
   // async headers() {
