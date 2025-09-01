@@ -1,0 +1,376 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+
+// Updated types to match backend
+export interface AdminUser {
+  logged_in: boolean;
+  admin: string;
+  login_time: string;
+  session_expires: string;
+}
+
+export interface CarImage {
+  id: string;
+  image_url: string; // Backend uses 'image_url' not 'url'
+  image_name: string;
+  is_main: boolean;
+  sort_order: number;
+}
+
+export interface AdminCar {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  class: 'economy' | 'standard' | 'premium';
+  price_per_day: number;
+  deposit_amount: number;
+  is_active: boolean;
+  image_url: string | null; // Single image URL instead of car_images array
+  fuel_type: 'petrol' | 'diesel' | 'electric' | 'hybrid';
+  transmission: 'manual' | 'automatic';
+  features?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminBooking {
+  id: string;
+  car_id: string;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  start_date: string;
+  end_date: string;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  booking_reference: string;
+  cars?: {
+    brand: string;
+    model: string;
+    year: number;
+    class: string;
+  };
+  created_at: string;
+}
+
+// Create axios instance with default config
+const adminApi = axios.create({
+  baseURL: 'http://localhost:5002/',
+  withCredentials: true, // Important for cookies
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// API functions
+const adminApiFunctions = {
+  // Auth
+  login: async (credentials: { username: string; password: string }) => {
+    const response = await adminApi.post('/admin/login', credentials);
+    return response.data;
+  },
+
+  logout: async () => {
+    const response = await adminApi.post('/admin/logout');
+    return response.data;
+  },
+
+  checkStatus: async () => {
+    const response = await adminApi.get('/admin/status');
+    return response.data;
+  },
+
+  // Cars
+  getCars: async () => {
+    const response = await adminApi.get('/admin/cars');
+    return response.data;
+  },
+
+  createCar: async (carData: Partial<AdminCar>) => {
+    const response = await adminApi.post('/admin/cars', carData);
+    return response.data;
+  },
+
+  createCarWithImage: async (formData: FormData) => {
+    const response = await adminApi.post('/admin/cars', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  updateCar: async (id: string, carData: Partial<AdminCar>) => {
+    const response = await adminApi.put(`/admin/cars/${id}`, carData);
+    return response.data;
+  },
+
+  updateCarWithImage: async (id: string, formData: FormData) => {
+    const response = await adminApi.put(`/admin/cars/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteCar: async (id: string) => {
+    const response = await adminApi.delete(`/admin/cars/${id}`);
+    return response.data;
+  },
+
+  deleteCarImage: async (carId: string, imageId: string) => {
+    const response = await adminApi.delete(
+      `/admin/cars/${carId}/images/${imageId}`
+    );
+    return response.data;
+  },
+
+  // Bookings
+  getBookings: async (params?: {
+    status?: string;
+    car_id?: string;
+    start_date?: string;
+    end_date?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const response = await adminApi.get('/admin/bookings', { params });
+    return response.data;
+  },
+
+  updateBookingStatus: async (
+    id: string,
+    data: { status: string; admin_notes?: string }
+  ) => {
+    const response = await adminApi.put(`/admin/bookings/${id}/status`, data);
+    return response.data;
+  },
+};
+
+// Hook
+export const useAdmin = () => {
+  const queryClient = useQueryClient();
+
+  // Session check on mount
+  const {
+    data: adminUser,
+    isLoading: isLoadingUser,
+    refetch: refetchUser,
+    error: userError,
+  } = useQuery({
+    queryKey: ['admin', 'user'],
+    queryFn: async () => {
+      try {
+        // Check if user is authenticated via status endpoint
+        const statusResponse = await adminApiFunctions.checkStatus();
+        return statusResponse;
+      } catch (error) {
+        console.error('Session check failed:', error);
+        // If 401, user is not authenticated
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          queryClient.setQueryData(['admin', 'user'], null);
+          return null;
+        }
+        throw error;
+      }
+    },
+    enabled: true, // Enable to check session on mount
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Login mutation
+  const loginMutation = useMutation({
+    mutationFn: adminApiFunctions.login,
+    onSuccess: async (data) => {
+      if (data.success) {
+        // After successful login, fetch the actual admin status
+        try {
+          const statusData = await adminApiFunctions.checkStatus();
+          queryClient.setQueryData(['admin', 'user'], statusData);
+        } catch (error) {
+          console.error('Failed to get status after login:', error);
+          // Fallback: set basic user data from login response
+          queryClient.setQueryData(['admin', 'user'], {
+            logged_in: true,
+            admin: data.admin,
+            login_time: new Date().toISOString(),
+            session_expires: data.session_expires,
+          });
+        }
+      }
+    },
+    onError: (error) => {
+      console.error('Login failed:', error);
+    },
+  });
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: adminApiFunctions.logout,
+    onSuccess: () => {
+      queryClient.setQueryData(['admin', 'user'], null);
+      queryClient.removeQueries({ queryKey: ['admin'] });
+    },
+    onError: (error) => {
+      console.error('Logout failed:', error);
+      // Even if logout fails, clear local state
+      queryClient.setQueryData(['admin', 'user'], null);
+      queryClient.removeQueries({ queryKey: ['admin'] });
+    },
+  });
+
+  // Cars queries
+  const {
+    data: carsResponse,
+    isLoading: isLoadingCars,
+    refetch: refetchCars,
+    error: carsError,
+  } = useQuery({
+    queryKey: ['admin', 'cars'],
+    queryFn: adminApiFunctions.getCars,
+    enabled: !!adminUser?.logged_in,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 (unauthorized)
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        queryClient.setQueryData(['admin', 'user'], null);
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+
+  const createCarMutation = useMutation({
+    mutationFn: adminApiFunctions.createCar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
+  });
+
+  const createCarWithImageMutation = useMutation({
+    mutationFn: adminApiFunctions.createCarWithImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
+  });
+
+  const updateCarMutation = useMutation({
+    mutationFn: ({ id, carData }: { id: string; carData: Partial<AdminCar> }) =>
+      adminApiFunctions.updateCar(id, carData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
+  });
+
+  const updateCarWithImageMutation = useMutation({
+    mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
+      adminApiFunctions.updateCarWithImage(id, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
+  });
+
+  const deleteCarMutation = useMutation({
+    mutationFn: adminApiFunctions.deleteCar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
+  });
+
+  const deleteCarImageMutation = useMutation({
+    mutationFn: ({ carId, imageId }: { carId: string; imageId: string }) =>
+      adminApiFunctions.deleteCarImage(carId, imageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
+  });
+
+  // Bookings queries
+  const {
+    data: bookingsResponse,
+    isLoading: isLoadingBookings,
+    refetch: refetchBookings,
+    error: bookingsError,
+  } = useQuery({
+    queryKey: ['admin', 'bookings'],
+    queryFn: () => adminApiFunctions.getBookings(),
+    enabled: !!adminUser?.logged_in,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 (unauthorized)
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        queryClient.setQueryData(['admin', 'user'], null);
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+
+  const updateBookingStatusMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { status: string; admin_notes?: string };
+    }) => adminApiFunctions.updateBookingStatus(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'bookings'] });
+    },
+  });
+
+  // Extract data from backend responses
+  const cars = carsResponse?.cars || [];
+  const bookings = bookingsResponse?.bookings || [];
+
+  return {
+    // Data
+    adminUser,
+    cars,
+    bookings,
+    carsResponse,
+    bookingsResponse,
+
+    // Loading states
+    isLoadingUser,
+    isLoadingCars,
+    isLoadingBookings,
+
+    // Auth mutations
+    login: loginMutation.mutate,
+    logout: logoutMutation.mutate,
+    isLoggingIn: loginMutation.isPending,
+    isLoggingOut: logoutMutation.isPending,
+    loginMutation,
+
+    // Car mutations
+    createCar: createCarMutation.mutate,
+    createCarWithImage: createCarWithImageMutation.mutate,
+    updateCar: updateCarMutation.mutate,
+    updateCarWithImage: updateCarWithImageMutation.mutate,
+    deleteCar: deleteCarMutation.mutate,
+    deleteCarImage: deleteCarImageMutation.mutate,
+
+    isCreatingCar:
+      createCarMutation.isPending || createCarWithImageMutation.isPending,
+    isUpdatingCar:
+      updateCarMutation.isPending || updateCarWithImageMutation.isPending,
+    isDeletingCar: deleteCarMutation.isPending,
+    isDeletingCarImage: deleteCarImageMutation.isPending,
+
+    // Booking mutations
+    updateBookingStatus: updateBookingStatusMutation.mutate,
+    isUpdatingBookingStatus: updateBookingStatusMutation.isPending,
+
+    // Refetch functions
+    refetchUser,
+    refetchCars,
+    refetchBookings,
+
+    // Error states
+    userError,
+    carsError,
+    bookingsError,
+  };
+};

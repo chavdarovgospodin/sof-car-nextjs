@@ -13,19 +13,13 @@ import {
   Grid,
   Divider,
 } from '@mui/material';
-import { DirectionsCar, CheckCircle, Euro } from '@mui/icons-material';
-// TODO: Replace with actual backend types when implemented
-interface CarData {
-  id: string;
-  brand: string;
-  model: string;
-  year: number;
-  class: string;
-  price: number;
-  imageUrl?: string;
-  available: boolean;
-  features: string[];
-}
+import {
+  DirectionsCar,
+  CheckCircle,
+  Euro,
+  Security,
+} from '@mui/icons-material';
+import type { CarData } from '../../types/api';
 
 interface CarCardProps {
   car: CarData;
@@ -41,14 +35,14 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
   // Calculate total price for the rental period
   const calculateTotalPrice = () => {
     if (!rentalDates?.start || !rentalDates?.end) {
-      return car.price; // Return daily price if no dates
+      return car.price_per_day; // Return daily price if no dates
     }
 
     const diffTime = Math.abs(
       rentalDates.end.getTime() - rentalDates.start.getTime()
     );
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return car.price * diffDays;
+    return car.price_per_day * diffDays;
   };
 
   const totalPrice = calculateTotalPrice();
@@ -106,9 +100,9 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
           overflow: 'hidden',
         }}
       >
-        {car.imageUrl ? (
+        {car.image_url ? (
           <Image
-            src={car.imageUrl}
+            src={car.image_url}
             alt={`${car.brand} ${car.model}`}
             fill
             style={{
@@ -167,8 +161,8 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
             color="text.secondary"
             sx={{ fontSize: '0.875rem', marginBottom: 0.5 }}
           >
-            {t('booking.pricePerDay')}: {(car.price * 1.96).toFixed(0)} лв / ≈
-            {car.price.toFixed(2)} €
+            {t('booking.pricePerDay')}: {(car.price_per_day * 1.96).toFixed(0)}{' '}
+            лв / ≈{car.price_per_day.toFixed(2)} €
           </Typography>
 
           {/* Total Price */}
@@ -194,6 +188,40 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
             {totalPrice.toFixed(2)} € за {totalDays}{' '}
             {totalDays === 1 ? 'ден' : 'дни'}
           </Typography>
+
+          {/* Deposit Amount */}
+          <Box
+            sx={{
+              marginTop: 1,
+              padding: 1,
+              backgroundColor: '#fff3e0',
+              borderRadius: 1,
+              border: '1px solid #ffb74d',
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                color: '#e65100',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+            >
+              <Security sx={{ fontSize: 16 }} />
+              {t('booking.depositRequired')}:{' '}
+              {(car.deposit_amount * 1.96).toFixed(0)} лв / ≈
+              {car.deposit_amount.toFixed(2)} €
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontSize: '0.7rem', display: 'block', marginTop: 0.5 }}
+            >
+              {t('booking.depositInfo')}
+            </Typography>
+          </Box>
         </Box>
 
         {/* Price Inclusions */}

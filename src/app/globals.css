@@ -179,3 +179,14 @@ html {
     animation: none !important;
   }
 }
+
+/* Admin Layout - Hide Header and Footer */
+.admin-layout header,
+.admin-layout footer {
+  display: none !important;
+}
+
+.admin-layout {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}

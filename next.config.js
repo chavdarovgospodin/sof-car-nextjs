@@ -2,6 +2,10 @@
 const nextConfig = {
   // output: 'export', // Статичен export за cPanel - временно премахнато за dev
   // trailingSlash: true, // За production - временно премахнато за dev
+  // Development server configuration
+  devIndicators: {
+    buildActivity: true,
+  },
   images: {
     unoptimized: true, // За static export
     remotePatterns: [

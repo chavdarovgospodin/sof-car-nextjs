@@ -1,14 +1,74 @@
 'use client';
 
 import React from 'react';
-import { Box, Container, Typography, Grid, Paper } from '@mui/material';
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Paper,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
 import Image from 'next/image';
+import { useCars } from '../../hooks/useApi';
+import type { CarData } from '../../types/api';
 
 interface CarsSectionProps {
   currentLang: string;
 }
 
 export function CarsSection({ currentLang }: CarsSectionProps) {
+  const { data: carsResponse, isLoading, error } = useCars();
+
+  if (isLoading) {
+    return (
+      <Box
+        id="offers"
+        sx={{ py: { xs: 6, md: 8 }, backgroundColor: '#f8f9fa' }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        id="offers"
+        sx={{ py: { xs: 6, md: 8 }, backgroundColor: '#f8f9fa' }}
+      >
+        <Container maxWidth="lg">
+          <Alert severity="error">
+            {currentLang === 'bg'
+              ? 'Грешка при зареждане на автомобилите'
+              : 'Error loading cars'}
+          </Alert>
+        </Container>
+      </Box>
+    );
+  }
+
+  const cars: CarData[] =
+    carsResponse?.cars?.map((car) => ({
+      ...car,
+      imageUrl:
+        car.images && car.images.length > 0
+          ? car.images[0].image_url
+          : undefined,
+      available: true,
+      features: car.features || [],
+      price: car.price_per_day,
+    })) || [];
+
+  // Group cars by class
+  const economyCars = cars.filter((car) => car.class === 'economy');
+  const comfortCars = cars.filter((car) => car.class === 'comfort');
+  const premiumCars = cars.filter((car) => car.class === 'premium');
   return (
     <Box id="offers" sx={{ py: { xs: 6, md: 8 }, backgroundColor: '#f8f9fa' }}>
       <Container maxWidth="lg">
@@ -120,7 +180,16 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                     sx={{ fontSize: '1.1rem', fontWeight: '600' }}
                   >
                     {currentLang === 'bg' ? 'Цени от:' : 'Prices from:'}{' '}
-                    <strong>BGN 30.00</strong>{' '}
+                    <strong>
+                      BGN{' '}
+                      {economyCars.length > 0
+                        ? (
+                            Math.min(
+                              ...economyCars.map((c) => c.price_per_day)
+                            ) * 1.96
+                          ).toFixed(0)
+                        : '30.00'}
+                    </strong>{' '}
                     {currentLang === 'bg' ? 'на ден' : 'per day'}
                   </Typography>
                   <Box
@@ -134,12 +203,33 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                   >
                     <Typography
                       variant="body2"
-                      sx={{ fontSize: '0.9rem', lineHeight: 1.4 }}
+                      sx={{
+                        fontSize: '0.9rem',
+                        lineHeight: 1.4,
+                        marginBottom: 1,
+                      }}
                     >
                       {currentLang === 'bg'
                         ? 'Малки, практични и лесни за паркиране, колите от икономичен клас са идеални за шофиране по натоварените улици на големия град'
                         : 'Small, practical and easy to park, economy class cars are ideal for driving on busy city streets'}
                     </Typography>
+                    {economyCars.length > 0 && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: '0.8rem',
+                          opacity: 0.9,
+                          display: 'block',
+                        }}
+                      >
+                        {currentLang === 'bg' ? 'Депозит:' : 'Deposit:'} BGN{' '}
+                        {(
+                          Math.min(
+                            ...economyCars.map((c) => c.deposit_amount)
+                          ) * 1.96
+                        ).toFixed(0)}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Box>
@@ -231,7 +321,16 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                     sx={{ fontSize: '1.1rem', fontWeight: '600' }}
                   >
                     {currentLang === 'bg' ? 'Цени от:' : 'Prices from:'}{' '}
-                    <strong>BGN 50.00</strong>{' '}
+                    <strong>
+                      BGN{' '}
+                      {comfortCars.length > 0
+                        ? (
+                            Math.min(
+                              ...comfortCars.map((c) => c.price_per_day)
+                            ) * 1.96
+                          ).toFixed(0)
+                        : '50.00'}
+                    </strong>{' '}
                     {currentLang === 'bg' ? 'на ден' : 'per day'}
                   </Typography>
                   <Box
@@ -245,12 +344,33 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                   >
                     <Typography
                       variant="body2"
-                      sx={{ fontSize: '0.9rem', lineHeight: 1.4 }}
+                      sx={{
+                        fontSize: '0.9rem',
+                        lineHeight: 1.4,
+                        marginBottom: 1,
+                      }}
                     >
                       {currentLang === 'bg'
                         ? 'Стандартните коли са големи и удобни - идеални за семейни почивки и шофиране на голямо разстояние'
                         : 'Standard cars are large and comfortable - ideal for family vacations and long-distance driving'}
                     </Typography>
+                    {comfortCars.length > 0 && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: '0.8rem',
+                          opacity: 0.9,
+                          display: 'block',
+                        }}
+                      >
+                        {currentLang === 'bg' ? 'Депозит:' : 'Deposit:'} BGN{' '}
+                        {(
+                          Math.min(
+                            ...comfortCars.map((c) => c.deposit_amount)
+                          ) * 1.96
+                        ).toFixed(0)}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Box>
@@ -340,7 +460,16 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                     sx={{ fontSize: '1.1rem', fontWeight: '600' }}
                   >
                     {currentLang === 'bg' ? 'Цени от:' : 'Prices from:'}{' '}
-                    <strong>BGN 80.00</strong>{' '}
+                    <strong>
+                      BGN{' '}
+                      {premiumCars.length > 0
+                        ? (
+                            Math.min(
+                              ...premiumCars.map((c) => c.price_per_day)
+                            ) * 1.96
+                          ).toFixed(0)
+                        : '80.00'}
+                    </strong>{' '}
                     {currentLang === 'bg' ? 'на ден' : 'per day'}
                   </Typography>
                   <Box
@@ -354,12 +483,33 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                   >
                     <Typography
                       variant="body2"
-                      sx={{ fontSize: '0.9rem', lineHeight: 1.4 }}
+                      sx={{
+                        fontSize: '0.9rem',
+                        lineHeight: 1.4,
+                        marginBottom: 1,
+                      }}
                     >
                       {currentLang === 'bg'
                         ? 'Пристигате на мястоназначението си в удобство и лукс - в представителен автомобил от бизнес клас'
                         : 'Arrive at your destination in comfort and luxury - in a representative business class vehicle'}
                     </Typography>
+                    {premiumCars.length > 0 && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: '0.8rem',
+                          opacity: 0.9,
+                          display: 'block',
+                        }}
+                      >
+                        {currentLang === 'bg' ? 'Депозит:' : 'Deposit:'} BGN{' '}
+                        {(
+                          Math.min(
+                            ...premiumCars.map((c) => c.deposit_amount)
+                          ) * 1.96
+                        ).toFixed(0)}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Box>

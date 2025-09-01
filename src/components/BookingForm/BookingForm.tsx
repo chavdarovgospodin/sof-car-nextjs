@@ -22,18 +22,7 @@ import {
   FormControl,
   FormLabel,
 } from '@mui/material';
-// TODO: Replace with actual backend types when implemented
-interface CarData {
-  id: string;
-  brand: string;
-  model: string;
-  year: number;
-  class: string;
-  price: number;
-  imageUrl?: string;
-  available: boolean;
-  features: string[];
-}
+import type { CarData } from '../../types/api';
 
 interface BookingData {
   clientName: string;
@@ -136,7 +125,7 @@ export function BookingForm({
 
   const calculateTotalPrice = () => {
     const days = calculateTotalDays();
-    return days * car.price;
+    return days * car.price_per_day;
   };
 
   const totalDays = calculateTotalDays();
@@ -220,7 +209,8 @@ export function BookingForm({
                     color="primary"
                     sx={{ fontWeight: 'bold' }}
                   >
-                    {car.price.toFixed(2)} € {t('booking.bookingPerDay')}
+                    {car.price_per_day.toFixed(2)} €{' '}
+                    {t('booking.bookingPerDay')}
                   </Typography>
                 </Box>
               </Grid>
@@ -249,6 +239,50 @@ export function BookingForm({
             </Grid>
 
             <Divider sx={{ my: 2 }} />
+
+            {/* Deposit Information */}
+            <Box
+              sx={{
+                marginBottom: 2,
+                padding: 2,
+                backgroundColor: '#fff3e0',
+                borderRadius: 2,
+                border: '1px solid #ffb74d',
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 'bold',
+                  color: '#e65100',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  marginBottom: 1,
+                }}
+              >
+                <Security sx={{ fontSize: 20 }} />
+                {t('booking.depositRequired')}
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 'bold',
+                  color: '#e65100',
+                  marginBottom: 1,
+                }}
+              >
+                {(car.deposit_amount * 1.96).toFixed(0)} лв / ≈
+                {car.deposit_amount.toFixed(2)} €
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: '0.875rem' }}
+              >
+                {t('booking.depositInfo')}
+              </Typography>
+            </Box>
 
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>

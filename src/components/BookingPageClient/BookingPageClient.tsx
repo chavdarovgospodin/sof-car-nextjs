@@ -12,42 +12,8 @@ import {
 } from '@mui/material';
 import { DateSearch } from '../DateSearch/DateSearch';
 import { CarCard } from '../CarCard/CarCard';
-// TODO: Replace with actual backend types when implemented
-interface CarData {
-  id: string;
-  brand: string;
-  model: string;
-  year: number;
-  class: string;
-  price: number;
-  imageUrl?: string;
-  available: boolean;
-  features: string[];
-}
-
-// TODO: Replace with actual backend hooks when implemented
-const useAvailableCars = (
-  _startDate: string,
-  _endDate: string,
-  _shouldSearch: boolean
-) => {
-  return {
-    data: [],
-    isLoading: false,
-    error: null,
-    refetch: () => {},
-  };
-};
-
-const useBookCar = () => {
-  return {
-    mutate: (_data: unknown) => {},
-    mutateAsync: async (_data: unknown) => ({ success: true }),
-    isLoading: false,
-    isPending: false,
-    error: null,
-  };
-};
+import type { CarData } from '../../types/api';
+import { useCars, useCreateBooking } from '../../hooks/useApi';
 import { BookingForm } from '../BookingForm/BookingForm';
 import bgTranslations from '../../locales/bg/common.json';
 import enTranslations from '../../locales/en/common.json';
@@ -94,18 +60,23 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
 
   // React Query hook за налични автомобили
   const {
-    data: filteredCars = [] as CarData[],
+    data: carsResponse,
     isLoading,
     error,
     refetch,
-  } = useAvailableCars(
-    searchDates.start?.toISOString().split('T')[0] || '',
-    searchDates.end?.toISOString().split('T')[0] || '',
-    shouldSearch // Не прави автоматично търсене
-  );
+  } = useCars(searchDates.start || undefined, searchDates.end || undefined);
+
+  const filteredCars: CarData[] =
+    carsResponse?.cars?.map((car) => ({
+      ...car,
+      image_url: car.image_url,
+      available: true, // We'll check availability separately
+      features: car.features || [], // Use existing features or empty array
+      price: car.price_per_day, // Map price_per_day to price for compatibility
+    })) || [];
 
   // React Query hook за запазване на автомобил
-  const bookCarMutation = useBookCar();
+  const bookCarMutation = useCreateBooking();
 
   const handleSearch = (startDate: Date | null, endDate: Date | null) => {
     if (!startDate || !endDate) return;
@@ -142,9 +113,20 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
         ...formData,
       };
 
-      const result = await bookCarMutation.mutateAsync(bookingData);
+      const result = await bookCarMutation.mutateAsync({
+        car_id: selectedCar.id,
+        start_date: searchDates.start.toISOString().split('T')[0],
+        end_date: searchDates.end.toISOString().split('T')[0],
+        client_name: formData.clientName,
+        client_email: formData.clientEmail,
+        client_phone: formData.clientPhone,
+        payment_method: formData.paymentMethod as
+          | 'cash'
+          | 'card'
+          | 'bank_transfer',
+      });
 
-      if (result.success) {
+      if (result) {
         setSnackbar({
           open: true,
           message:
@@ -345,8 +327,6 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
 
             <Grid container spacing={3}>
               {filteredCars.map((car) => {
-                console.log('Car data:', car);
-                console.log('Car image URL:', car.imageUrl);
                 return (
                   <Grid key={car.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                     <CarCard

@@ -10,7 +10,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -20,7 +19,6 @@ import {
   LocalShipping,
   Security,
   Payment,
-  Business,
 } from '@mui/icons-material';
 
 interface TermsConditionsPageProps {
