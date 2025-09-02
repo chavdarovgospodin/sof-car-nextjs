@@ -21,9 +21,11 @@ import {
   IconButton,
   Divider,
   FormHelperText,
+  Fade,
 } from '@mui/material';
 import { Close, Add, Delete, CloudUpload } from '@mui/icons-material';
 import { AdminCar } from '@/hooks/useAdmin';
+import { useSnackbar } from '../HomePage/SnackbarProvider';
 
 interface CarFormDialogProps {
   open: boolean;
@@ -99,10 +101,10 @@ export default function CarFormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [newFeature, setNewFeature] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     if (isEditing && car) {
-      console.log('++++car++++', car);
       setFormData({
         brand: car.brand,
         model: car.model,
@@ -264,7 +266,13 @@ export default function CarFormDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="md"
+      fullWidth
+      TransitionComponent={Fade}
+    >
       <DialogTitle>
         <Box
           sx={{

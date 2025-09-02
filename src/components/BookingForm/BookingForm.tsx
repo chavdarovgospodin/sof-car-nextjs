@@ -69,7 +69,7 @@ export function BookingForm({
   open,
   onClose,
 }: BookingFormProps) {
-  const [paymentMethod, setPaymentMethod] = useState<string>('creditCard');
+  const [paymentMethod, setPaymentMethod] = useState<string>('card');
 
   const {
     control,
@@ -379,7 +379,8 @@ export function BookingForm({
                   sx={{ flexDirection: 'row', gap: 2 }}
                 >
                   <FormControlLabel
-                    value="creditCard"
+                    value="card"
+                    checked
                     control={<Radio />}
                     label={
                       <Box
@@ -392,36 +393,14 @@ export function BookingForm({
                       </Box>
                     }
                   />
-                  <FormControlLabel
-                    value="cashOnDelivery"
-                    control={<Radio />}
-                    label={
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                      >
-                        <Payment color="action" />
-                        <Typography variant="subtitle1">
-                          {t('booking.cashOnDelivery')}
-                        </Typography>
-                      </Box>
-                    }
-                  />
                 </RadioGroup>
               </FormControl>
 
               {/* Payment Method Details */}
-              {paymentMethod === 'creditCard' && (
+              {paymentMethod === 'card' && (
                 <Alert severity="info" sx={{ mb: 3 }}>
                   <Typography variant="body2">
                     {t('booking.creditCardInfo')}
-                  </Typography>
-                </Alert>
-              )}
-
-              {paymentMethod === 'cashOnDelivery' && (
-                <Alert severity="info" sx={{ mb: 3 }}>
-                  <Typography variant="body2">
-                    {t('booking.cashOnDeliveryInfo')}
                   </Typography>
                 </Alert>
               )}

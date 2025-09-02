@@ -150,7 +150,7 @@ const adminApiFunctions = {
 };
 
 // Hook
-export const useAdmin = () => {
+export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
   const queryClient = useQueryClient();
 
   // Session check on mount
@@ -176,7 +176,6 @@ export const useAdmin = () => {
         throw error;
       }
     },
-    enabled: true, // Enable to check session on mount
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -231,7 +230,7 @@ export const useAdmin = () => {
   } = useQuery({
     queryKey: ['admin', 'cars'],
     queryFn: adminApiFunctions.getCars,
-    enabled: !!adminUser?.logged_in,
+    enabled: !!adminUser?.logged_in && activeTab === 'cars',
     retry: (failureCount, error) => {
       // Don't retry on 401 (unauthorized)
       if (axios.isAxiosError(error) && error.response?.status === 401) {
@@ -243,47 +242,111 @@ export const useAdmin = () => {
   });
 
   const createCarMutation = useMutation({
+    mutationKey: ['admin', 'create-car'],
     mutationFn: adminApiFunctions.createCar,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    onSuccess: (newCar) => {
+      const created: AdminCar = (newCar?.car || newCar) as AdminCar;
+      // Optimistic update - add new car to cache instead of refetching
+      queryClient.setQueryData(
+        ['admin', 'cars'],
+        (oldData: { cars: AdminCar[] } | undefined) => {
+          if (!oldData?.cars) return oldData;
+          return {
+            ...oldData,
+            cars: [...oldData.cars, created],
+          };
+        }
+      );
     },
   });
 
   const createCarWithImageMutation = useMutation({
+    mutationKey: ['admin', 'create-car-with-image'],
     mutationFn: adminApiFunctions.createCarWithImage,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    onSuccess: (newCar) => {
+      const created: AdminCar = (newCar?.car || newCar) as AdminCar;
+      queryClient.setQueryData(
+        ['admin', 'cars'],
+        (oldData: { cars: AdminCar[] } | undefined) => {
+          if (!oldData?.cars) return oldData;
+          return { ...oldData, cars: [...oldData.cars, created] };
+        }
+      );
     },
   });
 
   const updateCarMutation = useMutation({
+    mutationKey: ['admin', 'update-car'],
     mutationFn: ({ id, carData }: { id: string; carData: Partial<AdminCar> }) =>
       adminApiFunctions.updateCar(id, carData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    onSuccess: (updatedCar, { id, carData }) => {
+      const patch: Partial<AdminCar> = ((updatedCar &&
+        (updatedCar.car || updatedCar)) ||
+        carData) as Partial<AdminCar>;
+      // Optimistic update - update specific car in cache instead of refetching
+      queryClient.setQueryData(
+        ['admin', 'cars'],
+        (oldData: { cars: AdminCar[] } | undefined) => {
+          if (!oldData?.cars) return oldData;
+          return {
+            ...oldData,
+            cars: oldData.cars.map((car) =>
+              car.id === id ? { ...car, ...patch } : car
+            ),
+          };
+        }
+      );
     },
   });
 
   const updateCarWithImageMutation = useMutation({
+    mutationKey: ['admin', 'update-car-with-image'],
     mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
       adminApiFunctions.updateCarWithImage(id, formData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    onSuccess: (updated, { id }) => {
+      const patch: Partial<AdminCar> = (updated?.car ||
+        updated) as Partial<AdminCar>;
+      queryClient.setQueryData(
+        ['admin', 'cars'],
+        (oldData: { cars: AdminCar[] } | undefined) => {
+          if (!oldData?.cars) return oldData;
+          return {
+            ...oldData,
+            cars: oldData.cars.map((car) =>
+              car.id === id ? { ...car, ...patch } : car
+            ),
+          };
+        }
+      );
     },
   });
 
   const deleteCarMutation = useMutation({
+    mutationKey: ['admin', 'delete-car'],
     mutationFn: adminApiFunctions.deleteCar,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    onSuccess: (_, deletedCarId) => {
+      // Optimistic update - remove car from cache instead of refetching
+      queryClient.setQueryData(
+        ['admin', 'cars'],
+        (oldData: { cars: AdminCar[] } | undefined) => {
+          if (!oldData?.cars) return oldData;
+          return {
+            ...oldData,
+            cars: oldData.cars.filter(
+              (car) => car.id !== (deletedCarId as string)
+            ),
+          };
+        }
+      );
     },
   });
 
   const deleteCarImageMutation = useMutation({
+    mutationKey: ['admin', 'delete-car-image'],
     mutationFn: ({ carId, imageId }: { carId: string; imageId: string }) =>
       adminApiFunctions.deleteCarImage(carId, imageId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+      // no-op for now
     },
   });
 
@@ -296,7 +359,7 @@ export const useAdmin = () => {
   } = useQuery({
     queryKey: ['admin', 'bookings'],
     queryFn: () => adminApiFunctions.getBookings(),
-    enabled: !!adminUser?.logged_in,
+    enabled: !!adminUser?.logged_in && activeTab === 'bookings',
     retry: (failureCount, error) => {
       // Don't retry on 401 (unauthorized)
       if (axios.isAxiosError(error) && error.response?.status === 401) {
@@ -308,6 +371,7 @@ export const useAdmin = () => {
   });
 
   const updateBookingStatusMutation = useMutation({
+    mutationKey: ['admin', 'update-booking-status'],
     mutationFn: ({
       id,
       data,
@@ -316,7 +380,10 @@ export const useAdmin = () => {
       data: { status: string; admin_notes?: string };
     }) => adminApiFunctions.updateBookingStatus(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'bookings'] });
+      queryClient.setQueryData(
+        ['admin', 'bookings'],
+        (oldData: { bookings: AdminBooking[] } | undefined) => oldData
+      );
     },
   });
 

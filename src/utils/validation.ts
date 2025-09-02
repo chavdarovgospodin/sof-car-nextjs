@@ -28,13 +28,10 @@ export const bookingSchema = Joi.object({
     'string.email': 'Невалиден имейл адрес',
     'any.required': 'Имейлът е задължителен',
   }),
-  paymentMethod: Joi.string()
-    .valid('creditCard', 'cashOnDelivery')
-    .required()
-    .messages({
-      'any.only': 'Невалиден метод за плащане',
-      'any.required': 'Методът за плащане е задължителен',
-    }),
+  paymentMethod: Joi.string().valid('card').required().messages({
+    'any.only': 'Невалиден метод за плащане',
+    'any.required': 'Методът за плащане е задължителен',
+  }),
 });
 
 export function validateBookingData(data: BookingData): {

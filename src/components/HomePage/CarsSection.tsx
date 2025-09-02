@@ -56,10 +56,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
   const cars: CarData[] =
     carsResponse?.cars?.map((car) => ({
       ...car,
-      imageUrl:
-        car.images && car.images.length > 0
-          ? car.images[0].image_url
-          : undefined,
+      imageUrl: car.image_url,
       available: true,
       features: car.features || [],
       price: car.price_per_day,

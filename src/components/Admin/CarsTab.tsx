@@ -27,6 +27,7 @@ import {
 import CarFormDialog from './CarFormDialog';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import { useAdmin, AdminCar } from '@/hooks/useAdmin';
+import { useSnackbar } from '@/components/HomePage/SnackbarProvider';
 
 export default function CarsTab() {
   const texts = {
@@ -66,7 +67,9 @@ export default function CarsTab() {
     deleteConfirmMessage:
       'Сигурни ли сте, че искате да изтриете автомобила {{car}}?',
   };
-  const { cars, isLoadingCars, createCar, updateCar, deleteCar } = useAdmin();
+  const { cars, isLoadingCars, createCar, updateCar, deleteCar } =
+    useAdmin('cars');
+  const { showSnackbar } = useSnackbar();
   const [carFormOpen, setCarFormOpen] = useState(false);
   const [editingCar, setEditingCar] = useState<AdminCar | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -100,13 +103,16 @@ export default function CarsTab() {
       if (editingCar) {
         // Update existing car
         await updateCar({ id: editingCar.id, carData });
+        showSnackbar('Автомобилът е редактиран успешно', 'success');
       } else {
         // Create new car
         await createCar(carData);
+        showSnackbar('Автомобилът е създаден успешно', 'success');
       }
       handleCarFormClose();
     } catch (err) {
       console.error('Error saving car:', err);
+      showSnackbar('Възникна грешка при запазване на автомобила', 'error');
     }
   };
 
@@ -117,8 +123,10 @@ export default function CarsTab() {
       await deleteCar(carToDelete.id);
       setDeleteDialogOpen(false);
       setCarToDelete(null);
+      showSnackbar('Автомобилът е изтрит', 'success');
     } catch (err) {
       console.error('Error deleting car:', err);
+      showSnackbar('Възникна грешка при изтриване на автомобила', 'error');
     }
   };
 
@@ -162,12 +170,18 @@ export default function CarsTab() {
       {/* Error handling is now done through React Query */}
 
       {/* Cars Grid */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: 3,
+        }}
+      >
         {cars?.map((car: AdminCar) => {
           const mainImage = getMainImage(car);
 
           return (
-            <Box key={car.id} sx={{ minWidth: 280, flex: '1 1 280px' }}>
+            <Box key={car.id}>
               <Card
                 sx={{
                   height: '100%',

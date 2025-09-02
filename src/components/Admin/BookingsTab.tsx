@@ -73,19 +73,6 @@ export default function BookingsTab() {
     }
   };
 
-  const getDepositStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Чакащ';
-      case 'paid':
-        return 'Платено';
-      case 'refunded':
-        return 'Върнато';
-      default:
-        return status;
-    }
-  };
-
   const { bookings, isLoadingBookings, refetchBookings } = useAdmin();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -131,19 +118,6 @@ export default function BookingsTab() {
         return 'warning';
       case 'cancelled':
         return 'error';
-      default:
-        return 'default';
-    }
-  };
-
-  const getDepositStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'refunded':
-        return 'info';
       default:
         return 'default';
     }
@@ -303,7 +277,8 @@ export default function BookingsTab() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {booking.cars?.brand || '-'} {booking.cars?.model || '-'}
+                        {booking.cars?.brand || '-'}{' '}
+                        {booking.cars?.model || '-'}
                       </Typography>
                     </TableCell>
                     <TableCell>

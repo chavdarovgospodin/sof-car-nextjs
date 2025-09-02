@@ -53,9 +53,22 @@ html {
   background: #1565c0;
 }
 
-/* Smooth transitions */
-* {
-  transition: all 0.2s ease-in-out;
+/* Remove global transitions to avoid unintended animations */
+/* Previously: * { transition: all 0.2s ease-in-out; } */
+
+/* Utility transitions only where needed */
+.transition-base {
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Disable transitions on MUI modal/paper to prevent slide from top-left */
+.MuiModal-root *,
+.MuiDialog-container *,
+.MuiDialog-paper,
+.MuiPopover-paper,
+.MuiPopper-root * {
+  transition: none !important;
 }
 
 /* Custom focus styles */

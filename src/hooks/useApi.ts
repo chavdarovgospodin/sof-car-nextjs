@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { API_CONFIG, formatDate } from '../config/api';
 import type {
   Car,
@@ -13,23 +14,33 @@ import type {
 // API functions
 const apiCall = async <T>(
   endpoint: string,
-  options?: RequestInit
-): Promise<T> => {
-  const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.error || `HTTP error! status: ${response.status}`
-    );
+  options?: {
+    method?: string;
+    data?: unknown;
+    params?: Record<string, string>;
   }
+): Promise<T> => {
+  try {
+    const response = await axios({
+      url: `${API_CONFIG.BASE_URL}${endpoint}`,
+      method: options?.method || 'GET',
+      data: options?.data,
+      params: options?.params,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  return response.json();
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorData = error.response?.data || {};
+      throw new Error(
+        errorData.error || `HTTP error! status: ${error.response?.status}`
+      );
+    }
+    throw error;
+  }
 };
 
 // Get all cars
@@ -101,7 +112,7 @@ export const useCreateBooking = () => {
     mutationFn: (bookingData: BookingRequest) =>
       apiCall<Booking>(API_CONFIG.ENDPOINTS.BOOKINGS, {
         method: 'POST',
-        body: JSON.stringify(bookingData),
+        data: bookingData,
       }),
     onSuccess: () => {
       // Invalidate and refetch cars to update availability

@@ -1,3 +1,8 @@
+'use client';
+
+import { SnackbarProvider } from '@/components/HomePage/SnackbarProvider';
+import AdminGlobalLoading from '@/components/Admin/AdminGlobalLoading';
+
 export default function AdminLayout({
   children,
 }: {
@@ -5,7 +10,10 @@ export default function AdminLayout({
 }) {
   return (
     <div className="admin-layout">
-      {children}
+      <SnackbarProvider>
+        <AdminGlobalLoading />
+        {children}
+      </SnackbarProvider>
     </div>
   );
 }

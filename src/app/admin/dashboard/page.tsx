@@ -46,8 +46,10 @@ export default function AdminDashboardPage() {
     cars: 'Автомобили',
   };
   const router = useRouter();
-  const { adminUser, logout, isLoadingUser } = useAdmin();
   const [tabValue, setTabValue] = useState(0);
+  const { adminUser, logout, isLoadingUser } = useAdmin(
+    tabValue === 0 ? 'bookings' : 'cars'
+  );
 
   useEffect(() => {
     // Redirect to login if not logged in
