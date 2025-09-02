@@ -114,9 +114,22 @@ export default function CarsTab() {
         showSnackbar('Автомобилът е създаден успешно', 'success');
       }
       handleCarFormClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving car:', err);
-      showSnackbar('Възникна грешка при запазване на автомобила', 'error');
+
+      // Check if it's a 401 error (session expired)
+      if (err?.response?.status === 401) {
+        showSnackbar(
+          'Сесията ви е изтекла. Моля, влезте отново в системата.',
+          'error'
+        );
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          window.location.href = '/admin/login';
+        }, 2000);
+      } else {
+        showSnackbar('Възникна грешка при запазване на автомобила', 'error');
+      }
     }
   };
 
@@ -128,9 +141,22 @@ export default function CarsTab() {
       setDeleteDialogOpen(false);
       setCarToDelete(null);
       showSnackbar('Автомобилът е изтрит', 'success');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting car:', err);
-      showSnackbar('Възникна грешка при изтриване на автомобила', 'error');
+
+      // Check if it's a 401 error (session expired)
+      if (err?.response?.status === 401) {
+        showSnackbar(
+          'Сесията ви е изтекла. Моля, влезте отново в системата.',
+          'error'
+        );
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          window.location.href = '/admin/login';
+        }, 2000);
+      } else {
+        showSnackbar('Възникна грешка при изтриване на автомобила', 'error');
+      }
     }
   };
 

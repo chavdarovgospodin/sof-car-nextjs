@@ -209,29 +209,6 @@ export default async function LangLayout({
         }}
       />
 
-      {/* EmailJS CDN */}
-      <Script
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
-        strategy="beforeInteractive"
-      />
-
-      {/* EmailJS Initialization */}
-      <Script
-        id="emailjs-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              if (typeof window !== 'undefined' && window.emailjs) {
-                window.emailjs.init('${
-                  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ||
-                  'your_public_key_here'
-                }');
-              }
-            })();
-          `,
-        }}
-      />
       <div
         style={{
           display: 'flex',

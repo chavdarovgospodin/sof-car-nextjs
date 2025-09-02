@@ -37,14 +37,19 @@ export interface AdminCar {
 export interface AdminBooking {
   id: string;
   car_id: string;
-  client_name: string;
+  client_first_name: string;
+  client_last_name: string;
   client_email: string;
   client_phone: string;
+  payment_method: string;
   start_date: string;
+  rental_days: number;
   end_date: string;
   total_price: number;
+  deposit_amount: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  booking_reference: string;
+  deposit_status: 'pending' | 'paid' | 'refunded';
+  notes: string;
   cars?: {
     brand: string;
     model: string;
@@ -52,6 +57,7 @@ export interface AdminBooking {
     class: string;
   };
   created_at: string;
+  updated_at: string;
 }
 
 // Create axios instance with default config
@@ -62,6 +68,26 @@ const adminApi = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add response interceptor to handle 401 errors globally
+adminApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Session expired - redirect to login
+      console.warn('Session expired, redirecting to login');
+      // Only redirect if we're not already on login page
+      if (
+        typeof window !== 'undefined' &&
+        !window.location.pathname.includes('/admin/login')
+      ) {
+        alert('Сесията ви е изтекла. Моля, влезте отново в системата.');
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // API functions
 const adminApiFunctions = {
@@ -140,11 +166,11 @@ const adminApiFunctions = {
     return response.data;
   },
 
-  updateBookingStatus: async (
+  updateBooking: async (
     id: string,
-    data: { status: string; admin_notes?: string }
+    data: { status?: string; deposit_status?: string; notes?: string }
   ) => {
-    const response = await adminApi.put(`/admin/bookings/${id}/status`, data);
+    const response = await adminApi.put(`/admin/bookings/${id}`, data);
     return response.data;
   },
 };
@@ -370,19 +396,30 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
     },
   });
 
-  const updateBookingStatusMutation = useMutation({
-    mutationKey: ['admin', 'update-booking-status'],
+  const updateBookingMutation = useMutation({
+    mutationKey: ['admin', 'update-booking'],
     mutationFn: ({
       id,
       data,
     }: {
       id: string;
-      data: { status: string; admin_notes?: string };
-    }) => adminApiFunctions.updateBookingStatus(id, data),
-    onSuccess: () => {
+      data: { status?: string; deposit_status?: string; notes?: string };
+    }) => adminApiFunctions.updateBooking(id, data),
+    onSuccess: (updatedBooking, { id, data }) => {
+      // Optimistic update - update booking in cache
       queryClient.setQueryData(
         ['admin', 'bookings'],
-        (oldData: { bookings: AdminBooking[] } | undefined) => oldData
+        (oldData: { bookings: AdminBooking[] } | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            bookings: oldData.bookings.map((booking) =>
+              booking.id === id
+                ? { ...booking, ...data, updated_at: new Date().toISOString() }
+                : booking
+            ),
+          };
+        }
       );
     },
   });
@@ -427,8 +464,8 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
     isDeletingCarImage: deleteCarImageMutation.isPending,
 
     // Booking mutations
-    updateBookingStatus: updateBookingStatusMutation.mutate,
-    isUpdatingBookingStatus: updateBookingStatusMutation.isPending,
+    updateBooking: updateBookingMutation.mutate,
+    isUpdatingBooking: updateBookingMutation.isPending,
 
     // Refetch functions
     refetchUser,

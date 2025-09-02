@@ -14,7 +14,6 @@ import {
   Typography,
   Chip,
   TextField,
-  Grid,
   FormControl,
   InputLabel,
   Select,
@@ -24,8 +23,14 @@ import {
   Tooltip,
   CircularProgress,
 } from '@mui/material';
-import { Search, FilterList, Refresh, Visibility } from '@mui/icons-material';
+import { Search, FilterList, Refresh, Edit } from '@mui/icons-material';
 import { useAdmin, AdminBooking } from '@/hooks/useAdmin';
+import BookingEditDialog from './BookingEditDialog';
+
+// Currency conversion function (approximate BGN to EUR rate)
+const convertToBGN = (euroAmount: number): number => {
+  return euroAmount * 1.96; // Approximate BGN/EUR rate
+};
 
 export default function BookingsTab() {
   // Директни български текстове за админ панела
@@ -42,14 +47,12 @@ export default function BookingsTab() {
     startDate: 'Начална дата',
     endDate: 'Крайна дата',
     clearFilters: 'Изчисти филтрите',
-    reference: 'Референция',
     car: 'Автомобил',
     client: 'Клиент',
     dates: 'Дати',
     totalPrice: 'Обща цена',
     deposit: 'Депозит',
     actions: 'Действия',
-    viewDetails: 'Преглед на детайлите',
     rowsPerPage: 'Редове на страница',
     of: 'от',
     noBookings: 'Няма резервации',
@@ -73,7 +76,13 @@ export default function BookingsTab() {
     }
   };
 
-  const { bookings, isLoadingBookings, refetchBookings } = useAdmin();
+  const {
+    bookings,
+    isLoadingBookings,
+    refetchBookings,
+    updateBooking,
+    isUpdatingBooking,
+  } = useAdmin();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filters, setFilters] = useState({
@@ -82,6 +91,10 @@ export default function BookingsTab() {
     startDate: '',
     endDate: '',
   });
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(
+    null
+  );
 
   useEffect(() => {
     // Refetch bookings when filters change
@@ -110,6 +123,57 @@ export default function BookingsTab() {
     setPage(0);
   };
 
+  const handleEditBooking = (booking: AdminBooking) => {
+    setSelectedBooking(booking);
+    setEditDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialogOpen(false);
+    setSelectedBooking(null);
+  };
+
+  const handleSaveBooking = (data: {
+    status?: string;
+    deposit_status?: string;
+    notes?: string;
+  }) => {
+    if (selectedBooking) {
+      updateBooking(
+        { id: selectedBooking.id, data },
+        {
+          onSuccess: () => {
+            handleCloseEditDialog();
+          },
+          onError: (error: unknown) => {
+            console.error('Failed to update booking:', error);
+
+            // Check if it's a 401 error (session expired)
+            if (
+              error &&
+              typeof error === 'object' &&
+              'response' in error &&
+              error.response &&
+              typeof error.response === 'object' &&
+              'status' in error.response &&
+              error.response.status === 401
+            ) {
+              // Show session expired message and redirect to login
+              alert('Сесията ви е изтекла. Моля, влезте отново в системата.');
+              // Redirect to login page
+              window.location.href = '/admin/login';
+            } else {
+              // Show generic error message
+              alert(
+                'Грешка при обновяване на резервацията. Моля, опитайте отново.'
+              );
+            }
+          },
+        }
+      );
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -118,6 +182,34 @@ export default function BookingsTab() {
         return 'warning';
       case 'cancelled':
         return 'error';
+      case 'completed':
+        return 'info';
+      default:
+        return 'default';
+    }
+  };
+
+  const getDepositStatusText = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Чакащ';
+      case 'paid':
+        return 'Платен';
+      case 'refunded':
+        return 'Върнат';
+      default:
+        return status;
+    }
+  };
+
+  const getDepositStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'refunded':
+        return 'info';
       default:
         return 'default';
     }
@@ -125,10 +217,6 @@ export default function BookingsTab() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('bg-BG');
-  };
-
-  const formatPrice = (price: number) => {
-    return `${price.toFixed(2)} €`;
   };
 
   if (isLoadingBookings) {
@@ -155,7 +243,7 @@ export default function BookingsTab() {
           alignItems: 'center',
         }}
       >
-        <Typography variant="h2" component="h2">
+        <Typography variant="h2" component="h2" color="primary">
           {texts.title}
         </Typography>
         <Button
@@ -255,13 +343,14 @@ export default function BookingsTab() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>{texts.reference}</TableCell>
                 <TableCell>{texts.car}</TableCell>
                 <TableCell>{texts.client}</TableCell>
                 <TableCell>{texts.dates}</TableCell>
                 <TableCell>{texts.totalPrice}</TableCell>
-                <TableCell>{texts.status}</TableCell>
                 <TableCell>{texts.deposit}</TableCell>
+                <TableCell>{texts.status}</TableCell>
+                <TableCell>Статус на депозит</TableCell>
+                <TableCell>Бележки</TableCell>
                 <TableCell>{texts.actions}</TableCell>
               </TableRow>
             </TableHead>
@@ -271,11 +360,6 @@ export default function BookingsTab() {
                 .map((booking: AdminBooking) => (
                   <TableRow key={booking.id} hover>
                     <TableCell>
-                      <Typography variant="body2" fontFamily="monospace">
-                        {booking.id}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
                       <Typography variant="body2">
                         {booking.cars?.brand || '-'}{' '}
                         {booking.cars?.model || '-'}
@@ -284,7 +368,10 @@ export default function BookingsTab() {
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight="medium">
-                          {booking.client_name}
+                          {booking.client_first_name}
+                        </Typography>
+                        <Typography variant="body2" fontWeight="medium">
+                          {booking.client_last_name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           {booking.client_email}
@@ -305,19 +392,29 @@ export default function BookingsTab() {
                         </Typography>
                         <br />
                         <Typography variant="caption" color="text.secondary">
-                          {Math.ceil(
-                            (new Date(booking.end_date).getTime() -
-                              new Date(booking.start_date).getTime()) /
-                              (1000 * 60 * 60 * 24)
-                          )}{' '}
-                          {texts.days}
+                          {booking.rental_days} {texts.days}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {formatPrice(booking.total_price)}
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2" fontWeight="medium">
+                          {convertToBGN(booking.total_price).toFixed(2)} лв
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          ≈ {booking.total_price.toFixed(2)} €
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box>
+                        <Typography variant="body2" fontWeight="medium">
+                          {convertToBGN(booking.deposit_amount).toFixed(2)} лв
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          ≈ {booking.deposit_amount.toFixed(2)} €
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -327,22 +424,51 @@ export default function BookingsTab() {
                             | 'success'
                             | 'warning'
                             | 'error'
+                            | 'info'
                             | 'default'
                         }
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        -
+                      <Chip
+                        label={getDepositStatusText(booking.deposit_status)}
+                        color={
+                          getDepositStatusColor(booking.deposit_status) as
+                            | 'success'
+                            | 'warning'
+                            | 'info'
+                            | 'default'
+                        }
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          maxWidth: 200,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {booking.notes || '-'}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={texts.viewDetails}>
-                        <IconButton size="small" color="primary">
-                          <Visibility />
-                        </IconButton>
-                      </Tooltip>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Tooltip title="Редактиране">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleEditBooking(booking)}
+                          >
+                            <Edit />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -377,6 +503,15 @@ export default function BookingsTab() {
           </Typography>
         </Box>
       )}
+
+      {/* Edit Dialog */}
+      <BookingEditDialog
+        open={editDialogOpen}
+        onClose={handleCloseEditDialog}
+        booking={selectedBooking}
+        onSave={handleSaveBooking}
+        isSaving={isUpdatingBooking}
+      />
     </Box>
   );
 }

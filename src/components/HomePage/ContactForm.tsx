@@ -1,8 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, TextField, Button, Grid, Typography, Paper } from '@mui/material';
+import {
+  Box,
+  TextField,
+  Button,
+  Grid,
+  Typography,
+  Paper,
+  CircularProgress,
+} from '@mui/material';
 import { Send } from '@mui/icons-material';
+import { API_CONFIG } from '@/config/api';
 
 interface ContactFormProps {
   currentLang: string;
@@ -26,6 +35,7 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
     phone: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
     setContactForm((prev) => ({
@@ -34,7 +44,7 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic validation
@@ -60,22 +70,57 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
       return;
     }
 
-    // Here you would typically send the form data to your backend
-    // For now, we'll just show a success message
-    onShowSnackbar(
-      currentLang === 'bg'
-        ? 'Съобщението е изпратено успешно!'
-        : 'Message sent successfully!',
-      'success'
-    );
+    setIsSubmitting(true);
 
-    // Reset form
-    setContactForm({
-      name: '',
-      email: '',
-      phone: '',
-      message: '',
-    });
+    try {
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CONTACT_INQUIRY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contactForm),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        onShowSnackbar(
+          currentLang === 'bg'
+            ? 'Съобщението е изпратено успешно!'
+            : 'Message sent successfully!',
+          'success'
+        );
+
+        // Reset form
+        setContactForm({
+          name: '',
+          email: '',
+          phone: '',
+          message: '',
+        });
+      } else {
+        onShowSnackbar(
+          result.message ||
+            (currentLang === 'bg'
+              ? 'Възникна грешка при изпращане на съобщението'
+              : 'An error occurred while sending the message'),
+          'error'
+        );
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      onShowSnackbar(
+        currentLang === 'bg'
+          ? 'Възникна грешка при изпращане на съобщението'
+          : 'An error occurred while sending the message',
+        'error'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -179,18 +224,34 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
               type="submit"
               variant="contained"
               fullWidth
-              startIcon={<Send />}
+              disabled={isSubmitting}
+              startIcon={
+                isSubmitting ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <Send />
+                )
+              }
               sx={{
                 backgroundColor: '#4caf50',
                 '&:hover': {
                   backgroundColor: '#45a049',
+                },
+                '&:disabled': {
+                  backgroundColor: '#cccccc',
                 },
                 height: 48,
                 fontWeight: 'bold',
                 fontSize: '1.1rem',
               }}
             >
-              {currentLang === 'bg' ? 'Изпрати' : 'Send'}
+              {isSubmitting
+                ? currentLang === 'bg'
+                  ? 'Изпращане...'
+                  : 'Sending...'
+                : currentLang === 'bg'
+                ? 'Изпрати'
+                : 'Send'}
             </Button>
           </Grid>
         </Grid>
