@@ -21,13 +21,17 @@ import {
   Edit,
   Delete,
   DirectionsCar,
-  Euro,
   Security,
 } from '@mui/icons-material';
 import CarFormDialog from './CarFormDialog';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import { useAdmin, AdminCar } from '@/hooks/useAdmin';
 import { useSnackbar } from '@/components/HomePage/SnackbarProvider';
+
+// Currency conversion function (approximate BGN to EUR rate)
+const convertToBGN = (euroAmount: number): number => {
+  return euroAmount * 1.96; // Approximate BGN/EUR rate
+};
 
 export default function CarsTab() {
   const texts = {
@@ -229,22 +233,19 @@ export default function CarsTab() {
                     <Box
                       sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}
                     >
-                      <Euro
-                        sx={{ fontSize: 16, mr: 0.5, color: 'primary.main' }}
-                      />
                       <Typography
                         variant="h6"
                         color="primary.main"
                         fontWeight="bold"
                       >
-                        {car.price_per_day.toFixed(2)} €
+                        {convertToBGN(car.price_per_day).toFixed(2)} лв
                       </Typography>
                       <Typography
                         variant="body2"
                         color="text.secondary"
                         sx={{ ml: 1 }}
                       >
-                        /{texts.perDay}
+                        ({car.price_per_day.toFixed(2)} €) /{texts.perDay}
                       </Typography>
                     </Box>
 
@@ -253,7 +254,9 @@ export default function CarsTab() {
                         sx={{ fontSize: 14, mr: 0.5, color: 'warning.main' }}
                       />
                       <Typography variant="body2" color="text.secondary">
-                        {texts.deposit}: {car.deposit_amount.toFixed(2)} €
+                        {texts.deposit}:{' '}
+                        {convertToBGN(car.deposit_amount).toFixed(2)} лв (
+                        {car.deposit_amount.toFixed(2)} €)
                       </Typography>
                     </Box>
                   </Box>

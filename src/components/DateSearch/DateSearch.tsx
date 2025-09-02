@@ -19,12 +19,14 @@ import {
 
 interface DateSearchProps {
   onSearch: (startDate: Date | null, endDate: Date | null) => void;
+  onInitialized?: (hasUrlParams: boolean) => void;
   isLoading?: boolean;
   t: (key: string, values?: Record<string, unknown>) => string;
 }
 
 export const DateSearch: React.FC<DateSearchProps> = ({
   onSearch,
+  onInitialized,
   isLoading = false,
   t,
 }) => {
@@ -48,6 +50,12 @@ export const DateSearch: React.FC<DateSearchProps> = ({
   // Load dates from URL parameters on component mount
   useEffect(() => {
     const dateParam = searchParams.get('d'); // Use 'd' for date range
+    const hasUrlParams = !!dateParam;
+
+    // Notify parent about URL params status
+    if (onInitialized) {
+      onInitialized(hasUrlParams);
+    }
 
     if (dateParam) {
       try {
@@ -76,7 +84,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
         setIsInitializing(false);
       }
     }
-  }, [searchParams]); // Remove onSearch from dependencies to prevent infinite loop
+  }, [searchParams, onSearch, onInitialized]); // Add onInitialized to dependencies
 
   const handleSearch = () => {
     if (!startDate || !endDate) {

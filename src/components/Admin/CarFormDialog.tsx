@@ -27,6 +27,15 @@ import { Close, Add, Delete, CloudUpload } from '@mui/icons-material';
 import { AdminCar } from '@/hooks/useAdmin';
 import { useSnackbar } from '../HomePage/SnackbarProvider';
 
+// Currency conversion functions (approximate BGN to EUR rate)
+const convertToBGN = (euroAmount: number): number => {
+  return euroAmount * 1.96; // Approximate BGN/EUR rate
+};
+
+const convertToEUR = (bgnAmount: number): number => {
+  return bgnAmount / 1.96; // Approximate EUR/BGN rate
+};
+
 interface CarFormDialogProps {
   open: boolean;
   onClose: () => void;
@@ -91,8 +100,8 @@ export default function CarFormDialog({
     year: new Date().getFullYear(),
     fuel_type: '',
     class: '',
-    price_per_day: 0,
-    deposit_amount: 0,
+    price_per_day_bgn: 0, // Price in BGN
+    deposit_amount_bgn: 0, // Deposit in BGN
     available: true,
     features: [] as string[],
     transmission: '',
@@ -111,8 +120,8 @@ export default function CarFormDialog({
         year: car.year,
         fuel_type: car.fuel_type || '',
         class: car.class,
-        price_per_day: car.price_per_day,
-        deposit_amount: car.deposit_amount,
+        price_per_day_bgn: convertToBGN(car.price_per_day), // Convert EUR to BGN
+        deposit_amount_bgn: convertToBGN(car.deposit_amount), // Convert EUR to BGN
         available: !!car.is_active,
         features: car.features ? [...car.features] : [],
         transmission: car.transmission || '',
@@ -130,8 +139,8 @@ export default function CarFormDialog({
         year: new Date().getFullYear(),
         fuel_type: '',
         class: '',
-        price_per_day: 0,
-        deposit_amount: 0,
+        price_per_day_bgn: 0,
+        deposit_amount_bgn: 0,
         available: true,
         features: [],
         transmission: '',
@@ -218,11 +227,11 @@ export default function CarFormDialog({
     if (formData.year < 1900 || formData.year > new Date().getFullYear() + 1) {
       newErrors.year = 'Невалидна година';
     }
-    if (formData.price_per_day <= 0) {
-      newErrors.price_per_day = 'Цената трябва да е по-голяма от 0';
+    if (formData.price_per_day_bgn <= 0) {
+      newErrors.price_per_day_bgn = 'Цената трябва да е по-голяма от 0';
     }
-    if (formData.deposit_amount < 0) {
-      newErrors.deposit_amount = 'Депозитът не може да е отрицателен';
+    if (formData.deposit_amount_bgn < 0) {
+      newErrors.deposit_amount_bgn = 'Депозитът не може да е отрицателен';
     }
     console.log(newErrors);
     console.log(formData);
@@ -239,8 +248,8 @@ export default function CarFormDialog({
         model: formData.model,
         year: Number(formData.year),
         class: formData.class as 'economy' | 'standard' | 'premium',
-        price_per_day: Number(formData.price_per_day),
-        deposit_amount: Number(formData.deposit_amount),
+        price_per_day: Number(convertToEUR(formData.price_per_day_bgn)), // Convert BGN to EUR
+        deposit_amount: Number(convertToEUR(formData.deposit_amount_bgn)), // Convert BGN to EUR
         is_active: formData.available,
         fuel_type: formData.fuel_type as
           | 'petrol'
@@ -438,13 +447,20 @@ export default function CarFormDialog({
                 fullWidth
                 label={texts.pricePerDay}
                 type="number"
-                value={formData.price_per_day}
-                onChange={handleInputChange('price_per_day')}
-                error={!!errors.price_per_day}
-                helperText={errors.price_per_day}
+                value={formData.price_per_day_bgn}
+                onChange={handleInputChange('price_per_day_bgn')}
+                error={!!errors.price_per_day_bgn}
+                helperText={
+                  errors.price_per_day_bgn ||
+                  (formData.price_per_day_bgn > 0
+                    ? `≈ ${convertToEUR(formData.price_per_day_bgn).toFixed(
+                        2
+                      )} €`
+                    : '')
+                }
                 required
                 InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>€</Typography>,
+                  startAdornment: <Typography sx={{ mr: 1 }}>лв</Typography>,
                 }}
               />
             </Box>
@@ -454,13 +470,20 @@ export default function CarFormDialog({
                 fullWidth
                 label={texts.depositAmount}
                 type="number"
-                value={formData.deposit_amount}
-                onChange={handleInputChange('deposit_amount')}
-                error={!!errors.deposit_amount}
-                helperText={errors.deposit_amount}
+                value={formData.deposit_amount_bgn}
+                onChange={handleInputChange('deposit_amount_bgn')}
+                error={!!errors.deposit_amount_bgn}
+                helperText={
+                  errors.deposit_amount_bgn ||
+                  (formData.deposit_amount_bgn > 0
+                    ? `≈ ${convertToEUR(formData.deposit_amount_bgn).toFixed(
+                        2
+                      )} €`
+                    : '')
+                }
                 required
                 InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>€</Typography>,
+                  startAdornment: <Typography sx={{ mr: 1 }}>лв</Typography>,
                 }}
               />
             </Box>

@@ -47,7 +47,8 @@ const apiCall = async <T>(
 export const useCars = (
   startDate?: Date,
   endDate?: Date,
-  carClass?: string
+  carClass?: string,
+  enabled: boolean = true
 ) => {
   const params = new URLSearchParams();
   if (startDate) params.append('start_date', formatDate(startDate));
@@ -64,7 +65,7 @@ export const useCars = (
       carClass,
     ],
     queryFn: () => apiCall<CarsResponse>(endpoint),
-    enabled: true, // Always fetch cars
+    enabled: enabled && !!(startDate && endDate), // Only fetch when enabled and dates are provided
   });
 };
 

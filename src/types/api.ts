@@ -27,7 +27,8 @@ export interface BookingRequest {
   car_id: number;
   start_date: string; // YYYY-MM-DD
   end_date: string; // YYYY-MM-DD
-  client_name: string;
+  client_first_name: string;
+  client_last_name: string;
   client_email: string;
   client_phone: string;
   payment_method?: 'cash' | 'card' | 'bank_transfer';
@@ -39,7 +40,8 @@ export interface Booking {
   car_id: number;
   start_date: string;
   end_date: string;
-  client_name: string;
+  client_first_name: string;
+  client_last_name: string;
   client_email: string;
   client_phone: string;
   total_price: number;

@@ -55,7 +55,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
     severity: 'success',
   });
 
-  // Флаг дали трябва да правим търсене
+  // Флаг дали трябва да правим търсене - инициализираме като false
   const [shouldSearch, setShouldSearch] = useState(false);
 
   // React Query hook за налични автомобили
@@ -64,7 +64,12 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
     isLoading,
     error,
     refetch,
-  } = useCars(searchDates.start || undefined, searchDates.end || undefined);
+  } = useCars(
+    searchDates.start || undefined,
+    searchDates.end || undefined,
+    undefined,
+    shouldSearch
+  );
 
   const filteredCars: CarData[] =
     carsResponse?.cars?.map((car) => ({
@@ -84,6 +89,10 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
     setShouldSearch(true); // Активираме търсенето
   };
 
+  const handleInitialized = (hasUrlParams: boolean) => {
+    setShouldSearch(hasUrlParams); // Активираме търсенето ако има URL параметри
+  };
+
   // URL parameters are now handled in DateSearch component
   // No need for localStorage logic here
 
@@ -98,7 +107,8 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
   };
 
   const handleBookingSubmit = async (formData: {
-    clientName: string;
+    clientFirstName: string;
+    clientLastName: string;
     clientPhone: string;
     clientEmail: string;
     paymentMethod: string;
@@ -117,7 +127,8 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
         car_id: selectedCar.id,
         start_date: searchDates.start.toISOString().split('T')[0],
         end_date: searchDates.end.toISOString().split('T')[0],
-        client_name: formData.clientName,
+        client_first_name: formData.clientFirstName,
+        client_last_name: formData.clientLastName,
         client_email: formData.clientEmail,
         client_phone: formData.clientPhone,
         payment_method: formData.paymentMethod as
@@ -200,7 +211,12 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
         </Box>
 
         <Suspense fallback={<CircularProgress />}>
-          <DateSearch onSearch={handleSearch} isLoading={isLoading} t={t} />
+          <DateSearch
+            onSearch={handleSearch}
+            onInitialized={handleInitialized}
+            isLoading={isLoading}
+            t={t}
+          />
         </Suspense>
 
         {error && (
@@ -211,7 +227,17 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
           </Alert>
         )}
 
-        {isLoading ? (
+        {!shouldSearch ? (
+          <Box sx={{ textAlign: 'center', padding: 4 }}>
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              sx={{ marginBottom: 2 }}
+            >
+              {t('booking.selectDatesMessage')}
+            </Typography>
+          </Box>
+        ) : isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
             <CircularProgress size={60} />
           </Box>
@@ -347,9 +373,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
               color="text.secondary"
               sx={{ marginBottom: 2 }}
             >
-              {searchDates.start && searchDates.end
-                ? t('booking.noCarsFound')
-                : t('booking.selectDatesMessage')}
+              {t('booking.noCarsFound')}
             </Typography>
           </Box>
         )}
@@ -363,6 +387,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
             t={t}
             open={showBookingForm}
             onClose={handleCloseBookingForm}
+            lang={lang}
           />
         )}
 

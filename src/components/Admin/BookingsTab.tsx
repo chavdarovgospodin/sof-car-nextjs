@@ -155,7 +155,7 @@ export default function BookingsTab() {
           alignItems: 'center',
         }}
       >
-        <Typography variant="h5" component="h2">
+        <Typography variant="h2" component="h2">
           {texts.title}
         </Typography>
         <Button

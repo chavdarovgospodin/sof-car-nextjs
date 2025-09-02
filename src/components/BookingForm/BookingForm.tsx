@@ -25,22 +25,24 @@ import {
 import type { CarData } from '../../types/api';
 
 interface BookingData {
-  clientName: string;
+  clientFirstName: string;
+  clientLastName: string;
   clientEmail: string;
   clientPhone: string;
   paymentMethod: string;
+  termsAccepted: boolean;
 }
 import Joi from 'joi';
 import { Controller, useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
 import {
   CreditCard,
-  Payment,
   Security,
   CarRental,
   CalendarToday,
   Euro,
 } from '@mui/icons-material';
+import { TermsConditionsDialog } from './TermsConditionsDialog';
 
 interface BookingFormProps {
   car: CarData;
@@ -49,7 +51,8 @@ interface BookingFormProps {
     end: Date | null;
   };
   onSubmit: (formData: {
-    clientName: string;
+    clientFirstName: string;
+    clientLastName: string;
     clientPhone: string;
     clientEmail: string;
     paymentMethod: string;
@@ -58,6 +61,7 @@ interface BookingFormProps {
   t: (key: string, values?: Record<string, unknown>) => string;
   open: boolean;
   onClose: () => void;
+  lang: string;
 }
 
 export function BookingForm({
@@ -68,8 +72,11 @@ export function BookingForm({
   t,
   open,
   onClose,
+  lang,
 }: BookingFormProps) {
   const [paymentMethod, setPaymentMethod] = useState<string>('card');
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
+  const [termsDialogOpen, setTermsDialogOpen] = useState<boolean>(false);
 
   const {
     control,
@@ -78,21 +85,30 @@ export function BookingForm({
   } = useForm<Partial<BookingData>>({
     resolver: joiResolver(
       Joi.object({
-        clientName: Joi.string()
+        clientFirstName: Joi.string()
           .min(2)
-          .max(100)
+          .max(20)
           .required()
           .messages({
-            'string.min': t('booking.clientNameMin'),
-            'string.max': t('booking.clientNameMax'),
-            'any.required': t('booking.clientNameRequired'),
+            'string.min': t('booking.clientFirstNameMin'),
+            'string.max': t('booking.clientFirstNameMax'),
+            'string.empty': t('booking.clientFirstNameRequired'),
+          }),
+        clientLastName: Joi.string()
+          .min(2)
+          .max(20)
+          .required()
+          .messages({
+            'string.min': t('booking.clientLastNameMin'),
+            'string.max': t('booking.clientLastNameMax'),
+            'string.empty': t('booking.clientLastNameRequired'),
           }),
         clientEmail: Joi.string()
           .email()
           .required()
           .messages({
             'string.email': t('booking.clientEmailInvalid'),
-            'any.required': t('booking.clientEmailRequired'),
+            'string.empty': t('booking.clientEmailRequired'),
           }),
         clientPhone: Joi.string()
           .pattern(/^[0-9+\-\s()]+$/)
@@ -103,14 +119,23 @@ export function BookingForm({
             'string.pattern.base': t('booking.clientPhoneInvalid'),
             'string.min': t('booking.clientPhoneMin'),
             'string.max': t('booking.clientPhoneMax'),
-            'any.required': t('booking.clientPhoneRequired'),
+            'string.empty': t('booking.clientPhoneRequired'),
+          }),
+        termsAccepted: Joi.boolean()
+          .valid(true)
+          .required()
+          .messages({
+            'any.only': t('booking.termsRequired'),
+            'any.required': t('booking.termsRequired'),
           }),
       })
     ),
     defaultValues: {
-      clientName: '',
+      clientFirstName: '',
+      clientLastName: '',
       clientEmail: '',
       clientPhone: '',
+      termsAccepted: false,
     },
     mode: 'onChange',
   });
@@ -134,7 +159,8 @@ export function BookingForm({
   const handleFormSubmit = async (data: Partial<BookingData>) => {
     try {
       await onSubmit({
-        clientName: data.clientName || '',
+        clientFirstName: data.clientFirstName || '',
+        clientLastName: data.clientLastName || '',
         clientPhone: data.clientPhone || '',
         clientEmail: data.clientEmail || '',
         paymentMethod: paymentMethod,
@@ -310,22 +336,39 @@ export function BookingForm({
               <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
-                    name="clientName"
+                    name="clientFirstName"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label={t('booking.clientName')}
-                        placeholder={t('booking.clientNamePlaceholder')}
-                        error={!!errors.clientName}
-                        helperText={errors.clientName?.message}
+                        label={t('booking.clientFirstName')}
+                        placeholder={t('booking.clientFirstNamePlaceholder')}
+                        error={!!errors.clientFirstName}
+                        helperText={errors.clientFirstName?.message}
                         required
                       />
                     )}
                   />
                 </Grid>
 
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="clientLastName"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label={t('booking.clientLastName')}
+                        placeholder={t('booking.clientLastNamePlaceholder')}
+                        error={!!errors.clientLastName}
+                        helperText={errors.clientLastName?.message}
+                        required
+                      />
+                    )}
+                  />
+                </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="clientEmail"
@@ -345,7 +388,7 @@ export function BookingForm({
                   />
                 </Grid>
 
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="clientPhone"
                     control={control}
@@ -363,6 +406,63 @@ export function BookingForm({
                   />
                 </Grid>
               </Grid>
+
+              {/* Terms and Conditions Checkbox */}
+              <Box sx={{ mb: 3 }}>
+                <Controller
+                  name="termsAccepted"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => {
+                            field.onChange(e.target.checked);
+                            setTermsAccepted(e.target.checked);
+                          }}
+                          style={{ marginRight: 8 }}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2">
+                          {lang === 'en'
+                            ? 'I confirm that I am familiar with and agree to the '
+                            : 'Потвърждавам, че съм запознат и съм съгласен с '}
+                          <Button
+                            variant="text"
+                            color="primary"
+                            size="small"
+                            onClick={() => setTermsDialogOpen(true)}
+                            sx={{
+                              p: 0,
+                              minWidth: 'auto',
+                              textTransform: 'none',
+                              textDecoration: 'underline',
+                              fontSize: 'inherit',
+                              fontWeight: 'inherit',
+                            }}
+                          >
+                            {lang === 'en'
+                              ? 'General Terms and Conditions'
+                              : 'Общите условия'}
+                          </Button>
+                        </Typography>
+                      }
+                    />
+                  )}
+                />
+                {errors.termsAccepted && (
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{ mt: 1, display: 'block' }}
+                  >
+                    {errors.termsAccepted.message}
+                  </Typography>
+                )}
+              </Box>
 
               {/* Payment Methods - Now Functional */}
               <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
@@ -419,13 +519,6 @@ export function BookingForm({
                   {t('booking.finalInfo')}
                 </Typography>
               </Alert>
-
-              {/* Error Display */}
-              {Object.keys(errors).length > 0 && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {t('booking.pleaseFixErrors')}
-                </Alert>
-              )}
             </form>
           </Paper>
         </Box>
@@ -446,6 +539,13 @@ export function BookingForm({
           )}
         </Button>
       </DialogActions>
+
+      {/* Terms and Conditions Dialog */}
+      <TermsConditionsDialog
+        open={termsDialogOpen}
+        onClose={() => setTermsDialogOpen(false)}
+        lang={lang}
+      />
     </Dialog>
   );
 }
