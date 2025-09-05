@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { Header } from '@/components/Header/Header';
 import { Footer } from '@/components/Footer/Footer';
 import { APP_CONFIG } from '@/utils/constants';
@@ -12,9 +11,9 @@ interface LangLayoutProps {
 }
 
 // Generate static params for static export
-export async function generateStaticParams() {
-  return [{ lang: 'bg' }, { lang: 'en' }];
-}
+// export async function generateStaticParams() {
+//   return [{ lang: 'bg' }, { lang: 'en' }];
+// }
 
 export async function generateMetadata({
   params,
@@ -86,9 +85,9 @@ export default async function LangLayout({
   const lang = resolvedParams.lang;
 
   // Validate language - if invalid, redirect to default
-  if (!['bg', 'en'].includes(lang)) {
-    redirect('/bg');
-  }
+  // if (!['bg', 'en'].includes(lang)) {
+  //   redirect('/bg');
+  // }
 
   // Structured data for SEO
   const structuredData = {

@@ -7,16 +7,22 @@ import {
   Typography,
   Grid,
   CircularProgress,
-  Alert,
   Button,
   IconButton,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
+  Paper,
   Chip,
+  useMediaQuery,
+  useTheme,
+  Alert,
 } from '@mui/material';
-import { ChevronLeft, ChevronRight, DirectionsCar } from '@mui/icons-material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  DirectionsCar,
+  People,
+  Settings,
+  Route,
+} from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAllCars } from '../../hooks/useApi';
@@ -30,7 +36,11 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
   const { data: carsResponse, isLoading, error } = useAllCars();
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(0);
-  const carsPerPage = 4;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const carsPerPage = isMobile ? 1 : 2;
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -65,13 +75,15 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
   }
 
   const cars: CarData[] =
-    carsResponse?.cars?.map((car) => ({
-      ...car,
-      imageUrl: car.image_url,
-      available: true,
-      features: car.features || [],
-      price: car.price_per_day,
-    })) || [];
+    (carsResponse &&
+      carsResponse?.cars.map((car) => ({
+        ...car,
+        imageUrl: car.image_url,
+        available: true,
+        features: car.features || [],
+        price: car.price_per_day,
+      }))) ||
+    [];
 
   const totalPages = Math.ceil(cars.length / carsPerPage);
   const startIndex = currentPage * carsPerPage;
@@ -86,27 +98,37 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
     setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
   };
 
-  const handleBookCar = (carId: string) => {
-    router.push(`/${currentLang}/booking?car_id=${carId}`);
+  // Touch handlers for swipe gestures (mobile only)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
   };
 
-  const getClassColor = (carClass: string) => {
-    switch (carClass) {
-      case 'economy':
-        return '#f2849e';
-      case 'standard':
-        return '#7ecaf6';
-      case 'premium':
-        return '#7bd0c1';
-      default:
-        return '#1976d2';
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isMobile || !touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentPage < totalPages - 1) {
+      handleNext();
+    }
+    if (isRightSwipe && currentPage > 0) {
+      handlePrevious();
     }
   };
 
   const getClassLabel = (carClass: string) => {
     switch (carClass) {
       case 'economy':
-        return currentLang === 'bg' ? 'Икономикачен' : 'Economy';
+        return currentLang === 'bg' ? 'Икономичен' : 'Economy';
       case 'standard':
         return currentLang === 'bg' ? 'Стандартен' : 'Standard';
       case 'premium':
@@ -148,157 +170,408 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
         </Typography>
 
         {/* Cars Gallery */}
-        <Box sx={{ position: 'relative' }}>
+        <Box
+          sx={{ position: 'relative' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {/* Navigation Arrows */}
-          <IconButton
-            onClick={handlePrevious}
-            disabled={currentPage === 0}
-            sx={{
-              position: 'absolute',
-              left: -60,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              backgroundColor: 'white',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              zIndex: 2,
-              '&:hover': {
-                backgroundColor: '#f5f5f5',
-              },
-              '&:disabled': {
-                opacity: 0.3,
-              },
-            }}
-          >
-            <ChevronLeft />
-          </IconButton>
+          {!isMobile && (
+            <>
+              <IconButton
+                onClick={handlePrevious}
+                disabled={currentPage === 0}
+                sx={{
+                  position: 'absolute',
+                  left: -60,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: 'white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  zIndex: 2,
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                  '&:disabled': {
+                    opacity: 0.3,
+                  },
+                }}
+              >
+                <ChevronLeft />
+              </IconButton>
 
-          <IconButton
-            onClick={handleNext}
-            disabled={currentPage === totalPages - 1}
-            sx={{
-              position: 'absolute',
-              right: -60,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              backgroundColor: 'white',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              zIndex: 2,
-              '&:hover': {
-                backgroundColor: '#f5f5f5',
-              },
-              '&:disabled': {
-                opacity: 0.3,
-              },
-            }}
-          >
-            <ChevronRight />
-          </IconButton>
+              <IconButton
+                onClick={handleNext}
+                disabled={currentPage === totalPages - 1}
+                sx={{
+                  position: 'absolute',
+                  right: -60,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: 'white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  zIndex: 2,
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                  '&:disabled': {
+                    opacity: 0.3,
+                  },
+                }}
+              >
+                <ChevronRight />
+              </IconButton>
+            </>
+          )}
 
           {/* Cars Grid */}
-          <Grid container spacing={3}>
+          <Grid container spacing={4} justifyContent="center">
             {currentCars.map((car) => (
-              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={car.id}>
-                <Card
+              <Grid size={{ xs: 12, sm: 6, md: 6 }} key={car.id}>
+                <Paper
+                  elevation={0}
                   sx={{
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
-                    },
+                    borderRadius: 2,
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e5e5',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    minHeight: 220,
                   }}
                 >
-                  <CardMedia
+                  {/* Year Badge в горния ляв ъгъл */}
+                  <Chip
+                    label={car.year}
+                    size="small"
                     sx={{
-                      position: 'relative',
-                      height: 200,
-                      overflow: 'hidden',
+                      position: 'absolute',
+                      top: 6,
+                      left: 16,
+                      backgroundColor: '#5C9CDB',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                      height: 26,
+                      borderRadius: 1.5,
+                      zIndex: 2,
+                      '& .MuiChip-label': {
+                        px: 1.2,
+                      },
                     }}
-                  >
-                    {car.image_url ? (
-                      <Image
-                        src={car.image_url}
-                        alt={`${car.brand} ${car.model}`}
-                        fill
-                        style={{
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
+                  />
+
+                  {/* Class Badge в горния десен ъгъл */}
+                  <Chip
+                    label={getClassLabel(car.class)}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 16,
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                      height: 26,
+                      borderRadius: 1.5,
+                      zIndex: 2,
+                      '& .MuiChip-label': {
+                        px: 1.2,
+                      },
+                    }}
+                  />
+                  <Box>
+                    {/* Main Content Container */}
+                    <Box
+                      sx={{
+                        display: { xs: 'flex', sm: 'grid' },
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        gridTemplateColumns: { xs: 'none', sm: '60% 40%' },
+                        p: 2,
+                        pt: 5,
+                        pb: 0,
+                        gap: 3,
+                        flex: 1,
+                      }}
+                    >
+                      {/* Left Side - Car Image */}
                       <Box
                         sx={{
-                          height: '100%',
+                          width: { xs: 350, sm: 320 },
+                          height: { xs: 250, sm: 220 },
+                          position: 'relative',
+                          backgroundColor: '#fafafa',
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          flexShrink: 0,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#f5f5f5',
                         }}
                       >
-                        <DirectionsCar sx={{ fontSize: 60, color: '#ccc' }} />
+                        {car.image_url ? (
+                          <Image
+                            src={car.image_url}
+                            alt={`${car.brand} ${car.model}`}
+                            fill
+                            style={{
+                              objectFit: 'cover',
+                            }}
+                          />
+                        ) : (
+                          <DirectionsCar
+                            sx={{ fontSize: 40, color: '#d0d0d0' }}
+                          />
+                        )}
                       </Box>
-                    )}
-                    <Chip
-                      label={getClassLabel(car.class)}
-                      sx={{
-                        position: 'absolute',
-                        top: 12,
-                        right: 12,
-                        backgroundColor: getClassColor(car.class),
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: '0.75rem',
-                      }}
-                    />
-                  </CardMedia>
 
-                  <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-                    <Typography
-                      variant="h6"
-                      component="h3"
-                      gutterBottom
-                      sx={{
-                        fontWeight: 'bold',
-                        fontSize: '1.1rem',
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {car.brand} {car.model}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 1 }}
-                    >
-                      {car.year}
-                    </Typography>
-                    <Typography
-                      variant="h6"
-                      color="primary"
-                      sx={{ fontWeight: 'bold' }}
-                    >
-                      {(car.price_per_day * 1.96).toFixed(0)} лв/ден
-                    </Typography>
-                  </CardContent>
+                      <Box
+                        sx={{
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          minWidth: 0,
+                        }}
+                      >
+                        {/* Car Title */}
+                        <Box>
+                          <Typography
+                            variant="h5"
+                            component="h3"
+                            sx={{
+                              fontSize: '1.3rem',
+                              fontWeight: 600,
+                              color: '#333',
+                              lineHeight: 1.2,
+                              mb: 2,
+                            }}
+                          >
+                            {car.brand} {car.model}
+                          </Typography>
 
-                  <CardActions sx={{ p: 2, pt: 0 }}>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      onClick={() => handleBookCar(car.id.toString())}
+                          {/* Car Specifications */}
+                          <Box sx={{ mb: 2 }}>
+                            {/* Seats */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                mb: 1,
+                              }}
+                            >
+                              <People
+                                sx={{
+                                  fontSize: '1.1rem',
+                                  color: '#888',
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: 'black',
+                                  fontSize: '0.9rem',
+                                  fontWeight: 400,
+                                }}
+                              >
+                                {currentLang === 'bg' ? '5 места' : '5 seats'}
+                              </Typography>
+                            </Box>
+
+                            {/* Transmission */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                mb: 1,
+                              }}
+                            >
+                              <Settings
+                                sx={{
+                                  fontSize: '1.1rem',
+                                  color: '#888',
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: 'black',
+                                  fontSize: '0.9rem',
+                                  fontWeight: 400,
+                                }}
+                              >
+                                {car.transmission === 'manual'
+                                  ? currentLang === 'bg'
+                                    ? 'Ръчни скорости'
+                                    : 'Manual'
+                                  : currentLang === 'bg'
+                                  ? 'Автоматични скорости'
+                                  : 'Automatic'}
+                              </Typography>
+                            </Box>
+
+                            {/* Mileage */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                mb: 1.5,
+                              }}
+                            >
+                              <Route
+                                sx={{
+                                  fontSize: '1.1rem',
+                                  color: '#888',
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: 'black',
+                                  fontSize: '0.9rem',
+                                  fontWeight: 400,
+                                }}
+                              >
+                                {currentLang === 'bg'
+                                  ? 'Неограничен километраж'
+                                  : 'Unlimited mileage'}
+                              </Typography>
+                            </Box>
+
+                            {/* Features */}
+                            {car.features && car.features.length > 0 && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography
+                                  variant="subtitle2"
+                                  sx={{
+                                    color: '#666',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    mb: 1,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                  }}
+                                >
+                                  {currentLang === 'bg'
+                                    ? 'Възможности'
+                                    : 'Features'}
+                                </Typography>
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: 0.5,
+                                  }}
+                                >
+                                  {car.features
+                                    .slice(0, 3)
+                                    .map((feature, index) => (
+                                      <Chip
+                                        key={index}
+                                        label={feature}
+                                        size="small"
+                                        sx={{
+                                          backgroundColor: '#f0f0f0',
+                                          color: '#333',
+                                          fontSize: '0.7rem',
+                                          height: 20,
+                                          '& .MuiChip-label': {
+                                            px: 0.8,
+                                          },
+                                        }}
+                                      />
+                                    ))}
+                                  {car.features.length > 3 && (
+                                    <Chip
+                                      label={`+${car.features.length - 3}`}
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: '#e3f2fd',
+                                        color: '#1976d2',
+                                        fontSize: '0.7rem',
+                                        height: 20,
+                                        '& .MuiChip-label': {
+                                          px: 0.8,
+                                        },
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              </Box>
+                            )}
+
+                            {/* Price */}
+                            <Box sx={{ mb: 2 }}>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  color: '#1976d2',
+                                  fontSize: '1.2rem',
+                                  fontWeight: 700,
+                                  mb: 0.5,
+                                }}
+                              >
+                                {currentLang === 'bg' ? 'От' : 'From'}{' '}
+                                {car.price_per_day}лв/
+                                {currentLang === 'bg' ? 'ден' : 'day'}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: '#666',
+                                  fontSize: '0.8rem',
+                                }}
+                              >
+                                {currentLang === 'bg'
+                                  ? 'включва всички данъци'
+                                  : 'including all taxes'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
+                    {/* Book Button */}
+                    <Box
                       sx={{
-                        backgroundColor: '#1976d2',
-                        '&:hover': {
-                          backgroundColor: '#1565c0',
-                        },
-                        fontWeight: 'bold',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mb: 2,
                       }}
                     >
-                      {currentLang === 'bg' ? 'Резервирай' : 'Book Now'}
-                    </Button>
-                  </CardActions>
-                </Card>
+                      <Button
+                        variant="contained"
+                        onClick={() => router.push(`/${currentLang}/booking`)}
+                        sx={{
+                          backgroundColor: '#1976d2',
+                          color: 'white',
+                          fontWeight: 600,
+                          fontSize: '0.9rem',
+                          py: 1.2,
+                          px: 3,
+                          width: '250px',
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
+                          '&:hover': {
+                            backgroundColor: '#1565c0',
+                            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)',
+                          },
+                        }}
+                      >
+                        {currentLang === 'bg' ? 'Резервирай сега' : 'Book Now'}
+                      </Button>
+                    </Box>
+                  </Box>
+                </Paper>
               </Grid>
             ))}
           </Grid>
@@ -331,6 +604,31 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                   }}
                 />
               ))}
+            </Box>
+          )}
+
+          {/* Mobile Swipe Indicator */}
+          {isMobile && totalPages > 1 && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                mt: 2,
+                mb: 2,
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  color: '#666',
+                  fontSize: '0.75rem',
+                  textAlign: 'center',
+                }}
+              >
+                {currentLang === 'bg'
+                  ? 'Плъзнете наляво/надясно за навигация'
+                  : 'Swipe left/right to navigate'}
+              </Typography>
             </Box>
           )}
         </Box>

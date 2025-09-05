@@ -4,10 +4,9 @@ import React from 'react';
 import { useTranslations } from '../../hooks/useTranslations';
 import { HeroSection } from './HeroSection';
 import { AboutSection } from './AboutSection';
-import { FeaturesSection } from './FeaturesSection';
-import { CarsSection } from './CarsSection';
 import { ContactSection } from './ContactSection';
 import { SnackbarProvider, useSnackbar } from './SnackbarProvider';
+import { CarsSection } from './CarsSection';
 
 function HomePageContent() {
   const { currentLang } = useTranslations();

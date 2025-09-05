@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useScrollLock } from '@/hooks/useScrollLock';
 import { SUPPORTED_LANGUAGES } from '@/utils/constants';
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ isMobile }: { isMobile: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -35,11 +35,11 @@ export function LanguageSwitcher() {
         size="small"
         sx={{
           p: 1,
-          mr: 2,
-          minWidth: '120px',
-          width: '160px',
+          mr: isMobile ? 0 : 2,
+          minWidth: isMobile ? '30px' : '120px',
+          width: isMobile ? '30px' : '160px',
           textTransform: 'none',
-          borderColor: 'primary.main',
+          borderColor: isMobile ? 'white' : 'primary.main',
           color: 'primary.main',
           '&:hover': {
             borderColor: 'primary.dark',
@@ -48,7 +48,7 @@ export function LanguageSwitcher() {
           },
         }}
       >
-        {currentLanguage?.flag} {currentLanguage?.name}
+        {currentLanguage?.flag} {isMobile ? null : currentLanguage?.name}
       </Button>
 
       <Menu

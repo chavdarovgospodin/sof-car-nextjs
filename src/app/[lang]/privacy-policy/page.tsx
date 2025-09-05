@@ -85,14 +85,15 @@ export async function generateMetadata({
   };
 }
 
-export default function PrivacyPolicyPageRoute({
+export default async function PrivacyPolicyPageRoute({
   params,
 }: {
   params: Promise<{ lang: string }>;
 }) {
+  const resolvedParams = await params;
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <PrivacyPolicyPage lang={params.then((p) => p.lang)} />
+      <PrivacyPolicyPage lang={Promise.resolve(resolvedParams.lang)} />
     </Suspense>
   );
 }

@@ -75,15 +75,6 @@
   overflow: hidden;
 }
 
-/* Last Updated */
-.last-updated {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
-  padding: 1.5rem 2rem;
-  text-align: center;
-  font-size: 1.1rem;
-}
-
 .last-updated p {
   margin: 0;
 }

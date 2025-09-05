@@ -77,8 +77,8 @@ export interface ApiResponse<T> {
 
 export interface CarsResponse {
   cars: Car[];
-  count: number;
-  filters: {
+  count?: number;
+  filters?: {
     start_date?: string;
     end_date?: string;
     class?: string;
