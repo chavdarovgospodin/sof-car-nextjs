@@ -125,31 +125,17 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
             color: '#1976d2',
           }}
         >
-          {car.brand} {car.model}
+          {car.brand} {car.model} - {car.year}
         </Typography>
 
-        {/* Car Class and Year */}
-        <Box sx={{ display: 'flex', gap: 2, marginBottom: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            {t('booking.class')}: {car.class}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('booking.year')}: {car.year}
-          </Typography>
-        </Box>
-
-        {/* Description */}
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            marginBottom: 2,
-            minHeight: '3em',
-            lineHeight: 1.4,
-          }}
-        >
-          {car.brand} {car.model} - {car.year} година
-        </Typography>
+        {car.features && car.features.length > 0 && (
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              {car.features.slice(0, 6).join(', ')}
+              {car.features.length > 6 && '...'}
+            </Typography>
+          </Box>
+        )}
 
         <Divider sx={{ marginY: 1 }} />
 

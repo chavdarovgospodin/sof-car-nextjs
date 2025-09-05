@@ -7,8 +7,6 @@ import {
   Grid,
   Link,
   IconButton,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
   Facebook,
@@ -17,7 +15,6 @@ import {
   Phone,
   Email,
   LocationOn,
-  Business,
   Lock,
   Security,
   CreditCard,
@@ -27,9 +24,7 @@ import { APP_CONFIG } from '@/utils/constants';
 import { useTranslations } from '@/hooks/useTranslations';
 
 export function Footer() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { t, currentLang } = useTranslations();
+  const { currentLang } = useTranslations();
 
   const currentYear = new Date().getFullYear();
 
@@ -139,11 +134,20 @@ export function Footer() {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    color: 'primary.main',
+                    color: 'primary.main !important',
                   },
                 }}
               >
-                <WhatsApp />
+                <Box
+                  component="img"
+                  src="/viber-svgrepo-com.svg"
+                  alt="Viber"
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    filter: 'brightness(0) invert(1)', // Makes the icon white
+                  }}
+                />
               </IconButton>
               <IconButton
                 href={`https://wa.me/359879994212`}

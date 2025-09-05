@@ -17,9 +17,10 @@ export function HeroSection({ currentLang, onShowSnackbar }: HeroSectionProps) {
     <Box
       id="body"
       sx={{
-        backgroundImage: 'url(/slider-image-1-1920x700.webp)',
+        backgroundImage:
+          'url(/generated-image-f179045f-49f4-4402-880f-8663654edd10.jpeg)',
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: '30% 70%',
         color: 'white',
         py: { xs: 8, md: 12 },
         position: 'relative',

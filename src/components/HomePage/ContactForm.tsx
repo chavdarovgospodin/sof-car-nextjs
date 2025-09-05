@@ -11,7 +11,8 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Send } from '@mui/icons-material';
-import { API_CONFIG } from '@/config/api';
+import { useContactEmail, ContactFormData } from '@/hooks/useContactEmail';
+import { validateContactForm, ValidationError } from '@/utils/validation';
 
 interface ContactFormProps {
   currentLang: string;
@@ -21,13 +22,6 @@ interface ContactFormProps {
   ) => void;
 }
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-}
-
 export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
   const [contactForm, setContactForm] = useState<ContactFormData>({
     name: '',
@@ -35,58 +29,52 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
     phone: '',
     message: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
+  const { sendContactEmail, isLoading } = useContactEmail();
+
+  const getFieldError = (field: string): string | null => {
+    const error = validationErrors.find((err) => err.field === field);
+    return error ? error.message : null;
+  };
 
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
     setContactForm((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    // Clear validation error for this field when user starts typing
+    if (validationErrors.some((err) => err.field === field)) {
+      setValidationErrors((prev) => prev.filter((err) => err.field !== field));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+    // Clear previous validation errors
+    setValidationErrors([]);
+
+    // Validate form data
+    const validation = validateContactForm(contactForm);
+
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
       onShowSnackbar(
         currentLang === 'bg'
-          ? 'Моля, попълнете всички задължителни полета'
-          : 'Please fill in all required fields',
+          ? 'Моля, поправете грешките във формата'
+          : 'Please fix the form errors',
         'error'
       );
       return;
     }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(contactForm.email)) {
-      onShowSnackbar(
-        currentLang === 'bg'
-          ? 'Моля, въведете валиден email адрес'
-          : 'Please enter a valid email address',
-        'error'
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CONTACT_INQUIRY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(contactForm),
-        }
-      );
+      const result = await sendContactEmail(contactForm);
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      if (result.success) {
         onShowSnackbar(
           currentLang === 'bg'
             ? 'Съобщението е изпратено успешно!'
@@ -101,6 +89,7 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
           phone: '',
           message: '',
         });
+        setValidationErrors([]);
       } else {
         onShowSnackbar(
           result.message ||
@@ -118,8 +107,6 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
           : 'An error occurred while sending the message',
         'error'
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -157,6 +144,8 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
               onChange={(e) => handleInputChange('name', e.target.value)}
               required
               size="small"
+              error={!!getFieldError('name')}
+              helperText={getFieldError('name')}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: 'white',
@@ -175,6 +164,8 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
               onChange={(e) => handleInputChange('email', e.target.value)}
               required
               size="small"
+              error={!!getFieldError('email')}
+              helperText={getFieldError('email')}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: 'white',
@@ -191,6 +182,8 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
               value={contactForm.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               size="small"
+              error={!!getFieldError('phone')}
+              helperText={getFieldError('phone')}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: 'white',
@@ -210,6 +203,8 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
               onChange={(e) => handleInputChange('message', e.target.value)}
               required
               size="small"
+              error={!!getFieldError('message')}
+              helperText={getFieldError('message')}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: 'white',
@@ -224,9 +219,9 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
               type="submit"
               variant="contained"
               fullWidth
-              disabled={isSubmitting}
+              disabled={isLoading}
               startIcon={
-                isSubmitting ? (
+                isLoading ? (
                   <CircularProgress size={20} color="inherit" />
                 ) : (
                   <Send />
@@ -245,7 +240,7 @@ export function ContactForm({ currentLang, onShowSnackbar }: ContactFormProps) {
                 fontSize: '1.1rem',
               }}
             >
-              {isSubmitting
+              {isLoading
                 ? currentLang === 'bg'
                   ? 'Изпращане...'
                   : 'Sending...'
