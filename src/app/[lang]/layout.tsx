@@ -101,10 +101,13 @@ export default async function LangLayout({
         : 'Професионална услуга за коли под наем в Ямбол, България предлагаща икономичен, стандартен и луксозен клас автомобили',
     url: `${APP_CONFIG.url}/${lang}`,
     telephone: '+359879994212',
-    email: '2013anikar@gmail.com',
+    email: '2016.sofcar@gmail.com',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'Западна промишлена зона',
+      streetAddress:
+        lang === 'en'
+          ? 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'
+          : 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол',
       addressLocality: 'Yambol',
       postalCode: '8600',
       addressCountry: 'BG',

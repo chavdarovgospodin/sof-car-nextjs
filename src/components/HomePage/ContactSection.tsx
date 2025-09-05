@@ -45,7 +45,7 @@ export function ContactSection({
           >
             <iframe
               title="SofCar Location in Yambol"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d26114.18985576526!2d26.506186044907285!3d42.49307908419431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40a63435db7821ef%3A0x789eff0b31da8b94!2sauto%20service%20AVTOTSENTAR!5e0!3m2!1sen!2sbg!4v1689711472346!5m2!1sen!2sbg"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2888.23093507278!2d26.496532776052938!3d42.494557571180806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40a634192fba13c3%3A0x8c34d893296c506b!2sWestern%20Industrial%20Zone%2C%20ul.%20%22Yambolen%22%2018%2C%208601%2C%208600%20Yambol!5e1!3m2!1sen!2sbg!4v1757084431247!5m2!1sen!2sbg"
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -103,7 +103,11 @@ export function ContactSection({
                     {currentLang === 'bg' ? 'Телефон' : 'Phone'}
                   </Typography>
                   <Typography variant="body1">
-                    <Link href="tel:+359879994212" color="inherit">
+                    <Link
+                      href="tel:+359879994212"
+                      color="inherit"
+                      style={{ textDecoration: 'none' }}
+                    >
                       +359 87 999 4212
                     </Link>
                   </Typography>
@@ -119,8 +123,12 @@ export function ContactSection({
                     Email
                   </Typography>
                   <Typography variant="body1">
-                    <Link href="mailto:2013anikar@gmail.com" color="inherit">
-                      2013anikar@gmail.com
+                    <Link
+                      href="mailto:2016.sofcar@gmail.com"
+                      color="inherit"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      2016.sofcar@gmail.com
                     </Link>
                   </Typography>
                 </Box>
@@ -135,7 +143,9 @@ export function ContactSection({
                     {currentLang === 'bg' ? 'Адрес' : 'Address'}
                   </Typography>
                   <Typography variant="body1">
-                    Западна промишлена зона, Ямбол, 8600
+                    {currentLang === 'bg'
+                      ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
+                      : 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'}
                   </Typography>
                 </Box>
               </Box>

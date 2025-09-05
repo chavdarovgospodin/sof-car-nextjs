@@ -18,6 +18,7 @@ export const API_CONFIG = {
     ADMIN_CARS: '/admin/cars',
     ADMIN_CAR_DETAILS: (id: string) => `/admin/cars/${id}`,
     ADMIN_BOOKINGS: '/admin/bookings',
+    CONTACT_INQUIRY: '/contact/inquiry',
   },
   TIMEOUT: 10000, // 10 seconds
   RETRY_ATTEMPTS: 3,

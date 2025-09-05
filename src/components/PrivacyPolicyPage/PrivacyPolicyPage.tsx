@@ -133,7 +133,11 @@ export function PrivacyPolicyPage({ lang }: PrivacyPolicyPageProps) {
                     {currentLang === 'bg' ? 'Адрес:' : 'Address:'}
                   </strong>
                 }
-                secondary="Западна промишлена зона, Ямбол 8600, България"
+                secondary={
+                  currentLang === 'bg'
+                    ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
+                    : 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'
+                }
               />
             </ListItem>
             <ListItem>
@@ -157,7 +161,7 @@ export function PrivacyPolicyPage({ lang }: PrivacyPolicyPageProps) {
                 primary={
                   <strong>{currentLang === 'bg' ? 'Имейл:' : 'Email:'}</strong>
                 }
-                secondary="2013anikar@gmail.com"
+                secondary="2016.sofcar@gmail.com"
               />
             </ListItem>
             <ListItem>
@@ -632,14 +636,17 @@ export function PrivacyPolicyPage({ lang }: PrivacyPolicyPageProps) {
           </Typography>
           <Box sx={{ mt: 3 }}>
             <Typography variant="body1" paragraph>
-              <strong>Email:</strong> 2013anikar@gmail.com
+              <strong>Email:</strong> 2016.sofcar@gmail.com
             </Typography>
             <Typography variant="body1" paragraph>
               <strong>Phone:</strong> +359 87 999 4212
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>Address:</strong> Западна промишлена зона, Ямбол 8600,
-              България
+              <strong>Address:</strong>{' '}
+              {currentLang === 'bg'
+                ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
+                : 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'}
+              , България
             </Typography>
           </Box>
         </Paper>

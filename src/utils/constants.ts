@@ -3,8 +3,8 @@ export const APP_CONFIG = {
   description: 'Car rental service in Yambol',
   url: 'https://sof-car.eu',
   phone: '0879994212',
-  email: '2013anikar@gmail.com',
-  address: 'Западна промишлена зона Ямбол',
+  email: '2016.sofcar@gmail.com',
+  address: 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol',
   coordinates: {
     lat: 42.500874,
     lng: 26.506668,
