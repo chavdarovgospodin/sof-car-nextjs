@@ -53,18 +53,6 @@ export function TermsConditionsDialog({
         },
       }}
     >
-      <DialogTitle>
-        <Typography variant="h2" component="h2">
-          {isEnglish ? 'Terms & Conditions' : 'Общи условия и политики'}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          <strong>
-            {isEnglish ? 'Last updated:' : 'Последна актуализация:'}
-          </strong>{' '}
-          {isEnglish ? 'August 19, 2025' : '19 август 2025 г.'}
-        </Typography>
-      </DialogTitle>
-
       <DialogContent dividers>
         <Box sx={{ pb: 2 }}>
           {/* General Terms */}

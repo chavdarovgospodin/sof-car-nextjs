@@ -222,10 +222,6 @@ export function Header() {
             </ListItem>
           ))}
         </ListItem>
-
-        <ListItem sx={{ justifyContent: 'center', mt: 2 }}>
-          <LanguageSwitcher />
-        </ListItem>
       </List>
     </Box>
   );
@@ -244,7 +240,12 @@ export function Header() {
         {/* Logo */}
         <Link
           href={`/${currentLang}`}
-          style={{ textDecoration: 'none', outline: 'none', border: 'none' }}
+          style={{
+            textDecoration: 'none',
+            outline: 'none',
+            border: 'none',
+            marginLeft: '-5px',
+          }}
         >
           <Image
             src="/logo_main.webp"
@@ -352,7 +353,9 @@ export function Header() {
 
         {/* Right side */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {isMobile && <LanguageSwitcher isMobile={isMobile} />}
           {/* Phone number */}
+
           <Box
             sx={{
               display: 'flex',
@@ -377,7 +380,7 @@ export function Header() {
           </Box>
 
           {/* Language Switcher */}
-          {!isMobile && <LanguageSwitcher />}
+          {!isMobile && <LanguageSwitcher isMobile={isMobile} />}
 
           {/* Mobile menu button */}
           {isMobile && (

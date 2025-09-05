@@ -158,18 +158,6 @@ export function PricingPage({ lang }: PricingPageProps) {
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
-        {/* Last Updated */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            <strong>
-              {currentLang === 'bg'
-                ? 'Последна актуализация:'
-                : 'Last updated:'}
-            </strong>{' '}
-            {currentLang === 'bg' ? '19 август 2025 г.' : 'August 19, 2025'}
-          </Typography>
-        </Box>
-
         {/* Base Prices */}
         <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
           <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
