@@ -44,8 +44,13 @@ export function TermsConditionsDialog({
       onClose={onClose}
       maxWidth="md"
       fullWidth
+      disableScrollLock={true}
+      keepMounted={false}
       PaperProps={{
-        sx: { maxHeight: '90vh' },
+        sx: {
+          maxHeight: '90vh',
+          margin: 2,
+        },
       }}
     >
       <DialogTitle>

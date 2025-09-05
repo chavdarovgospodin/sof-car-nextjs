@@ -68,11 +68,6 @@ export function Header() {
       isScroll: true,
     },
     {
-      href: `/${currentLang}/booking`,
-      label: currentLang === 'bg' ? 'Резервация' : 'Reservation',
-      isScroll: false,
-    },
-    {
       sectionId: 'offers',
       label: currentLang === 'bg' ? 'Автомобили' : 'Cars',
       isScroll: true,
@@ -171,9 +166,9 @@ export function Header() {
       <List sx={{ p: 2 }}>
         {navigationItems.map((item) => (
           <ListItem
-            key={item.sectionId || item.href}
+            key={item.sectionId}
             component={item.isScroll ? 'div' : 'a'}
-            href={item.isScroll ? undefined : item.href}
+            href={undefined}
             onClick={() => {
               handleNavigationClick(item);
               if (item.isScroll) {
@@ -265,8 +260,8 @@ export function Header() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {navigationItems.map((item) => (
               <Button
-                key={item.sectionId || item.href}
-                href={item.isScroll ? undefined : item.href}
+                key={item.sectionId}
+                href={undefined}
                 onClick={
                   item.isScroll ? () => handleNavigationClick(item) : undefined
                 }

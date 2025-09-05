@@ -95,7 +95,20 @@ export default function BookingEditDialog({
   if (!booking) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      disableScrollLock={true}
+      keepMounted={false}
+      sx={{
+        '& .MuiDialog-paper': {
+          margin: 2,
+          maxHeight: 'calc(100vh - 32px)',
+        },
+      }}
+    >
       <DialogTitle>
         <Typography variant="h6" component="div">
           {texts.title}

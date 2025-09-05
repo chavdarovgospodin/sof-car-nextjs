@@ -177,7 +177,20 @@ export function BookingForm({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      disableScrollLock={true}
+      keepMounted={false}
+      sx={{
+        '& .MuiDialog-paper': {
+          margin: 2,
+          maxHeight: 'calc(100vh - 32px)',
+        },
+      }}
+    >
       <DialogTitle>
         {t('booking.title')} {car.brand} {car.model}
       </DialogTitle>

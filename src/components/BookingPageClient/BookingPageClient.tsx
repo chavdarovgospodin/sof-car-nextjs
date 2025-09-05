@@ -197,19 +197,6 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f8f9fa', paddingY: 4 }}>
       <Container maxWidth="xl">
-        <Box sx={{ textAlign: 'center', marginBottom: 4 }}>
-          <Typography
-            variant="h2"
-            component="h1"
-            sx={{ color: '#1976d2', fontWeight: 'bold', marginBottom: 2 }}
-          >
-            {t('booking.pageTitle')}
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            {t('booking.pageSubtitle')}
-          </Typography>
-        </Box>
-
         <Suspense fallback={<CircularProgress />}>
           <DateSearch
             onSearch={handleSearch}

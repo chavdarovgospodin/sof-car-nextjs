@@ -17,7 +17,6 @@ function HomePageContent() {
     <>
       <HeroSection currentLang={currentLang} onShowSnackbar={showSnackbar} />
       <AboutSection currentLang={currentLang} />
-      <FeaturesSection currentLang={currentLang} />
       <CarsSection currentLang={currentLang} />
       <ContactSection currentLang={currentLang} onShowSnackbar={showSnackbar} />
     </>

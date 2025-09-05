@@ -69,6 +69,15 @@ export const useCars = (
   });
 };
 
+export const useAllCars = () => {
+  const endpoint = `${API_CONFIG.ENDPOINTS.CARS}`;
+
+  return useQuery<CarsResponse>({
+    queryKey: ['carsAll'],
+    queryFn: () => apiCall<CarsResponse>(endpoint),
+  });
+};
+
 // Get specific car
 export const useCar = (carId: number) => {
   return useQuery<Car>({

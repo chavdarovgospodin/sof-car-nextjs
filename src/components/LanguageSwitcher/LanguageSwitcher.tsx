@@ -34,6 +34,7 @@ export function LanguageSwitcher() {
         variant="outlined"
         size="small"
         sx={{
+          p: 1,
           mr: 2,
           minWidth: '120px',
           width: '160px',

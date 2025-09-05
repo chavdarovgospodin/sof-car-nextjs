@@ -23,6 +23,7 @@
     "@tanstack/react-query-devtools": "^5.85.5",
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.18",
     "joi": "^18.0.1",
     "next": "15.5.0",
     "next-sitemap": "^4.2.3",

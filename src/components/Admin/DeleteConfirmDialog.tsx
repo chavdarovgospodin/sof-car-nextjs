@@ -28,7 +28,20 @@ export default function DeleteConfirmDialog({
   onCancel,
 }: DeleteConfirmDialogProps) {
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      maxWidth="sm"
+      fullWidth
+      disableScrollLock={true}
+      keepMounted={false}
+      sx={{
+        '& .MuiDialog-paper': {
+          margin: 2,
+          maxHeight: 'calc(100vh - 32px)',
+        },
+      }}
+    >
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Warning color="warning" />

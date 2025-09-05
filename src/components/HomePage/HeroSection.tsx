@@ -24,7 +24,7 @@ export function HeroSection({ currentLang, onShowSnackbar }: HeroSectionProps) {
         py: { xs: 8, md: 12 },
         position: 'relative',
         overflow: 'hidden',
-        minHeight: '80vh',
+        minHeight: '65vh',
         display: 'flex',
         alignItems: 'center',
       }}
@@ -61,7 +61,7 @@ export function HeroSection({ currentLang, onShowSnackbar }: HeroSectionProps) {
                 gutterBottom
                 sx={{
                   fontWeight: 'bold',
-                  fontSize: { xs: '2.5rem', md: '3.5rem' },
+                  fontSize: { xs: '2.5rem', md: '3rem' },
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                   mb: 3,
                 }}
@@ -86,12 +86,15 @@ export function HeroSection({ currentLang, onShowSnackbar }: HeroSectionProps) {
               </Typography>
 
               <Typography
-                variant="h6"
+                variant="h2"
                 component="p"
                 sx={{
                   maxWidth: '600px',
                   mb: 4,
                   opacity: 0.95,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: { xs: '1.2rem', md: '22px' },
+                  fontFamily: 'Source Sans Pro, Helvetica, sans-serif',
                   textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
                   lineHeight: 1.6,
                 }}

@@ -281,6 +281,14 @@ export default function CarFormDialog({
       maxWidth="md"
       fullWidth
       TransitionComponent={Fade}
+      disableScrollLock={true}
+      keepMounted={false}
+      sx={{
+        '& .MuiDialog-paper': {
+          margin: 2,
+          maxHeight: 'calc(100vh - 32px)',
+        },
+      }}
     >
       <DialogTitle>
         <Box
