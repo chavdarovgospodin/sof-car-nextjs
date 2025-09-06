@@ -62,7 +62,7 @@ export interface AdminBooking {
 
 // Create axios instance with default config
 const adminApi = axios.create({
-  baseURL: 'http://localhost:5002/',
+  baseURL: 'https://sof-car.eu/api',
   withCredentials: true, // Important for cookies
   headers: {
     'Content-Type': 'application/json',
