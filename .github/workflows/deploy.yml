@@ -26,13 +26,8 @@ jobs:
       - name: 🔧 Build Next.js static export
         run: npm run build:static
 
-      - name: 🔍 Debug FTP credentials
-        run: |
-          echo "FTP_USERNAME exists: ${{ secrets.FTP_USERNAME != '' }}"
-          echo "FTP_PASSWORD exists: ${{ secrets.FTP_PASSWORD != '' }}"
-
       - name: 📂 Deploy to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: sof-car.eu
           username: ${{ secrets.FTP_USERNAME }}
