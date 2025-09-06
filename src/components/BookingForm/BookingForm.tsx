@@ -42,7 +42,7 @@ import {
   Security,
   CarRental,
   CalendarToday,
-  Euro,
+  CheckCircle,
 } from '@mui/icons-material';
 import { TermsConditionsDialog } from './TermsConditionsDialog';
 
@@ -248,13 +248,13 @@ export function BookingForm({
                 <Box
                   sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
                 >
-                  <Euro color="primary" />
                   <Typography
                     variant="h6"
                     color="primary"
                     sx={{ fontWeight: 'bold' }}
                   >
-                    {car.price_per_day.toFixed(2)} €{' '}
+                    {car.price_per_day.toFixed(0)} лв / ≈
+                    {(car.price_per_day / 1.96).toFixed(2)} €{' '}
                     {t('booking.bookingPerDay')}
                   </Typography>
                 </Box>
@@ -275,13 +275,60 @@ export function BookingForm({
                   color="primary"
                   sx={{ fontWeight: 'bold' }}
                 >
-                  {totalPrice.toFixed(2)} €
+                  {(totalPrice * 1.96).toFixed(0)} лв
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t('booking.totalPrice')}
+                  ≈{totalPrice.toFixed(2)} € / {t('booking.totalPrice')}
                 </Typography>
               </Grid>
             </Grid>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Car Features */}
+            {car.features && car.features.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    marginBottom: 2,
+                  }}
+                >
+                  <CheckCircle sx={{ fontSize: 20 }} />
+                  {t('booking.carFeatures')}
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    marginBottom: 2,
+                  }}
+                >
+                  {car.features.map((feature, index) => (
+                    <Chip
+                      key={index}
+                      label={feature}
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      sx={{
+                        fontSize: '0.75rem',
+                        height: 28,
+                        '& .MuiChip-label': {
+                          padding: '0 8px',
+                        },
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
 
             <Divider sx={{ my: 2 }} />
 
@@ -317,8 +364,8 @@ export function BookingForm({
                   marginBottom: 1,
                 }}
               >
-                {(car.deposit_amount * 1.96).toFixed(0)} лв / ≈
-                {car.deposit_amount.toFixed(2)} €
+                {car.deposit_amount.toFixed(0)} лв / ≈
+                {(car.deposit_amount / 1.96).toFixed(2)} €
               </Typography>
               <Typography
                 variant="body2"

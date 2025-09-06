@@ -13,13 +13,15 @@ import {
   Grid,
   Divider,
   useMediaQuery,
-  useTheme,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
 import {
   DirectionsCar,
   CheckCircle,
   Euro,
   Security,
+  Info,
 } from '@mui/icons-material';
 import type { CarData } from '../../types/api';
 
@@ -34,7 +36,6 @@ interface CarCardProps {
 }
 
 export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
-  const theme = useTheme();
   const isSmallDevice = useMediaQuery('(max-width: 480px)');
 
   // Calculate total price for the rental period
@@ -134,11 +135,42 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
         </Typography>
 
         {car.features && car.features.length > 0 && (
-          <Box sx={{ mt: 1 }}>
+          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="caption" color="text.secondary">
-              {car.features.slice(0, 6).join(', ')}
-              {car.features.length > 6 && '...'}
+              {car.features.slice(0, 4).join(', ')}
+              {car.features.length > 4 && '...'}
             </Typography>
+            {car.features.length > 5 && (
+              <Tooltip
+                title={
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ fontWeight: 'bold', mb: 1 }}
+                    >
+                      Всички характеристики:
+                    </Typography>
+                    {car.features.map((feature, index) => (
+                      <Typography key={index} variant="body2" sx={{ mb: 0.5 }}>
+                        • {feature}
+                      </Typography>
+                    ))}
+                  </Box>
+                }
+                arrow
+                placement="top"
+                sx={{
+                  '& .MuiTooltip-tooltip': {
+                    maxWidth: 300,
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                  },
+                }}
+              >
+                <IconButton size="small" sx={{ p: 0.5 }}>
+                  <Info sx={{ fontSize: 16, color: 'primary.main' }} />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
         )}
 
@@ -152,8 +184,8 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
             color="text.secondary"
             sx={{ fontSize: '0.875rem', marginBottom: 0.5 }}
           >
-            {t('booking.pricePerDay')}: {(car.price_per_day * 1.96).toFixed(0)}{' '}
-            лв / ≈{car.price_per_day.toFixed(2)} €
+            {t('booking.pricePerDay')}: {car.price_per_day.toFixed(0)} лв / ≈
+            {(car.price_per_day / 1.96).toFixed(2)} €
           </Typography>
 
           {/* Total Price */}
@@ -168,14 +200,14 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
               gap: 1,
             }}
           >
-            {(totalPrice * 1.96).toFixed(0)} лв
+            {totalPrice.toFixed(0)} лв
           </Typography>
           <Typography
             variant="body2"
             color="text.secondary"
             sx={{ fontSize: '0.875rem' }}
           >
-            <Euro sx={{ fontSize: 16, marginRight: 0.5 }} />≈{' '}
+            <Euro sx={{ fontSize: 16, marginRight: 0.5 }} /> ≈{' '}
             {totalPrice.toFixed(2)} € за {totalDays}{' '}
             {totalDays === 1 ? 'ден' : 'дни'}
           </Typography>
@@ -201,9 +233,8 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
               }}
             >
               <Security sx={{ fontSize: 16 }} />
-              {t('booking.depositRequired')}:{' '}
-              {(car.deposit_amount * 1.96).toFixed(0)} лв / ≈
-              {car.deposit_amount.toFixed(2)} €
+              {t('booking.depositRequired')}: {car.deposit_amount.toFixed(0)} лв
+              / ≈ {(car.deposit_amount / 1.96).toFixed(2)} €
             </Typography>
             <Typography
               variant="caption"

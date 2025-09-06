@@ -81,7 +81,8 @@
     "finalInfo": "After confirmation, you will receive an email with booking details. Our team will contact you for confirmation.",
     "securityInfo": "Your data is protected with SSL encryption. We do not store credit card information.",
     "depositRequired": "Deposit Required",
-    "depositInfo": "The deposit is paid when receiving the car and is refunded when returning it in good condition"
+    "depositInfo": "The deposit is paid when receiving the car and is refunded when returning it in good condition",
+    "carFeatures": "Car Features"
   },
   "cars": {
     "economy": "Economy Class",
