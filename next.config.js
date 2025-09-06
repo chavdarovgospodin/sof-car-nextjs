@@ -1,11 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'export', // Статичен export за cPanel - временно премахнато за dev
-  // trailingSlash: true, // За production - временно премахнато за dev
+  output: 'export', // Статичен export за cPanel
+  trailingSlash: true, // За production
   // Development server configuration
-  devIndicators: {
-    buildActivity: true,
-  },
+  // devIndicators: {
+  //   buildActivity: true,
+  // },
+  // Allow cross-origin requests from mobile devices during development
+  // allowedDevOrigins: [
+  //   '192.168.1.7', // Your mobile device IP
+  //   '192.168.1.*', // Allow all devices in your local network
+  //   'http://localhost:3000',
+  //   '10.0.0.*', // Alternative local network range
+  //   '172.16.*.*', // Docker network range
+  // ],
   images: {
     unoptimized: true, // За static export
     remotePatterns: [
@@ -24,7 +32,7 @@ const nextConfig = {
     NEXTAUTH_URL: 'https://sof-car.eu',
     SITE_URL: 'https://sof-car.eu',
   },
-  // Security headers - временно коментирано за development
+  // Security headers за production
   // async headers() {
   //   return [
   //     {

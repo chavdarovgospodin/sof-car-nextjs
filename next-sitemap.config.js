@@ -16,7 +16,7 @@ module.exports = {
     ],
     additionalSitemaps: ['https://sof-car.eu/sitemap.xml'],
   },
-  // Multi-language support
+  // Multi-language support - simplified
   alternateRefs: [
     {
       href: 'https://sof-car.eu/bg',
