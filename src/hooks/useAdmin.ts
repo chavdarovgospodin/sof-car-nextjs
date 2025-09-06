@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { APP_CONFIG } from '../utils/constants';
 
 // Updated types to match backend
 export interface AdminUser {
@@ -62,7 +63,7 @@ export interface AdminBooking {
 
 // Create axios instance with default config
 const adminApi = axios.create({
-  baseURL: 'https://sof-car.eu/api',
+  baseURL: `${APP_CONFIG.url}/api`,
   withCredentials: true, // Important for cookies
   headers: {
     'Content-Type': 'application/json',
@@ -377,23 +378,8 @@ export const useAdmin = (
   const deleteCarMutation = useMutation({
     mutationKey: ['admin', 'delete-car'],
     mutationFn: adminApiFunctions.deleteCar,
-    onSuccess: (_, deletedCarId) => {
-      // Optimistic update - remove car from cache instead of refetching
-      queryClient.setQueryData(
-        ['admin', 'cars'],
-        (oldData: { cars: AdminCar[] } | undefined) => {
-          if (!oldData?.cars) return oldData;
-          return {
-            ...oldData,
-            cars: oldData.cars.filter(
-              (car) => car.id !== (deletedCarId as string)
-            ),
-          };
-        }
-      );
-    },
-    onError: () => {
-      // Revert optimistic update on error
+    onSuccess: () => {
+      // Refetch cars data after successful deletion
       queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
     },
   });
@@ -519,7 +505,7 @@ export const useAdmin = (
     createCarWithImage: createCarWithImageMutation.mutate,
     updateCar: updateCarMutation.mutate,
     updateCarWithImage: updateCarWithImageMutation.mutate,
-    deleteCar: deleteCarMutation.mutate,
+    deleteCar: deleteCarMutation.mutateAsync,
     deleteCarImage: deleteCarImageMutation.mutate,
 
     isCreatingCar:

@@ -23,6 +23,7 @@ import {
   LocationOn,
   Person,
 } from '@mui/icons-material';
+import { APP_CONFIG } from '../../utils/constants';
 
 interface PrivacyPolicyPageProps {
   lang: Promise<string>;
@@ -136,7 +137,7 @@ export function PrivacyPolicyPage({ lang }: PrivacyPolicyPageProps) {
                 secondary={
                   currentLang === 'bg'
                     ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
-                    : 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'
+                    : APP_CONFIG.address
                 }
               />
             </ListItem>
@@ -636,7 +637,7 @@ export function PrivacyPolicyPage({ lang }: PrivacyPolicyPageProps) {
           </Typography>
           <Box sx={{ mt: 3 }}>
             <Typography variant="body1" paragraph>
-              <strong>Email:</strong> 2016.sofcar@gmail.com
+              <strong>Email:</strong> {APP_CONFIG.email}
             </Typography>
             <Typography variant="body1" paragraph>
               <strong>Phone:</strong> +359 87 999 4212
@@ -645,7 +646,7 @@ export function PrivacyPolicyPage({ lang }: PrivacyPolicyPageProps) {
               <strong>Address:</strong>{' '}
               {currentLang === 'bg'
                 ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
-                : 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'}
+                : APP_CONFIG.address}
               , България
             </Typography>
           </Box>

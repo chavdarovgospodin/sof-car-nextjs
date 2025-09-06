@@ -145,6 +145,57 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
         <Box sx={{ position: 'relative' }}>
           {/* Cars Grid */}
           <Grid container spacing={4} justifyContent="center">
+            {!isMobile && (
+              <>
+                <IconButton
+                  onClick={handlePrevious}
+                  disabled={currentPage === 0}
+                  sx={{
+                    position: 'absolute',
+                    left: 8,
+                    top: '50%',
+                    transform: 'translateY(-50%) translateX(-150%)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    zIndex: 3,
+                    width: 40,
+                    height: 40,
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 1)',
+                    },
+                    '&:disabled': {
+                      opacity: 0.3,
+                    },
+                  }}
+                >
+                  <ChevronLeft />
+                </IconButton>
+
+                <IconButton
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages - 1}
+                  sx={{
+                    position: 'absolute',
+                    right: 8,
+                    top: '50%',
+                    transform: 'translateY(-50%) translateX(150%)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    zIndex: 3,
+                    width: 40,
+                    height: 40,
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 1)',
+                    },
+                    '&:disabled': {
+                      opacity: 0.3,
+                    },
+                  }}
+                >
+                  <ChevronRight />
+                </IconButton>
+              </>
+            )}
             {currentCars.map((car) => (
               <Grid size={{ xs: 12, sm: 6, md: 6 }} key={car.id}>
                 <Paper
@@ -162,7 +213,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                   }}
                 >
                   {/* Navigation Arrows - Overlay on card */}
-                  {totalPages > 1 && (
+                  {totalPages > 1 && isMobile && (
                     <>
                       <IconButton
                         onClick={handlePrevious}
@@ -170,7 +221,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                         sx={{
                           position: 'absolute',
                           left: 8,
-                          top: isMobile ? '25%' : '50%',
+                          top: '25%',
                           transform: 'translateY(-50%)',
                           backgroundColor: 'rgba(255, 255, 255, 0.9)',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -194,7 +245,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                         sx={{
                           position: 'absolute',
                           right: 8,
-                          top: isMobile ? '25%' : '50%',
+                          top: '25%',
                           transform: 'translateY(-50%)',
                           backgroundColor: 'rgba(255, 255, 255, 0.9)',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',

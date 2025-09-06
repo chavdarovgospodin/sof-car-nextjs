@@ -29,8 +29,8 @@ const nextConfig = {
   },
   // Environment variables
   env: {
-    NEXTAUTH_URL: 'https://sof-car.eu',
-    SITE_URL: 'https://sof-car.eu',
+    NEXTAUTH_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://sof-car.eu',
+    SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://sof-car.eu',
   },
   // Security headers за production
   // async headers() {

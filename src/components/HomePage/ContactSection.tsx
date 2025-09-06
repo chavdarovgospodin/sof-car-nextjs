@@ -4,6 +4,7 @@ import React from 'react';
 import { Box, Container, Typography, Grid, Paper } from '@mui/material';
 import { Phone, Email, LocationOn, Business } from '@mui/icons-material';
 import { ContactForm } from './ContactForm';
+import { APP_CONFIG } from '../../utils/constants';
 import Link from 'next/link';
 
 interface ContactSectionProps {
@@ -124,11 +125,11 @@ export function ContactSection({
                   </Typography>
                   <Typography variant="body1">
                     <Link
-                      href="mailto:2016.sofcar@gmail.com"
+                      href={`mailto:${APP_CONFIG.email}`}
                       color="inherit"
                       style={{ textDecoration: 'none' }}
                     >
-                      2016.sofcar@gmail.com
+                      {APP_CONFIG.email}
                     </Link>
                   </Typography>
                 </Box>
@@ -145,7 +146,7 @@ export function ContactSection({
                   <Typography variant="body1">
                     {currentLang === 'bg'
                       ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
-                      : 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'}
+                      : APP_CONFIG.address}
                   </Typography>
                 </Box>
               </Box>

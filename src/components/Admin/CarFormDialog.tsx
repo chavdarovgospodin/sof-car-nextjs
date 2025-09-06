@@ -36,6 +36,11 @@ const convertToEUR = (bgnAmount: number): number => {
   return Math.round((bgnAmount / 1.96) * 100) / 100; // Round to 2 decimal places
 };
 
+// Helper function to display EUR equivalent
+const getEURDisplay = (bgnAmount: number): string => {
+  return convertToEUR(bgnAmount).toFixed(2);
+};
+
 interface CarFormDialogProps {
   open: boolean;
   onClose: () => void;
@@ -120,8 +125,8 @@ export default function CarFormDialog({
         year: car.year,
         fuel_type: car.fuel_type || '',
         class: car.class,
-        price_per_day_bgn: convertToBGN(car.price_per_day), // Convert EUR to BGN
-        deposit_amount_bgn: convertToBGN(car.deposit_amount), // Convert EUR to BGN
+        price_per_day_bgn: car.price_per_day, // Already in BGN
+        deposit_amount_bgn: car.deposit_amount, // Already in BGN
         available: !!car.is_active,
         features: car.features ? [...car.features] : [],
         transmission: car.transmission || '',
@@ -268,8 +273,8 @@ export default function CarFormDialog({
         model: formData.model,
         year: Number(formData.year),
         class: formData.class as 'economy' | 'standard' | 'premium',
-        price_per_day: Number(convertToEUR(formData.price_per_day_bgn)), // Convert BGN to EUR
-        deposit_amount: Number(convertToEUR(formData.deposit_amount_bgn)), // Convert BGN to EUR
+        price_per_day: Number(formData.price_per_day_bgn), // Keep in BGN
+        deposit_amount: Number(formData.deposit_amount_bgn), // Keep in BGN
         is_active: formData.available,
         fuel_type: formData.fuel_type as
           | 'petrol'
@@ -481,9 +486,7 @@ export default function CarFormDialog({
                 helperText={
                   errors.price_per_day_bgn ||
                   (formData.price_per_day_bgn > 0
-                    ? `≈ ${convertToEUR(formData.price_per_day_bgn).toFixed(
-                        2
-                      )} €`
+                    ? `≈ ${getEURDisplay(formData.price_per_day_bgn)} €`
                     : '')
                 }
                 required
@@ -504,9 +507,7 @@ export default function CarFormDialog({
                 helperText={
                   errors.deposit_amount_bgn ||
                   (formData.deposit_amount_bgn > 0
-                    ? `≈ ${convertToEUR(formData.deposit_amount_bgn).toFixed(
-                        2
-                      )} €`
+                    ? `≈ ${getEURDisplay(formData.deposit_amount_bgn)} €`
                     : '')
                 }
                 required

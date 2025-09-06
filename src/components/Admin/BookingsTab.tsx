@@ -31,8 +31,10 @@ import BookingEditDialog from './BookingEditDialog';
 import DeleteBookingDialog from './DeleteBookingDialog';
 
 // Currency conversion function (approximate BGN to EUR rate)
-const convertToBGN = (euroAmount: number): number => {
-  return Math.round(euroAmount * 1.96 * 100) / 100; // Round to 2 decimal places
+// Helper function to display EUR equivalent
+const getEURDisplay = (bgnAmount: number): string => {
+  const eurAmount = Math.round((bgnAmount / 1.96) * 100) / 100;
+  return eurAmount.toFixed(2);
 };
 
 export default function BookingsTab() {
@@ -568,20 +570,20 @@ export default function BookingsTab() {
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight="medium">
-                          {convertToBGN(booking.total_price).toFixed(2)} лв
+                          {booking.total_price.toFixed(2)} лв
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          ≈ {booking.total_price.toFixed(2)} €
+                          ≈ {getEURDisplay(booking.total_price)} €
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight="medium">
-                          {convertToBGN(booking.deposit_amount).toFixed(2)} лв
+                          {booking.deposit_amount.toFixed(2)} лв
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          ≈ {booking.deposit_amount.toFixed(2)} €
+                          ≈ {getEURDisplay(booking.deposit_amount)} €
                         </Typography>
                       </Box>
                     </TableCell>

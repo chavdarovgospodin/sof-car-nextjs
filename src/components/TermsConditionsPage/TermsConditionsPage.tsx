@@ -20,6 +20,7 @@ import {
   Security,
   Payment,
 } from '@mui/icons-material';
+import { APP_CONFIG } from '../../utils/constants';
 
 interface TermsConditionsPageProps {
   lang: Promise<string>;
@@ -637,7 +638,7 @@ export function TermsConditionsPage({ lang }: TermsConditionsPageProps) {
           </Typography>
           <Box sx={{ mt: 3 }}>
             <Typography variant="body1" paragraph>
-              <strong>Email:</strong> 2016.sofcar@gmail.com
+              <strong>Email:</strong> {APP_CONFIG.email}
             </Typography>
             <Typography variant="body1" paragraph>
               <strong>Phone:</strong> +359 87 999 4212
@@ -646,7 +647,7 @@ export function TermsConditionsPage({ lang }: TermsConditionsPageProps) {
               <strong>Address:</strong>
               {currentLang === 'bg'
                 ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
-                : 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol'}
+                : APP_CONFIG.address}
               , България
             </Typography>
             <Typography variant="body1" paragraph>

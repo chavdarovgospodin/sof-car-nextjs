@@ -30,8 +30,10 @@ import { useSnackbar } from '@/components/HomePage/SnackbarProvider';
 import axios from 'axios';
 
 // Currency conversion function (approximate BGN to EUR rate)
-const convertToBGN = (euroAmount: number): number => {
-  return Math.round(euroAmount * 1.96 * 100) / 100; // Round to 2 decimal places
+// Helper function to display EUR equivalent
+const getEURDisplay = (bgnAmount: number): string => {
+  const eurAmount = Math.round((bgnAmount / 1.96) * 100) / 100;
+  return eurAmount.toFixed(2);
 };
 
 export default function CarsTab() {
@@ -141,7 +143,7 @@ export default function CarsTab() {
       await deleteCar(carToDelete.id);
       setDeleteDialogOpen(false);
       setCarToDelete(null);
-      showSnackbar('Автомобилът е изтрит', 'success');
+      showSnackbar('Автомобилът е изтрит успешно', 'success');
     } catch (err: unknown) {
       console.error('Error deleting car:', err);
 
@@ -155,6 +157,12 @@ export default function CarsTab() {
         setTimeout(() => {
           window.location.href = '/admin/login';
         }, 2000);
+      } else if (axios.isAxiosError(err) && err.response?.status === 409) {
+        // Conflict error - car has existing bookings
+        showSnackbar(
+          'Не можете да изтриете автомобил с съществуващи резервации',
+          'error'
+        );
       } else {
         showSnackbar('Възникна грешка при изтриване на автомобила', 'error');
       }
@@ -265,14 +273,14 @@ export default function CarsTab() {
                         color="primary.main"
                         fontWeight="bold"
                       >
-                        {convertToBGN(car.price_per_day).toFixed(2)} лв
+                        {car.price_per_day.toFixed(2)} лв
                       </Typography>
                       <Typography
                         variant="body2"
                         color="text.secondary"
                         sx={{ ml: 1 }}
                       >
-                        ({car.price_per_day.toFixed(2)} €) /{texts.perDay}
+                        (≈ {getEURDisplay(car.price_per_day)} €) /{texts.perDay}
                       </Typography>
                     </Box>
 
@@ -281,9 +289,8 @@ export default function CarsTab() {
                         sx={{ fontSize: 14, mr: 0.5, color: 'warning.main' }}
                       />
                       <Typography variant="body2" color="text.secondary">
-                        {texts.deposit}:{' '}
-                        {convertToBGN(car.deposit_amount).toFixed(2)} лв (
-                        {car.deposit_amount.toFixed(2)} €)
+                        {texts.deposit}: {car.deposit_amount.toFixed(2)} лв ( ≈{' '}
+                        {getEURDisplay(car.deposit_amount)} €)
                       </Typography>
                     </Box>
                   </Box>

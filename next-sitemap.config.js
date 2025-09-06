@@ -1,6 +1,8 @@
 /** @type {import('next-sitemap').IConfig} */
+const { APP_CONFIG } = require('./src/utils/constants');
+
 module.exports = {
-  siteUrl: 'https://sof-car.eu',
+  siteUrl: APP_CONFIG.url,
   generateRobotsTxt: true,
   sitemapSize: 7000,
   changefreq: 'weekly',
@@ -14,16 +16,16 @@ module.exports = {
         disallow: ['/admin/', '/api/'],
       },
     ],
-    additionalSitemaps: ['https://sof-car.eu/sitemap.xml'],
+    additionalSitemaps: [`${APP_CONFIG.url}/sitemap.xml`],
   },
   // Multi-language support - simplified
   alternateRefs: [
     {
-      href: 'https://sof-car.eu/bg',
+      href: `${APP_CONFIG.url}/bg`,
       hreflang: 'bg',
     },
     {
-      href: 'https://sof-car.eu/en',
+      href: `${APP_CONFIG.url}/en`,
       hreflang: 'en',
     },
   ],

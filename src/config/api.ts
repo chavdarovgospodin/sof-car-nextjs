@@ -1,7 +1,8 @@
 // API Configuration
+import { APP_CONFIG } from '../utils/constants';
 
 export const API_CONFIG = {
-  BASE_URL: 'https://sof-car.eu/api',
+  BASE_URL: `${APP_CONFIG.url}/api`,
   ENDPOINTS: {
     ROOT: '/',
     CARS: '/cars',
