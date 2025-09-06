@@ -57,6 +57,14 @@ export function QuickBookingForm({
   const [pickupDateOpen, setPickupDateOpen] = useState(false);
   const [returnDateOpen, setReturnDateOpen] = useState(false);
 
+  // State for tracking current view in time pickers
+  const [pickupTimeView, setPickupTimeView] = useState<'hours' | 'minutes'>(
+    'hours'
+  );
+  const [returnTimeView, setReturnTimeView] = useState<'hours' | 'minutes'>(
+    'hours'
+  );
+
   // Error state for real-time validation
   const [error, setError] = useState<string>('');
 
@@ -156,7 +164,17 @@ export function QuickBookingForm({
       ...prev,
       pickupTime: time,
     }));
-    setPickupTimeOpen(false); // Close picker after selection
+
+    // Close picker if user is selecting minutes (they've already selected hour)
+    if (pickupTimeView === 'minutes') {
+      setPickupTimeOpen(false);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlePickupTimeViewChange = (view: any) => {
+    setPickupTimeView(view);
+    console.log('Pickup time view changed to:', view);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -166,7 +184,17 @@ export function QuickBookingForm({
       ...prev,
       returnTime: time,
     }));
-    setReturnTimeOpen(false); // Close picker after selection
+
+    // Close picker if user is selecting minutes (they've already selected hour)
+    if (returnTimeView === 'minutes') {
+      setReturnTimeOpen(false);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleReturnTimeViewChange = (view: any) => {
+    setReturnTimeView(view);
+    console.log('Return time view changed to:', view);
   };
 
   // Function to disable time slots outside business hours (8:00-20:00)
@@ -415,13 +443,15 @@ export function QuickBookingForm({
               label={currentLang === 'bg' ? 'Час вземане' : 'Pickup Time'}
               value={quickBookingDates.pickupTime}
               onChange={handlePickupTimeChange}
+              onViewChange={handlePickupTimeViewChange}
+              view={pickupTimeView}
               open={pickupTimeOpen}
               onOpen={() => setPickupTimeOpen(true)}
               onClose={() => setPickupTimeOpen(false)}
-              closeOnSelect
               minutesStep={15}
               ampm={false}
               skipDisabled
+              closeOnSelect
               shouldDisableTime={shouldDisableTime}
               thresholdToRenderTimeInASingleColumn={5}
               slotProps={{
@@ -543,14 +573,16 @@ export function QuickBookingForm({
               label={currentLang === 'bg' ? 'Час връщане' : 'Return Time'}
               value={quickBookingDates.returnTime}
               onChange={handleReturnTimeChange}
+              onViewChange={handleReturnTimeViewChange}
+              view={returnTimeView}
               open={returnTimeOpen}
               onOpen={() => setReturnTimeOpen(true)}
               onClose={() => setReturnTimeOpen(false)}
               minutesStep={15}
+              closeOnSelect
               ampm={false}
               skipDisabled
               shouldDisableTime={shouldDisableTime}
-              closeOnSelect
               thresholdToRenderTimeInASingleColumn={5}
               slotProps={{
                 textField: {

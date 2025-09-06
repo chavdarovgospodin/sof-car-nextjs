@@ -98,7 +98,7 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
       <Box
         sx={{
           position: 'relative',
-          height: isSmallDevice ? 150 : 200,
+          height: 250,
           backgroundColor: '#f5f5f5',
           display: 'flex',
           alignItems: 'center',
@@ -112,7 +112,7 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
             alt={`${car.brand} ${car.model}`}
             fill
             style={{
-              objectFit: 'contain',
+              objectFit: 'cover',
             }}
           />
         ) : (

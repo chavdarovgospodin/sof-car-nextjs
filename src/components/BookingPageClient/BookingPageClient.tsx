@@ -9,7 +9,6 @@ import {
   CircularProgress,
   Alert,
   useMediaQuery,
-  useTheme,
   // Snackbar, // commented for development
 } from '@mui/material';
 import { DateSearch } from '../DateSearch/DateSearch';
@@ -25,7 +24,6 @@ interface BookingPageClientProps {
 }
 
 export function BookingPageClient({ lang }: BookingPageClientProps) {
-  const theme = useTheme();
   const isSmallDevice = useMediaQuery('(max-width: 480px)');
   const [selectedCar, setSelectedCar] = useState<CarData | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -273,9 +271,9 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
                             ? 'auto auto auto auto auto'
                             : 'unset',
                           alignItems: 'center',
-                          gap: 1,
+                          gap: isSmallDevice ? 0.25 : 2,
                           padding: isSmallDevice
-                            ? '0px 4px 0px 4px'
+                            ? '4px 8px 4px 8px'
                             : '4px 8px',
                           backgroundColor: '#fff',
                           borderRadius: 1,

@@ -252,7 +252,7 @@ export function Header() {
             src="/logo_main.webp"
             alt="SofCar Logo"
             width={isSmallDevice ? 100 : 160}
-            height={isSmallDevice ? 62 : 100}
+            height={isSmallDevice ? 70 : 100}
             style={{ objectFit: 'contain' }}
           />
         </Link>

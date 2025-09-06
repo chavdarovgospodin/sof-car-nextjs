@@ -262,6 +262,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateTimePicker
               disableHighlightToday
+              closeOnSelect
               label={t('booking.startDate')}
               value={startDate}
               disabled={isLoading || isInitializing || !startDate || !endDate}
@@ -388,6 +389,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               ampm={false}
               format="dd/MM/yyyy HH:mm"
               autoFocus={false}
+              closeOnSelect
               shouldDisableTime={shouldDisableTime}
               slotProps={{
                 textField: {

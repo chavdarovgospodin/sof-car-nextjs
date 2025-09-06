@@ -15,7 +15,7 @@ export const CAR_CLASSES = {
   economy: {
     name: 'economy',
     displayName: {
-      bg: 'Икономикачен клас',
+      bg: 'Икономичен клас',
       en: 'Economy Class',
     },
     price: {

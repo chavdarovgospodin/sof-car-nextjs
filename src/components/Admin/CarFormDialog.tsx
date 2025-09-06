@@ -59,7 +59,7 @@ const texts = {
   year: 'Година',
   class: 'Клас',
   classes: {
-    economy: 'Економичен',
+    economy: 'Икономичен',
     standard: 'Стандартен',
     premium: 'Премиум',
   },
