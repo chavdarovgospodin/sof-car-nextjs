@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { Suspense } from 'react';
 import { TermsConditionsPage } from '@/components/TermsConditionsPage/TermsConditionsPage';
 
 // Generate static params for static export
@@ -85,14 +84,11 @@ export async function generateMetadata({
   };
 }
 
-export default function TermsConditionsPageRoute({
+export default async function TermsConditionsPageRoute({
   params,
 }: {
   params: Promise<{ lang: string }>;
 }) {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <TermsConditionsPage lang={params.then((p) => p.lang)} />
-    </Suspense>
-  );
+  const resolvedParams = await params;
+  return <TermsConditionsPage lang={Promise.resolve(resolvedParams.lang)} />;
 }

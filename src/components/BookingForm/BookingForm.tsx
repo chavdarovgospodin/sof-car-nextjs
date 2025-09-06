@@ -21,6 +21,8 @@ import {
   FormControlLabel,
   FormControl,
   FormLabel,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import type { CarData } from '../../types/api';
 
@@ -74,6 +76,8 @@ export function BookingForm({
   onClose,
   lang,
 }: BookingFormProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [paymentMethod, setPaymentMethod] = useState<string>('card');
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   const [termsDialogOpen, setTermsDialogOpen] = useState<boolean>(false);
@@ -180,24 +184,26 @@ export function BookingForm({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth={isMobile ? false : 'md'}
       fullWidth
+      fullScreen={isMobile}
       disableScrollLock={true}
       keepMounted={false}
       sx={{
         '& .MuiDialog-paper': {
-          margin: 2,
-          maxHeight: 'calc(100vh - 32px)',
+          margin: isMobile ? 0 : 2,
+          maxHeight: isMobile ? '100vh' : 'calc(100vh - 32px)',
+          borderRadius: isMobile ? 0 : undefined,
         },
       }}
     >
       <DialogTitle>
         {t('booking.title')} {car.brand} {car.model}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ p: isMobile ? '16px 8px' : '20px 24px' }}>
         <Box sx={{ mt: 2 }}>
           {/* Car Details Section - Better Presentation */}
-          <Paper sx={{ p: 3, mb: 3 }}>
+          <Paper sx={{ p: isMobile ? 1 : 3, mb: 3 }}>
             <Typography
               variant="h5"
               sx={{
@@ -536,7 +542,7 @@ export function BookingForm({
           </Paper>
         </Box>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ justifyContent: isMobile ? 'center' : 'right' }}>
         <Button onClick={onClose} color="error" variant="outlined">
           {t('booking.bookingCancel')}
         </Button>

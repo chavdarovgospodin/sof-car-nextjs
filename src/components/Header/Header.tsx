@@ -38,6 +38,7 @@ export function Header() {
   const [infoAnchorEl, setInfoAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallDevice = useMediaQuery('(max-width: 480px)');
   const { t, currentLang } = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
@@ -154,8 +155,8 @@ export function Header() {
         <Image
           src="/logo_main.webp"
           alt="SofCar Logo"
-          width={120}
-          height={75}
+          width={isSmallDevice ? 80 : 120}
+          height={isSmallDevice ? 50 : 75}
           style={{ objectFit: 'contain' }}
         />
         <IconButton onClick={handleDrawerToggle}>
@@ -250,8 +251,8 @@ export function Header() {
           <Image
             src="/logo_main.webp"
             alt="SofCar Logo"
-            width={160}
-            height={100}
+            width={isSmallDevice ? 100 : 160}
+            height={isSmallDevice ? 62 : 100}
             style={{ objectFit: 'contain' }}
           />
         </Link>

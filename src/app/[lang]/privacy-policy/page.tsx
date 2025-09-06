@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { Suspense } from 'react';
 import { PrivacyPolicyPage } from '@/components/PrivacyPolicyPage/PrivacyPolicyPage';
 
 // Generate static params for static export
@@ -91,9 +90,5 @@ export default async function PrivacyPolicyPageRoute({
   params: Promise<{ lang: string }>;
 }) {
   const resolvedParams = await params;
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PrivacyPolicyPage lang={Promise.resolve(resolvedParams.lang)} />
-    </Suspense>
-  );
+  return <PrivacyPolicyPage lang={Promise.resolve(resolvedParams.lang)} />;
 }

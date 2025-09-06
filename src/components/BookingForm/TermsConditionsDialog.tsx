@@ -14,6 +14,8 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -36,20 +38,24 @@ export function TermsConditionsDialog({
   onClose,
   lang,
 }: TermsConditionsDialogProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isEnglish = lang === 'en';
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth={isMobile ? false : 'md'}
       fullWidth
+      fullScreen={isMobile}
       disableScrollLock={true}
       keepMounted={false}
       PaperProps={{
         sx: {
-          maxHeight: '90vh',
-          margin: 2,
+          maxHeight: isMobile ? '100vh' : '90vh',
+          margin: isMobile ? 0 : 2,
+          borderRadius: isMobile ? 0 : undefined,
         },
       }}
     >

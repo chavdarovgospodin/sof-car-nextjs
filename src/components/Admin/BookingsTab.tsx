@@ -22,10 +22,13 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material';
-import { Search, FilterList, Refresh, Edit } from '@mui/icons-material';
+import { Search, FilterList, Refresh, Edit, Delete } from '@mui/icons-material';
 import { useAdmin, AdminBooking } from '@/hooks/useAdmin';
 import BookingEditDialog from './BookingEditDialog';
+import DeleteBookingDialog from './DeleteBookingDialog';
 
 // Currency conversion function (approximate BGN to EUR rate)
 const convertToBGN = (euroAmount: number): number => {
@@ -76,6 +79,8 @@ export default function BookingsTab() {
         return texts.confirmed;
       case 'cancelled':
         return texts.cancelled;
+      case 'deleted':
+        return 'Изтрита';
       default:
         return status;
     }
@@ -86,7 +91,9 @@ export default function BookingsTab() {
     isLoadingBookings,
     refetchBookings,
     updateBooking,
+    deleteBooking,
     isUpdatingBooking,
+    isDeletingBooking,
   } = useAdmin();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -98,9 +105,22 @@ export default function BookingsTab() {
     endDate: '',
   });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(
     null
   );
+  const [bookingToDelete, setBookingToDelete] = useState<AdminBooking | null>(
+    null
+  );
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   // Client-side filtering function
   const getFilteredBookings = () => {
@@ -232,19 +252,85 @@ export default function BookingsTab() {
               error.response.status === 401
             ) {
               // Show session expired message and redirect to login
-              alert('Сесията ви е изтекла. Моля, влезте отново в системата.');
+              showSnackbar(
+                'Сесията ви е изтекла. Моля, влезте отново в системата.',
+                'warning'
+              );
               // Redirect to login page
-              window.location.href = '/admin/login';
+              setTimeout(() => {
+                window.location.href = '/admin/login';
+              }, 2000);
             } else {
               // Show generic error message
-              alert(
-                'Грешка при обновяване на резервацията. Моля, опитайте отново.'
+              showSnackbar(
+                'Грешка при обновяване на резервацията. Моля, опитайте отново.',
+                'error'
               );
             }
           },
         }
       );
     }
+  };
+
+  const handleDeleteBooking = (booking: AdminBooking) => {
+    setBookingToDelete(booking);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (bookingToDelete) {
+      deleteBooking(bookingToDelete.id, {
+        onSuccess: () => {
+          // Success handled by optimistic update
+          setDeleteDialogOpen(false);
+          setBookingToDelete(null);
+        },
+        onError: (error: unknown) => {
+          console.error('Failed to delete booking:', error);
+
+          // Check if it's a 401 error (session expired)
+          if (
+            error &&
+            typeof error === 'object' &&
+            'response' in error &&
+            (error as { response?: { status?: number } }).response?.status ===
+              401
+          ) {
+            // Redirect to login page
+            showSnackbar(
+              'Сесията ви е изтекла. Моля, влезте отново в системата.',
+              'warning'
+            );
+            setTimeout(() => {
+              window.location.href = '/admin/login';
+            }, 2000);
+          } else {
+            // Show generic error message
+            showSnackbar(
+              'Грешка при изтриване на резервацията. Моля, опитайте отново.',
+              'error'
+            );
+          }
+        },
+      });
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setBookingToDelete(null);
+  };
+
+  const showSnackbar = (
+    message: string,
+    severity: 'success' | 'error' | 'warning' | 'info'
+  ) => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   const getStatusColor = (status: string) => {
@@ -257,6 +343,8 @@ export default function BookingsTab() {
         return 'error';
       case 'completed':
         return 'info';
+      case 'deleted':
+        return 'default';
       default:
         return 'default';
     }
@@ -366,6 +454,7 @@ export default function BookingsTab() {
                 <MenuItem value="pending">{texts.pending}</MenuItem>
                 <MenuItem value="confirmed">{texts.confirmed}</MenuItem>
                 <MenuItem value="cancelled">{texts.cancelled}</MenuItem>
+                <MenuItem value="deleted">Изтрита</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -539,15 +628,33 @@ export default function BookingsTab() {
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Tooltip title="Редактиране">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => handleEditBooking(booking)}
-                          >
-                            <Edit />
-                          </IconButton>
-                        </Tooltip>
+                        <>
+                          <Tooltip title="Редактиране">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleEditBooking(booking)}
+                              disabled={booking.status === 'deleted'}
+                            >
+                              <Edit />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Изтриване">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteBooking(booking)}
+                              disabled={booking.status === 'deleted'}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                        {booking.status === 'deleted' && (
+                          <Typography variant="caption" color="text.secondary">
+                            Изтрита
+                          </Typography>
+                        )}
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -607,6 +714,32 @@ export default function BookingsTab() {
         onSave={handleSaveBooking}
         isSaving={isUpdatingBooking}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteBookingDialog
+        open={deleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        booking={bookingToDelete}
+        isDeleting={isDeletingBooking}
+      />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

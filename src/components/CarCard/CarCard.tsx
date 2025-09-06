@@ -12,6 +12,8 @@ import {
   Chip,
   Grid,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   DirectionsCar,
@@ -32,6 +34,9 @@ interface CarCardProps {
 }
 
 export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
+  const theme = useTheme();
+  const isSmallDevice = useMediaQuery('(max-width: 480px)');
+
   // Calculate total price for the rental period
   const calculateTotalPrice = () => {
     if (!rentalDates?.start || !rentalDates?.end) {
@@ -92,7 +97,7 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
       <Box
         sx={{
           position: 'relative',
-          height: 200,
+          height: isSmallDevice ? 150 : 200,
           backgroundColor: '#f5f5f5',
           display: 'flex',
           alignItems: 'center',

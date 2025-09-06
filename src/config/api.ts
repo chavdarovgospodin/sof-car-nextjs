@@ -1,7 +1,7 @@
 // API Configuration
 
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://sof-car.eu/api',
+  BASE_URL: 'https://sof-car.eu/api',
   ENDPOINTS: {
     ROOT: '/',
     CARS: '/cars',

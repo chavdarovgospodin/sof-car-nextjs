@@ -38,9 +38,8 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallDevice = useMediaQuery('(max-width: 414px)');
   const carsPerPage = isMobile ? 1 : 2;
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -98,33 +97,6 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
     setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
   };
 
-  // Touch handlers for swipe gestures (mobile only)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isMobile) return;
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isMobile) return;
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!isMobile || !touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && currentPage < totalPages - 1) {
-      handleNext();
-    }
-    if (isRightSwipe && currentPage > 0) {
-      handlePrevious();
-    }
-  };
-
   const getClassLabel = (carClass: string) => {
     switch (carClass) {
       case 'economy':
@@ -170,61 +142,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
         </Typography>
 
         {/* Cars Gallery */}
-        <Box
-          sx={{ position: 'relative' }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {/* Navigation Arrows */}
-          {!isMobile && (
-            <>
-              <IconButton
-                onClick={handlePrevious}
-                disabled={currentPage === 0}
-                sx={{
-                  position: 'absolute',
-                  left: -60,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  backgroundColor: 'white',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 2,
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5',
-                  },
-                  '&:disabled': {
-                    opacity: 0.3,
-                  },
-                }}
-              >
-                <ChevronLeft />
-              </IconButton>
-
-              <IconButton
-                onClick={handleNext}
-                disabled={currentPage === totalPages - 1}
-                sx={{
-                  position: 'absolute',
-                  right: -60,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  backgroundColor: 'white',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 2,
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5',
-                  },
-                  '&:disabled': {
-                    opacity: 0.3,
-                  },
-                }}
-              >
-                <ChevronRight />
-              </IconButton>
-            </>
-          )}
-
+        <Box sx={{ position: 'relative' }}>
           {/* Cars Grid */}
           <Grid container spacing={4} justifyContent="center">
             {currentCars.map((car) => (
@@ -243,6 +161,58 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                     minHeight: 220,
                   }}
                 >
+                  {/* Navigation Arrows - Overlay on card */}
+                  {totalPages > 1 && (
+                    <>
+                      <IconButton
+                        onClick={handlePrevious}
+                        disabled={currentPage === 0}
+                        sx={{
+                          position: 'absolute',
+                          left: 8,
+                          top: isMobile ? '25%' : '50%',
+                          transform: 'translateY(-50%)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          zIndex: 3,
+                          width: 40,
+                          height: 40,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 1)',
+                          },
+                          '&:disabled': {
+                            opacity: 0.3,
+                          },
+                        }}
+                      >
+                        <ChevronLeft />
+                      </IconButton>
+
+                      <IconButton
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages - 1}
+                        sx={{
+                          position: 'absolute',
+                          right: 8,
+                          top: isMobile ? '25%' : '50%',
+                          transform: 'translateY(-50%)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          zIndex: 3,
+                          width: 40,
+                          height: 40,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 1)',
+                          },
+                          '&:disabled': {
+                            opacity: 0.3,
+                          },
+                        }}
+                      >
+                        <ChevronRight />
+                      </IconButton>
+                    </>
+                  )}
                   {/* Year Badge в горния ляв ъгъл */}
                   <Chip
                     label={car.year}
@@ -301,8 +271,8 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                       {/* Left Side - Car Image */}
                       <Box
                         sx={{
-                          width: { xs: 350, sm: 320 },
-                          height: { xs: 250, sm: 220 },
+                          width: isSmallDevice ? 310 : { xs: 350, sm: 320 },
+                          height: isSmallDevice ? 200 : { xs: 250, sm: 220 },
                           position: 'relative',
                           backgroundColor: '#fafafa',
                           borderRadius: 2,
@@ -604,31 +574,6 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                   }}
                 />
               ))}
-            </Box>
-          )}
-
-          {/* Mobile Swipe Indicator */}
-          {isMobile && totalPages > 1 && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                mt: 2,
-                mb: 2,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  color: '#666',
-                  fontSize: '0.75rem',
-                  textAlign: 'center',
-                }}
-              >
-                {currentLang === 'bg'
-                  ? 'Плъзнете наляво/надясно за навигация'
-                  : 'Swipe left/right to navigate'}
-              </Typography>
             </Box>
           )}
         </Box>
