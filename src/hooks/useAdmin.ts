@@ -47,7 +47,7 @@ export interface AdminBooking {
   end_date: string;
   total_price: number;
   deposit_amount: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'deleted';
   deposit_status: 'pending' | 'paid' | 'refunded';
   notes: string;
   cars?: {
@@ -171,6 +171,13 @@ const adminApiFunctions = {
     data: { status?: string; deposit_status?: string; notes?: string }
   ) => {
     const response = await adminApi.put(`/admin/bookings/${id}`, data);
+    return response.data;
+  },
+
+  deleteBooking: async (id: string) => {
+    const response = await adminApi.patch(`/admin/bookings/${id}`, {
+      status: 'deleted',
+    });
     return response.data;
   },
 };
@@ -452,6 +459,36 @@ export const useAdmin = (
     },
   });
 
+  const deleteBookingMutation = useMutation({
+    mutationKey: ['admin', 'delete-booking'],
+    mutationFn: (id: string) => adminApiFunctions.deleteBooking(id),
+    onSuccess: (deletedBooking, bookingId) => {
+      // Optimistic update - update booking status to deleted in cache
+      queryClient.setQueryData(
+        ['admin', 'bookings'],
+        (oldData: { bookings: AdminBooking[] } | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            bookings: oldData.bookings.map((booking) =>
+              booking.id === bookingId
+                ? {
+                    ...booking,
+                    status: 'deleted',
+                    updated_at: new Date().toISOString(),
+                  }
+                : booking
+            ),
+          };
+        }
+      );
+    },
+    onError: () => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['admin', 'bookings'] });
+    },
+  });
+
   // Extract data from backend responses
   const cars = carsResponse?.cars || [];
   const bookings = bookingsResponse?.bookings || [];
@@ -494,7 +531,9 @@ export const useAdmin = (
 
     // Booking mutations
     updateBooking: updateBookingMutation.mutate,
+    deleteBooking: deleteBookingMutation.mutate,
     isUpdatingBooking: updateBookingMutation.isPending,
+    isDeletingBooking: deleteBookingMutation.isPending,
 
     // Refetch functions
     refetchUser,

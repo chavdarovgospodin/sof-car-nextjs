@@ -75,12 +75,13 @@ export default function BookingEditDialog({
     }
   }, [booking]);
 
-  const handleChange = (field: string) => (event: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: event.target.value,
-    }));
-  };
+  const handleChange =
+    (field: string) => (event: { target: { value: string } }) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: event.target.value,
+      }));
+    };
 
   const handleSave = () => {
     onSave(formData);
