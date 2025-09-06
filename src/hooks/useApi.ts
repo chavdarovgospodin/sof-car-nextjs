@@ -45,8 +45,8 @@ const apiCall = async <T>(
 
 // Get all cars
 export const useCars = (
-  startDate?: Date,
-  endDate?: Date,
+  startDate: Date | undefined,
+  endDate: Date | undefined,
   carClass?: string,
   enabled: boolean = true
 ) => {
@@ -65,15 +65,15 @@ export const useCars = (
       carClass,
     ],
     queryFn: () => apiCall<CarsResponse>(endpoint),
-    enabled: enabled && !!(startDate && endDate), // Only fetch when enabled and dates are provided
+    enabled: enabled && !!(startDate && endDate), // Only fetch when enabled and both dates are provided
   });
 };
 
 export const useAllCars = () => {
-  const endpoint = `${API_CONFIG.ENDPOINTS.CARS}`;
+  const endpoint = `${API_CONFIG.ENDPOINTS.ALL_CARS}`;
 
   return useQuery<CarsResponse>({
-    queryKey: ['carsAll'],
+    queryKey: ['allCars'],
     queryFn: () => apiCall<CarsResponse>(endpoint),
   });
 };

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { TextField, Button, Grid, Typography, Paper } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Button, Grid, Typography, Paper, Alert } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -50,54 +51,171 @@ export function QuickBookingForm({
     }
   );
 
-  const getTomorrowDate = (): string => {
+  // State for controlling picker open/close
+  const [pickupTimeOpen, setPickupTimeOpen] = useState(false);
+  const [returnTimeOpen, setReturnTimeOpen] = useState(false);
+  const [pickupDateOpen, setPickupDateOpen] = useState(false);
+  const [returnDateOpen, setReturnDateOpen] = useState(false);
+
+  // Error state for real-time validation
+  const [error, setError] = useState<string>('');
+
+  // Real-time validation when dates or times change
+  useEffect(() => {
+    if (
+      !quickBookingDates.pickupDate ||
+      !quickBookingDates.returnDate ||
+      !quickBookingDates.pickupTime ||
+      !quickBookingDates.returnTime
+    ) {
+      setError('');
+      return;
+    }
+
+    // Clear error first
+    setError('');
+
+    const pickupTimeStr = quickBookingDates.pickupTime.format('HH:mm');
+    const returnTimeStr = quickBookingDates.returnTime.format('HH:mm');
+
+    const startDate = new Date(
+      `${quickBookingDates.pickupDate}T${pickupTimeStr}`
+    );
+    const endDate = new Date(
+      `${quickBookingDates.returnDate}T${returnTimeStr}`
+    );
+
+    // Validate that end date is after start date
+    if (startDate >= endDate) {
+      setError(
+        currentLang === 'bg'
+          ? 'Крайната дата трябва да е след началната'
+          : 'End date must be after start date'
+      );
+      return;
+    }
+
+    // Check minimum 5 days
+    const diffTime = endDate.getTime() - startDate.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+    if (diffDays < 5) {
+      setError(
+        currentLang === 'bg'
+          ? 'Минималният период е 5 дни'
+          : 'Minimum rental period is 5 days'
+      );
+      return;
+    }
+
+    // Check if start date is from tomorrow onwards
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  };
+    tomorrow.setHours(0, 0, 0, 0);
 
-  const getMinReturnDate = (): string => {
-    if (!quickBookingDates.pickupDate) return '';
-    const pickupDate = new Date(quickBookingDates.pickupDate);
-    const minReturnDate = new Date(pickupDate);
-    minReturnDate.setDate(minReturnDate.getDate() + 5);
-    return minReturnDate.toISOString().split('T')[0];
-  };
+    if (startDate < tomorrow) {
+      setError(
+        currentLang === 'bg'
+          ? 'Началната дата трябва да е от утре нататък'
+          : 'Start date must be from tomorrow onwards'
+      );
+      return;
+    }
 
-  const getMaxReturnDate = (): string => {
-    if (!quickBookingDates.pickupDate) return '';
-    const pickupDate = new Date(quickBookingDates.pickupDate);
-    const maxReturnDate = new Date(pickupDate);
-    maxReturnDate.setDate(maxReturnDate.getDate() + 30);
-    return maxReturnDate.toISOString().split('T')[0];
-  };
+    // Check maximum 30 days
+    if (diffDays > 30) {
+      setError(
+        currentLang === 'bg'
+          ? 'Максималният период е 30 дни'
+          : 'Maximum rental period is 30 days'
+      );
+      return;
+    }
 
-  const handlePickupTimeChange = (time: dayjs.Dayjs | null) => {
+    // Check advance booking limit (3 months)
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+
+    if (startDate > threeMonthsFromNow) {
+      setError(
+        currentLang === 'bg'
+          ? 'Не можете да резервирате повече от 3 месеца напред'
+          : 'Cannot book more than 3 months in advance'
+      );
+      return;
+    }
+
+    // If all validations pass, clear error
+    setError('');
+  }, [quickBookingDates, currentLang]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlePickupTimeChange = (value: any) => {
+    const time = value ? dayjs(value) : null;
     setQuickBookingDates((prev) => ({
       ...prev,
       pickupTime: time,
     }));
+    setPickupTimeOpen(false); // Close picker after selection
   };
 
-  const handleReturnTimeChange = (time: dayjs.Dayjs | null) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleReturnTimeChange = (value: any) => {
+    const time = value ? dayjs(value) : null;
     setQuickBookingDates((prev) => ({
       ...prev,
       returnTime: time,
     }));
+    setReturnTimeOpen(false); // Close picker after selection
   };
 
-  const handlePickupDateChange = (date: string) => {
+  // Function to disable time slots outside business hours (8:00-20:00)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const shouldDisableTime = (value: any, view: any) => {
+    if (!value) return false;
+    const dayjsValue = dayjs(value);
+    if (view === 'hours') {
+      const hour = dayjsValue.hour();
+      return hour < 8 || hour >= 20; // Disable hours before 8 AM and after 8 PM
+    }
+    return false; // Allow all minutes
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlePickupDateChange = (value: any) => {
+    // Only update if user actually selected something
+    if (!value) return;
+
+    const date = dayjs(value);
+    const dateString = date.format('YYYY-MM-DD');
+
     setQuickBookingDates((prev) => {
-      const pickupDate = new Date(date);
+      const pickupDate = new Date(dateString);
       const returnDate = new Date(pickupDate);
       returnDate.setDate(returnDate.getDate() + 5);
 
       return {
         ...prev,
-        pickupDate: date,
+        pickupDate: dateString,
         returnDate: returnDate.toISOString().split('T')[0],
       };
     });
+    setPickupDateOpen(false);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleReturnDateChange = (value: any) => {
+    // Only update if user actually selected something
+    if (!value) return;
+
+    const date = dayjs(value);
+    const dateString = date.format('YYYY-MM-DD');
+
+    setQuickBookingDates((prev) => ({
+      ...prev,
+      returnDate: dateString,
+    }));
+    setReturnDateOpen(false);
   };
 
   const validateQuickBooking = (): boolean => {
@@ -145,6 +263,30 @@ export function QuickBookingForm({
         currentLang === 'bg'
           ? 'Минималният период е 5 дни'
           : 'Minimum rental period is 5 days',
+        'error'
+      );
+      return false;
+    }
+
+    if (diffDays > 30) {
+      onShowSnackbar(
+        currentLang === 'bg'
+          ? 'Максималният период е 30 дни'
+          : 'Maximum rental period is 30 days',
+        'error'
+      );
+      return false;
+    }
+
+    // Check advance booking limit (3 months)
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+
+    if (startDate > threeMonthsFromNow) {
+      onShowSnackbar(
+        currentLang === 'bg'
+          ? 'Не можете да резервирате повече от 3 месеца напред'
+          : 'Cannot book more than 3 months in advance',
         'error'
       );
       return false;
@@ -207,39 +349,62 @@ export function QuickBookingForm({
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="date"
+            <DatePicker
               label={currentLang === 'bg' ? 'Дата вземане' : 'Pickup Date'}
-              value={quickBookingDates.pickupDate}
-              onChange={(e) => handlePickupDateChange(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: getTomorrowDate(),
-              }}
-              required
-              size="small"
-              onClick={(e) => {
-                // Open the date picker when clicking anywhere on the input
-                const input = e.currentTarget.querySelector('input');
-                if (input) {
-                  input.showPicker?.();
-                }
-              }}
-              sx={{
-                cursor: 'pointer',
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'white',
-                  borderRadius: 1.5,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: '#f8f9fa',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              value={dayjs(quickBookingDates.pickupDate)}
+              onChange={handlePickupDateChange}
+              open={pickupDateOpen}
+              onOpen={() => setPickupDateOpen(true)}
+              onClose={() => setPickupDateOpen(false)}
+              minDate={dayjs().add(1, 'day')}
+              maxDate={dayjs().add(3, 'month')}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: 'small',
+                  required: true,
+                  onClick: () => setPickupDateOpen(true),
+                  onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                    e.preventDefault();
+                    (e.target as HTMLElement).blur();
+                    setPickupDateOpen(true);
                   },
-                },
-                '& .MuiInputBase-input': {
-                  cursor: 'pointer',
+                  inputProps: {
+                    readOnly: true,
+                    onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                      e.preventDefault();
+                      (e.target as HTMLElement).blur();
+                      setPickupDateOpen(true);
+                    },
+                  },
+                  sx: {
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      borderRadius: 1.5,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      '&:hover': {
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      },
+                    },
+                    '& .MuiInputBase-input': {
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      pointerEvents: 'none',
+                    },
+                  },
                 },
               }}
             />
@@ -250,22 +415,48 @@ export function QuickBookingForm({
               label={currentLang === 'bg' ? 'Час вземане' : 'Pickup Time'}
               value={quickBookingDates.pickupTime}
               onChange={handlePickupTimeChange}
+              open={pickupTimeOpen}
+              onOpen={() => setPickupTimeOpen(true)}
+              onClose={() => setPickupTimeOpen(false)}
               closeOnSelect
               minutesStep={15}
               ampm={false}
               skipDisabled
+              shouldDisableTime={shouldDisableTime}
               thresholdToRenderTimeInASingleColumn={5}
               slotProps={{
                 textField: {
                   fullWidth: true,
                   size: 'small',
                   required: true,
+                  onClick: () => setPickupTimeOpen(true),
+                  onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                    e.preventDefault();
+                    (e.target as HTMLElement).blur();
+                    setPickupTimeOpen(true);
+                  },
+                  inputProps: {
+                    readOnly: true,
+                    onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                      e.preventDefault();
+                      (e.target as HTMLElement).blur();
+                      setPickupTimeOpen(true);
+                    },
+                  },
                   sx: {
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: 'white',
                       borderRadius: 1.5,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
                       '&:hover': {
                         backgroundColor: '#f8f9fa',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -273,6 +464,11 @@ export function QuickBookingForm({
                     },
                     '& .MuiInputBase-input': {
                       cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      pointerEvents: 'none',
                     },
                   },
                 },
@@ -281,45 +477,62 @@ export function QuickBookingForm({
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="date"
+            <DatePicker
               label={currentLang === 'bg' ? 'Дата връщане' : 'Return Date'}
-              value={quickBookingDates.returnDate}
-              onChange={(e) =>
-                setQuickBookingDates((prev) => ({
-                  ...prev,
-                  returnDate: e.target.value,
-                }))
-              }
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: getMinReturnDate(),
-                max: getMaxReturnDate(),
-              }}
-              required
-              size="small"
-              onClick={(e) => {
-                // Open the date picker when clicking anywhere on the input
-                const input = e.currentTarget.querySelector('input');
-                if (input) {
-                  input.showPicker?.();
-                }
-              }}
-              sx={{
-                cursor: 'pointer',
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'white',
-                  borderRadius: 1.5,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: '#f8f9fa',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              value={dayjs(quickBookingDates.returnDate)}
+              onChange={handleReturnDateChange}
+              open={returnDateOpen}
+              onOpen={() => setReturnDateOpen(true)}
+              onClose={() => setReturnDateOpen(false)}
+              minDate={dayjs(quickBookingDates.pickupDate).add(5, 'day')}
+              maxDate={dayjs(quickBookingDates.pickupDate).add(30, 'day')}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: 'small',
+                  required: true,
+                  onClick: () => setReturnDateOpen(true),
+                  onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                    e.preventDefault();
+                    (e.target as HTMLElement).blur();
+                    setReturnDateOpen(true);
                   },
-                },
-                '& .MuiInputBase-input': {
-                  cursor: 'pointer',
+                  inputProps: {
+                    readOnly: true,
+                    onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                      e.preventDefault();
+                      (e.target as HTMLElement).blur();
+                      setReturnDateOpen(true);
+                    },
+                  },
+                  sx: {
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      borderRadius: 1.5,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      '&:hover': {
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      },
+                    },
+                    '& .MuiInputBase-input': {
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      pointerEvents: 'none',
+                    },
+                  },
                 },
               }}
             />
@@ -330,9 +543,13 @@ export function QuickBookingForm({
               label={currentLang === 'bg' ? 'Час връщане' : 'Return Time'}
               value={quickBookingDates.returnTime}
               onChange={handleReturnTimeChange}
+              open={returnTimeOpen}
+              onOpen={() => setReturnTimeOpen(true)}
+              onClose={() => setReturnTimeOpen(false)}
               minutesStep={15}
               ampm={false}
               skipDisabled
+              shouldDisableTime={shouldDisableTime}
               closeOnSelect
               thresholdToRenderTimeInASingleColumn={5}
               slotProps={{
@@ -340,12 +557,34 @@ export function QuickBookingForm({
                   fullWidth: true,
                   size: 'small',
                   required: true,
+                  onClick: () => setReturnTimeOpen(true),
+                  onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                    e.preventDefault();
+                    (e.target as HTMLElement).blur();
+                    setReturnTimeOpen(true);
+                  },
+                  inputProps: {
+                    readOnly: true,
+                    onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+                      e.preventDefault();
+                      (e.target as HTMLElement).blur();
+                      setReturnTimeOpen(true);
+                    },
+                  },
                   sx: {
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: 'white',
                       borderRadius: 1.5,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
                       '&:hover': {
                         backgroundColor: '#f8f9fa',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -353,6 +592,11 @@ export function QuickBookingForm({
                     },
                     '& .MuiInputBase-input': {
                       cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      pointerEvents: 'none',
                     },
                   },
                 },
@@ -360,16 +604,38 @@ export function QuickBookingForm({
             />
           </Grid>
 
+          {error && (
+            <Grid size={{ xs: 12 }}>
+              <Alert
+                severity="error"
+                sx={{
+                  marginBottom: 2,
+                  borderRadius: 2,
+                  '& .MuiAlert-icon': {
+                    color: '#d32f2f',
+                  },
+                }}
+              >
+                {error}
+              </Alert>
+            </Grid>
+          )}
+
           <Grid size={{ xs: 12 }}>
             <Button
               variant="contained"
               fullWidth
               onClick={handleSearch}
+              disabled={!!error}
               startIcon={<Search />}
               sx={{
                 backgroundColor: '#1976d2',
                 '&:hover': {
                   backgroundColor: '#1565c0',
+                },
+                '&:disabled': {
+                  backgroundColor: '#ccc',
+                  color: '#666',
                 },
                 height: 48,
                 fontWeight: 'bold',

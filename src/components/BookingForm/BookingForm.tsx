@@ -410,7 +410,7 @@ export function BookingForm({
                         {...field}
                         fullWidth
                         label={t('booking.clientPhone')}
-                        placeholder={'+359 87 999 4212'}
+                        placeholder={'+359 88 888 888'}
                         error={!!errors.clientPhone}
                         helperText={errors.clientPhone?.message}
                         required

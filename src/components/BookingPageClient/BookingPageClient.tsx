@@ -154,10 +154,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
     } catch (err) {
       setSnackbar({
         open: true,
-        message:
-          lang === 'en'
-            ? 'Error booking car'
-            : 'Грешка при запазване на автомобил',
+        message: err instanceof Error ? err.message : 'Error booking car',
         severity: 'error',
       });
       console.error('Error booking car:', err);

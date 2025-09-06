@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, Login } from '@mui/icons-material';
 import { useAdmin } from '@/hooks/useAdmin';
+import axios from 'axios';
 
 export default function AdminLoginPage() {
   // Директни български текстове за админ панела
@@ -29,7 +30,7 @@ export default function AdminLoginPage() {
   };
 
   const router = useRouter();
-  const { login, adminUser, isLoggingIn } = useAdmin();
+  const { login, adminUser, isLoggingIn, loginError } = useAdmin('none', true); // Skip status check on login page
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -48,6 +49,31 @@ export default function AdminLoginPage() {
         setErrors({ username: '', password: '' });
       }
     };
+
+  // Clear login error when user starts typing
+  useEffect(() => {
+    if (loginError && (formData.username || formData.password)) {
+      // This will be handled by the mutation reset
+    }
+  }, [formData.username, formData.password, loginError]);
+
+  // Get error message from login error
+  const getErrorMessage = () => {
+    if (loginError) {
+      // Check if it's an axios error with response
+      if (
+        axios.isAxiosError(loginError) &&
+        loginError.response?.status === 401
+      ) {
+        return texts.invalidCredentials;
+      }
+      return loginError.message || texts.error;
+    }
+    if (errors.username || errors.password) {
+      return errors.username || errors.password;
+    }
+    return null;
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -90,9 +116,9 @@ export default function AdminLoginPage() {
             </Typography>
           </Box>
 
-          {(errors.username || errors.password) && (
+          {getErrorMessage() && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {errors.username || errors.password || texts.error}
+              {getErrorMessage()}
             </Alert>
           )}
 

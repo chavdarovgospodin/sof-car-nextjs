@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Paper,
@@ -29,7 +29,7 @@ import BookingEditDialog from './BookingEditDialog';
 
 // Currency conversion function (approximate BGN to EUR rate)
 const convertToBGN = (euroAmount: number): number => {
-  return euroAmount * 1.96; // Approximate BGN/EUR rate
+  return Math.round(euroAmount * 1.96 * 100) / 100; // Round to 2 decimal places
 };
 
 export default function BookingsTab() {
@@ -44,6 +44,11 @@ export default function BookingsTab() {
     pending: 'Чакаща',
     confirmed: 'Потвърдена',
     cancelled: 'Отменена',
+    depositStatus: 'Статус на депозит',
+    allDepositStatuses: 'Всички депозити',
+    depositPending: 'Чакащ',
+    depositPaid: 'Платено',
+    depositRefunded: 'Върнато',
     startDate: 'Начална дата',
     endDate: 'Крайна дата',
     clearFilters: 'Изчисти филтрите',
@@ -87,6 +92,7 @@ export default function BookingsTab() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filters, setFilters] = useState({
     status: '',
+    depositStatus: '',
     search: '',
     startDate: '',
     endDate: '',
@@ -96,10 +102,66 @@ export default function BookingsTab() {
     null
   );
 
-  useEffect(() => {
-    // Refetch bookings when filters change
-    refetchBookings();
-  }, [filters, refetchBookings]);
+  // Client-side filtering function
+  const getFilteredBookings = () => {
+    if (!bookings) return [];
+
+    return bookings.filter((booking: AdminBooking) => {
+      // Status filter
+      if (filters.status && booking.status !== filters.status) {
+        return false;
+      }
+
+      // Deposit status filter
+      if (
+        filters.depositStatus &&
+        booking.deposit_status !== filters.depositStatus
+      ) {
+        return false;
+      }
+
+      // Search filter (name, email, phone)
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const fullName =
+          `${booking.client_first_name} ${booking.client_last_name}`.toLowerCase();
+        const email = booking.client_email.toLowerCase();
+        const phone = booking.client_phone.toLowerCase();
+
+        if (
+          !fullName.includes(searchTerm) &&
+          !email.includes(searchTerm) &&
+          !phone.includes(searchTerm)
+        ) {
+          return false;
+        }
+      }
+
+      // Date range filter
+      if (filters.startDate || filters.endDate) {
+        const bookingStartDate = new Date(booking.start_date);
+        const bookingEndDate = new Date(booking.end_date);
+
+        if (filters.startDate) {
+          const filterStartDate = new Date(filters.startDate);
+          if (bookingEndDate < filterStartDate) {
+            return false;
+          }
+        }
+
+        if (filters.endDate) {
+          const filterEndDate = new Date(filters.endDate);
+          if (bookingStartDate > filterEndDate) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  };
+
+  const filteredBookings = getFilteredBookings();
 
   const handleFilterChange =
     (field: string) =>
@@ -111,6 +173,17 @@ export default function BookingsTab() {
       setFilters((prev) => ({ ...prev, [field]: event.target.value }));
       setPage(0); // Reset to first page when filters change
     };
+
+  const clearFilters = () => {
+    setFilters({
+      status: '',
+      depositStatus: '',
+      search: '',
+      startDate: '',
+      endDate: '',
+    });
+    setPage(0);
+  };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -239,8 +312,10 @@ export default function BookingsTab() {
         sx={{
           mb: 3,
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 2,
         }}
       >
         <Typography variant="h2" component="h2" color="primary">
@@ -295,6 +370,21 @@ export default function BookingsTab() {
             </FormControl>
           </Box>
           <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
+            <FormControl fullWidth>
+              <InputLabel>{texts.depositStatus}</InputLabel>
+              <Select
+                value={filters.depositStatus}
+                onChange={handleFilterChange('depositStatus')}
+                label={texts.depositStatus}
+              >
+                <MenuItem value="">{texts.allDepositStatuses}</MenuItem>
+                <MenuItem value="pending">{texts.depositPending}</MenuItem>
+                <MenuItem value="paid">{texts.depositPaid}</MenuItem>
+                <MenuItem value="refunded">{texts.depositRefunded}</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
             <TextField
               fullWidth
               type="date"
@@ -316,17 +406,7 @@ export default function BookingsTab() {
           </Box>
           <Box sx={{ flex: '0 0 auto' }}>
             <Tooltip title={texts.clearFilters}>
-              <IconButton
-                onClick={() =>
-                  setFilters({
-                    status: '',
-                    search: '',
-                    startDate: '',
-                    endDate: '',
-                  })
-                }
-                color="primary"
-              >
+              <IconButton onClick={clearFilters} color="primary">
                 <FilterList />
               </IconButton>
             </Tooltip>
@@ -355,8 +435,8 @@ export default function BookingsTab() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {bookings
-                ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              {filteredBookings
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((booking: AdminBooking) => (
                   <TableRow key={booking.id} hover>
                     <TableCell>
@@ -480,7 +560,7 @@ export default function BookingsTab() {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={bookings?.length || 0}
+          count={filteredBookings.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -503,6 +583,21 @@ export default function BookingsTab() {
           </Typography>
         </Box>
       )}
+
+      {/* No Filtered Results Message */}
+      {bookings &&
+        bookings.length > 0 &&
+        filteredBookings.length === 0 &&
+        !isLoadingBookings && (
+          <Box textAlign="center" py={4}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Няма резултати за избраните филтри
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Опитайте с различни критерии за търсене
+            </Typography>
+          </Box>
+        )}
 
       {/* Edit Dialog */}
       <BookingEditDialog

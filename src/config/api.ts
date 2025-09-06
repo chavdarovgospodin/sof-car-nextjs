@@ -5,6 +5,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     ROOT: '/',
     CARS: '/cars',
+    ALL_CARS: '/cars/all',
     CAR_DETAILS: (id: number) => `/cars/${id}`,
     CAR_AVAILABILITY: (id: number) => `/cars/${id}/availability`,
     BOOKINGS: '/bookings',

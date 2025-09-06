@@ -176,10 +176,13 @@ const adminApiFunctions = {
 };
 
 // Hook
-export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
+export const useAdmin = (
+  activeTab?: 'bookings' | 'cars' | 'none',
+  skipStatusCheck = false
+) => {
   const queryClient = useQueryClient();
 
-  // Session check on mount
+  // Session check on mount - skip on login page
   const {
     data: adminUser,
     isLoading: isLoadingUser,
@@ -202,6 +205,7 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
         throw error;
       }
     },
+    enabled: !skipStatusCheck, // Skip status check if requested
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -279,10 +283,14 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
           if (!oldData?.cars) return oldData;
           return {
             ...oldData,
-            cars: [...oldData.cars, created],
+            cars: [created, ...oldData.cars], // Add new car at the beginning
           };
         }
       );
+    },
+    onError: () => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
     },
   });
 
@@ -295,9 +303,13 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
         ['admin', 'cars'],
         (oldData: { cars: AdminCar[] } | undefined) => {
           if (!oldData?.cars) return oldData;
-          return { ...oldData, cars: [...oldData.cars, created] };
+          return { ...oldData, cars: [created, ...oldData.cars] }; // Add new car at the beginning
         }
       );
+    },
+    onError: () => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
     },
   });
 
@@ -323,6 +335,10 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
         }
       );
     },
+    onError: () => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
   });
 
   const updateCarWithImageMutation = useMutation({
@@ -345,6 +361,10 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
         }
       );
     },
+    onError: () => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
+    },
   });
 
   const deleteCarMutation = useMutation({
@@ -364,6 +384,10 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
           };
         }
       );
+    },
+    onError: () => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cars'] });
     },
   });
 
@@ -422,6 +446,10 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
         }
       );
     },
+    onError: () => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['admin', 'bookings'] });
+    },
   });
 
   // Extract data from backend responses
@@ -446,6 +474,7 @@ export const useAdmin = (activeTab?: 'bookings' | 'cars' | 'none') => {
     logout: logoutMutation.mutate,
     isLoggingIn: loginMutation.isPending,
     isLoggingOut: logoutMutation.isPending,
+    loginError: loginMutation.error,
     loginMutation,
 
     // Car mutations

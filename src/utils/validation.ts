@@ -1,66 +1,75 @@
-import Joi from 'joi';
+// Validation utilities for forms
 
-export interface BookingData {
-  clientName: string;
-  clientPhone: string;
-  clientEmail: string;
-  paymentMethod: string;
+export interface ValidationError {
+  field: string;
+  message: string;
 }
 
-export const bookingSchema = Joi.object({
-  clientName: Joi.string().min(2).max(100).required().messages({
-    'string.min': 'Името трябва да е поне 2 символа',
-    'string.max': 'Името не може да е повече от 100 символа',
-    'any.required': 'Името е задължително',
-  }),
-  clientPhone: Joi.string()
-    .pattern(/^[0-9+\-\s()]+$/)
-    .min(10)
-    .max(15)
-    .required()
-    .messages({
-      'string.pattern.base': 'Невалиден телефонен номер',
-      'string.min': 'Телефонният номер трябва да е поне 10 символа',
-      'string.max': 'Телефонният номер не може да е повече от 15 символа',
-      'any.required': 'Телефонният номер е задължителен',
-    }),
-  clientEmail: Joi.string().email().required().messages({
-    'string.email': 'Невалиден имейл адрес',
-    'any.required': 'Имейлът е задължителен',
-  }),
-  paymentMethod: Joi.string().valid('card').required().messages({
-    'any.only': 'Невалиден метод за плащане',
-    'any.required': 'Методът за плащане е задължителен',
-  }),
-});
-
-export function validateBookingData(data: BookingData): {
+export interface ValidationResult {
   isValid: boolean;
-  errors?: string[];
-} {
-  const { error } = bookingSchema.validate(data);
-
-  if (error) {
-    return {
-      isValid: false,
-      errors: error.details.map((detail) => detail.message),
-    };
-  }
-
-  return { isValid: true };
+  errors: ValidationError[];
 }
+
+// Email validation regex (same as backend)
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export function validateEmail(email: string): boolean {
-  const emailSchema = Joi.string().email().required();
-  const { error } = emailSchema.validate(email);
-  return !error;
+  return EMAIL_REGEX.test(email.trim());
 }
 
-export function validatePhone(phone: string): boolean {
-  const phoneSchema = Joi.string()
-    .pattern(/^[0-9+\-\s()]+$/)
-    .min(10)
-    .max(15);
-  const { error } = phoneSchema.validate(phone);
-  return !error;
+export function validateContactForm(data: {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}): ValidationResult {
+  const errors: ValidationError[] = [];
+
+  // Validate required fields
+  if (!data.name || !data.name.trim()) {
+    errors.push({ field: 'name', message: 'Name is required' });
+  } else if (data.name.trim().length < 2) {
+    errors.push({
+      field: 'name',
+      message: 'Name must be at least 2 characters',
+    });
+  }
+
+  if (!data.email || !data.email.trim()) {
+    errors.push({ field: 'email', message: 'Email is required' });
+  } else if (!validateEmail(data.email)) {
+    errors.push({ field: 'email', message: 'Invalid email format' });
+  }
+
+  if (!data.message || !data.message.trim()) {
+    errors.push({ field: 'message', message: 'Message is required' });
+  } else if (data.message.trim().length < 10) {
+    errors.push({
+      field: 'message',
+      message: 'Message must be at least 10 characters',
+    });
+  }
+
+  // Phone is required
+  if (!data.phone || !data.phone.trim()) {
+    errors.push({ field: 'phone', message: 'Phone is required' });
+  } else {
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{7,}$/;
+    if (!phoneRegex.test(data.phone.trim())) {
+      errors.push({ field: 'phone', message: 'Invalid phone number format' });
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+
+export function getFieldError(
+  errors: ValidationError[],
+  field: string
+): string | null {
+  const error = errors.find((err) => err.field === field);
+  return error ? error.message : null;
 }

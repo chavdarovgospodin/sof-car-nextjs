@@ -47,6 +47,10 @@ export const DateSearch: React.FC<DateSearchProps> = ({
   });
   const [error, setError] = useState<string>('');
 
+  // State for controlling picker open/close
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+
   // Load dates from URL parameters on component mount
   useEffect(() => {
     const dateParam = searchParams.get('d'); // Use 'd' for date range
@@ -86,6 +90,43 @@ export const DateSearch: React.FC<DateSearchProps> = ({
     }
   }, [searchParams, onSearch, onInitialized]); // Add onInitialized to dependencies
 
+  // Real-time validation when dates change
+  useEffect(() => {
+    if (!startDate || !endDate) {
+      setError('');
+      return;
+    }
+
+    // Clear error first
+    setError('');
+
+    // Validate dates in real-time
+    if (startDate >= endDate) {
+      setError('Крайната дата трябва да е след началната');
+      return;
+    }
+
+    // Check minimum 5 days
+    const days = calculateDays(startDate, endDate);
+    if (days < 5) {
+      setError('Минималният период е 5 дни');
+      return;
+    }
+
+    // Check if start date is from tomorrow onwards
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    if (startDate < tomorrow) {
+      setError('Началната дата трябва да е от утре нататък');
+      return;
+    }
+
+    // If all validations pass, clear error
+    setError('');
+  }, [startDate, endDate]);
+
   const handleSearch = () => {
     if (!startDate || !endDate) {
       setError('Моля, изберете начална и крайна дата');
@@ -114,6 +155,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
       return;
     }
 
+    // Clear any existing errors
     setError('');
 
     // Encode dates in URL with compressed format
@@ -128,58 +170,58 @@ export const DateSearch: React.FC<DateSearchProps> = ({
   };
 
   // Функция за обработка на промяна на начална дата
-  const handleStartDateChange = (newValue: Date | null) => {
-    if (newValue) {
-      const roundedDate = roundToNearest15Minutes(newValue);
-      setStartDate(roundedDate);
+  const handleStartDateChange = (value: unknown) => {
+    // Only update if user actually selected something and it's different from current
+    if (!value) return;
 
-      // Автоматично задаваме крайната дата на 5 дни след началната
-      const fiveDaysLater = new Date(roundedDate);
-      fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
-      setEndDate(getDefaultTime(fiveDaysLater));
+    const newValue = new Date(value as Date);
+    const roundedDate = roundToNearest15Minutes(newValue);
 
-      // Close the picker after selection
-      closeTimePicker();
-    } else {
-      // Ако се нулира началната дата, задаваме дефолтна (утре 9:00)
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      setStartDate(getDefaultTime(tomorrow));
+    // Check if the new date is actually different from current startDate
+    if (
+      startDate &&
+      Math.abs(roundedDate.getTime() - startDate.getTime()) < 1000
+    ) {
+      return; // Same date, don't update
     }
+
+    setStartDate(roundedDate);
+
+    // Автоматично задаваме крайната дата на 5 дни след началната
+    const fiveDaysLater = new Date(roundedDate);
+    fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
+    setEndDate(getDefaultTime(fiveDaysLater));
+
+    // Clear error when changing start date
     setError('');
   };
 
   // Функция за обработка на промяна на крайна дата
-  const handleEndDateChange = (newValue: Date | null) => {
-    if (newValue) {
-      const roundedDate = roundToNearest15Minutes(newValue);
-      setEndDate(roundedDate);
+  const handleEndDateChange = (value: unknown) => {
+    // Only update if user actually selected something and it's different from current
+    if (!value) return;
 
-      // Close the picker after selection
-      closeTimePicker();
-    } else {
-      // Ако се нулира крайната дата, задаваме дефолтна (5 дни след началната дата)
-      if (startDate) {
-        const fiveDaysLater = new Date(startDate);
-        fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
-        setEndDate(getDefaultTime(fiveDaysLater));
-      } else {
-        const fiveDaysLater = new Date();
-        fiveDaysLater.setDate(fiveDaysLater.getDate() + 6); // tomorrow + 5 days
-        setEndDate(getDefaultTime(fiveDaysLater));
-      }
+    const newValue = new Date(value as Date);
+    const roundedDate = roundToNearest15Minutes(newValue);
+
+    // Check if the new date is actually different from current endDate
+    if (endDate && Math.abs(roundedDate.getTime() - endDate.getTime()) < 1000) {
+      return; // Same date, don't update
     }
+
+    setEndDate(roundedDate);
+
     setError('');
   };
 
-  // Helper function to close time picker after selection
-  const closeTimePicker = () => {
-    setTimeout(() => {
-      const activeElement = document.activeElement as HTMLElement;
-      if (activeElement && activeElement.blur) {
-        activeElement.blur();
-      }
-    }, 100); // Small delay to ensure the picker has processed the selection
+  // Function to disable time slots outside business hours (8:00-20:00)
+  const shouldDisableTime = (value: unknown, view: unknown) => {
+    if (view === 'hours') {
+      const date = value instanceof Date ? value : new Date(value as Date);
+      const hour = date.getHours();
+      return hour < 8 || hour >= 20; // Disable hours before 8 AM and after 8 PM
+    }
+    return false; // Allow all minutes
   };
 
   return (
@@ -224,6 +266,12 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               value={startDate}
               disabled={isLoading || isInitializing || !startDate || !endDate}
               onChange={handleStartDateChange}
+              open={startDateOpen}
+              onOpen={() => setStartDateOpen(true)}
+              onClose={() => {
+                setStartDateOpen(false);
+                // Don't clear errors automatically - let validation handle it
+              }}
               minDateTime={(() => {
                 const tomorrow = new Date();
                 tomorrow.setDate(tomorrow.getDate() + 1);
@@ -232,18 +280,25 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               })()}
               ampm={false}
               format="dd/MM/yyyy HH:mm"
-              closeOnSelect={true}
               autoFocus={false}
+              shouldDisableTime={shouldDisableTime}
               slotProps={{
                 textField: {
                   fullWidth: true,
                   variant: 'outlined',
-                  onClick: (e) => {
-                    // Open the date/time picker when clicking anywhere on the input
-                    const input = e.currentTarget.querySelector('input');
-                    if (input) {
-                      input.focus();
-                    }
+                  onClick: () => setStartDateOpen(true),
+                  onFocus: (e: React.FocusEvent) => {
+                    e.preventDefault();
+                    (e.target as HTMLElement).blur();
+                    setStartDateOpen(true);
+                  },
+                  inputProps: {
+                    readOnly: true,
+                    onFocus: (e: React.FocusEvent) => {
+                      e.preventDefault();
+                      (e.target as HTMLElement).blur();
+                      setStartDateOpen(true);
+                    },
                   },
                   InputProps: {
                     startAdornment: (
@@ -254,10 +309,18 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                   },
                   sx: {
                     cursor: 'pointer',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#1976d2',
@@ -274,6 +337,11 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                     },
                     '& .MuiInputBase-input': {
                       cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      pointerEvents: 'none',
                     },
                   },
                 },
@@ -308,23 +376,36 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               label={t('booking.endDate')}
               value={endDate}
               onChange={handleEndDateChange}
+              open={endDateOpen}
+              onOpen={() => setEndDateOpen(true)}
+              onClose={() => {
+                setEndDateOpen(false);
+                // Don't clear errors automatically - let validation handle it
+              }}
               minDateTime={startDate ? getMinEndDate(startDate) : undefined}
               maxDateTime={startDate ? getMaxEndDate(startDate) : undefined}
               disabled={isLoading || isInitializing || !startDate || !endDate}
               ampm={false}
               format="dd/MM/yyyy HH:mm"
-              closeOnSelect={true}
               autoFocus={false}
+              shouldDisableTime={shouldDisableTime}
               slotProps={{
                 textField: {
                   fullWidth: true,
                   variant: 'outlined',
-                  onClick: (e) => {
-                    // Open the date/time picker when clicking anywhere on the input
-                    const input = e.currentTarget.querySelector('input');
-                    if (input) {
-                      input.focus();
-                    }
+                  onClick: () => setEndDateOpen(true),
+                  onFocus: (e: React.FocusEvent) => {
+                    e.preventDefault();
+                    (e.target as HTMLElement).blur();
+                    setEndDateOpen(true);
+                  },
+                  inputProps: {
+                    readOnly: true,
+                    onFocus: (e: React.FocusEvent) => {
+                      e.preventDefault();
+                      (e.target as HTMLElement).blur();
+                      setEndDateOpen(true);
+                    },
                   },
                   InputProps: {
                     startAdornment: (
@@ -333,10 +414,18 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                   },
                   sx: {
                     cursor: 'pointer',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#1976d2',
@@ -353,9 +442,18 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                     },
                     '& .MuiInputBase-input': {
                       cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      pointerEvents: 'none',
                     },
                     '& .MuiInputLabel-root': {
                       color: startDate ? '#1976d2' : '#666',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
                     },
                   },
                 },
@@ -390,7 +488,13 @@ export const DateSearch: React.FC<DateSearchProps> = ({
             fullWidth
             size="large"
             onClick={handleSearch}
-            disabled={isLoading || isInitializing || !startDate || !endDate}
+            disabled={
+              isLoading ||
+              isInitializing ||
+              !startDate ||
+              !endDate ||
+              Boolean(error)
+            }
             startIcon={<Search />}
             sx={{
               backgroundColor: '#1976d2',

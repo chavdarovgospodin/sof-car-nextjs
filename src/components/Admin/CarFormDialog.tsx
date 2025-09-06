@@ -29,11 +29,11 @@ import { useSnackbar } from '../HomePage/SnackbarProvider';
 
 // Currency conversion functions (approximate BGN to EUR rate)
 const convertToBGN = (euroAmount: number): number => {
-  return euroAmount * 1.96; // Approximate BGN/EUR rate
+  return Math.round(euroAmount * 1.96 * 100) / 100; // Round to 2 decimal places
 };
 
 const convertToEUR = (bgnAmount: number): number => {
-  return bgnAmount / 1.96; // Approximate EUR/BGN rate
+  return Math.round((bgnAmount / 1.96) * 100) / 100; // Round to 2 decimal places
 };
 
 interface CarFormDialogProps {
@@ -80,7 +80,7 @@ const texts = {
   features: 'Екстри',
   addFeature: 'Добави екстра',
   images: 'Снимки',
-  uploadImages: 'Качи снимки',
+  uploadImages: 'Качи снимка',
   cancel: 'Отказ',
   save: 'Запази',
   loading: 'Зареждане...',
@@ -149,8 +149,6 @@ export default function CarFormDialog({
     }
     setErrors({});
   }, [car, isEditing]);
-
-  console.log(formData);
 
   const handleInputChange =
     (field: string) =>
@@ -224,7 +222,7 @@ export default function CarFormDialog({
     if (!formData.transmission.trim()) {
       newErrors.transmission = 'Трансмисията е задължителна';
     }
-    if (formData.year < 1900 || formData.year > new Date().getFullYear() + 1) {
+    if (formData.year < 1900 || formData.year > new Date().getFullYear() + 2) {
       newErrors.year = 'Невалидна година';
     }
     if (formData.price_per_day_bgn <= 0) {
@@ -233,8 +231,30 @@ export default function CarFormDialog({
     if (formData.deposit_amount_bgn < 0) {
       newErrors.deposit_amount_bgn = 'Депозитът не може да е отрицателен';
     }
-    console.log(newErrors);
-    console.log(formData);
+
+    // Validate enum values
+    const allowedClasses = ['economy', 'standard', 'premium'];
+    if (!allowedClasses.includes(formData.class)) {
+      newErrors.class = 'Невалиден клас. Допустими: economy, standard, premium';
+    }
+
+    const allowedFuelTypes = ['petrol', 'diesel', 'hybrid', 'electric', 'lpg'];
+    if (!allowedFuelTypes.includes(formData.fuel_type)) {
+      newErrors.fuel_type =
+        'Невалиден тип гориво. Допустими: petrol, diesel, hybrid, electric, lpg';
+    }
+
+    const allowedTransmissions = [
+      'manual',
+      'automatic',
+      'cvt',
+      'semi-automatic',
+    ];
+    if (!allowedTransmissions.includes(formData.transmission)) {
+      newErrors.transmission =
+        'Невалидна трансмисия. Допустими: manual, automatic, cvt, semi-automatic';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

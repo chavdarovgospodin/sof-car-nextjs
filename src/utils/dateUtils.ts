@@ -92,19 +92,15 @@ export const roundToNearest15Minutes = (date: Date): Date => {
 // Функция за изчисляване на дните между две дати
 export const calculateDays = (start: Date, end: Date): number => {
   const diffTime = end.getTime() - start.getTime();
-  const diffHours = diffTime / (1000 * 60 * 60);
-  const diffDays = diffHours / 24;
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
-  // Ако е минало 24 часа, считаме за 2 дни
-  if (diffHours > 24) {
-    return Math.ceil(diffDays);
+  // За минималния период от 5 дни, изискваме поне 5 пълни дни
+  // Ако е точно 5.0 дни или повече, считаме за валидно
+  if (diffDays >= 5.0) {
+    return Math.floor(diffDays); // Връщаме цялото число дни
   }
 
-  // Ако е под 24 часа, но е след полунощ, считаме за 1 ден
-  if (start.getDate() !== end.getDate()) {
-    return 1;
-  }
-
+  // Ако е под 5 пълни дни, връщаме 0 за да не мине валидацията
   return 0;
 };
 

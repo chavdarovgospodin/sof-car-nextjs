@@ -27,10 +27,11 @@ import CarFormDialog from './CarFormDialog';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import { useAdmin, AdminCar } from '@/hooks/useAdmin';
 import { useSnackbar } from '@/components/HomePage/SnackbarProvider';
+import axios from 'axios';
 
 // Currency conversion function (approximate BGN to EUR rate)
 const convertToBGN = (euroAmount: number): number => {
-  return euroAmount * 1.96; // Approximate BGN/EUR rate
+  return Math.round(euroAmount * 1.96 * 100) / 100; // Round to 2 decimal places
 };
 
 export default function CarsTab() {
@@ -57,7 +58,7 @@ export default function CarsTab() {
     add: 'Добави',
     description: 'Описание',
     images: 'Снимки',
-    uploadImages: 'Качи снимки',
+    uploadImages: 'Качи снимка',
     active: 'Активен',
     inactive: 'Неактивен',
     edit: 'Редактирай',
@@ -114,11 +115,11 @@ export default function CarsTab() {
         showSnackbar('Автомобилът е създаден успешно', 'success');
       }
       handleCarFormClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving car:', err);
 
       // Check if it's a 401 error (session expired)
-      if (err?.response?.status === 401) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
         showSnackbar(
           'Сесията ви е изтекла. Моля, влезте отново в системата.',
           'error'
@@ -141,11 +142,11 @@ export default function CarsTab() {
       setDeleteDialogOpen(false);
       setCarToDelete(null);
       showSnackbar('Автомобилът е изтрит', 'success');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting car:', err);
 
       // Check if it's a 401 error (session expired)
-      if (err?.response?.status === 401) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
         showSnackbar(
           'Сесията ви е изтекла. Моля, влезте отново в системата.',
           'error'
