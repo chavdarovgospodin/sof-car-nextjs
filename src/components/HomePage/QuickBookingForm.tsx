@@ -370,9 +370,7 @@ export function QuickBookingForm({
             fontWeight: 'bold',
           }}
         >
-          {currentLang === 'bg'
-            ? 'Изберете дати и клас автомобил за бърза резервация'
-            : 'Choose dates and car class for quick booking'}
+          {currentLang === 'bg' ? 'Започни търсене' : 'Start searching'}
         </Typography>
 
         <Grid container spacing={2}>
@@ -674,7 +672,7 @@ export function QuickBookingForm({
                 fontSize: '1.1rem',
               }}
             >
-              {currentLang === 'bg' ? 'Търси автомобили' : 'Search cars'}
+              {currentLang === 'bg' ? 'Покажи обявите' : 'Show offers'}
             </Button>
           </Grid>
         </Grid>
