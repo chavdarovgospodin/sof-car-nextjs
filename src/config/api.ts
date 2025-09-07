@@ -1,9 +1,17 @@
 // API Configuration
 import { APP_CONFIG } from '../utils/constants';
 
+// Определяме базовия URL в зависимост от environment-а
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return APP_CONFIG.devUrl; // Локален сървър без /api префикс
+  }
+  return `${APP_CONFIG.url}/api`; // Production сървър с /api префикс
+};
+
 // Използваме абсолютен URL за API заявките, независимо от basePath
 export const API_CONFIG = {
-  BASE_URL: 'https://sof-car.eu/api',
+  BASE_URL: getBaseUrl(),
   ENDPOINTS: {
     ROOT: '/',
     CARS: '/cars',

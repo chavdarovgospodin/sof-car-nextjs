@@ -22,9 +22,11 @@ import {
   Delete,
   DirectionsCar,
   Security,
+  CalendarToday,
 } from '@mui/icons-material';
 import CarFormDialog from './CarFormDialog';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
+import { CarCalendarDialog } from './CarCalendarDialog';
 import { useAdmin, AdminCar } from '@/hooks/useAdmin';
 import { useSnackbar } from '@/components/HomePage/SnackbarProvider';
 import axios from 'axios';
@@ -82,6 +84,8 @@ export default function CarsTab() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [carToDelete, setCarToDelete] = useState<AdminCar | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedCarForCalendar, setSelectedCarForCalendar] = useState<AdminCar | null>(null);
 
   const handleAddCar = () => {
     setEditingCar(null);
@@ -97,6 +101,16 @@ export default function CarsTab() {
   const handleDeleteCar = (car: AdminCar) => {
     setCarToDelete(car);
     setDeleteDialogOpen(true);
+  };
+
+  const handleOpenCalendar = (car: AdminCar) => {
+    setSelectedCarForCalendar(car);
+    setCalendarOpen(true);
+  };
+
+  const handleCloseCalendar = () => {
+    setCalendarOpen(false);
+    setSelectedCarForCalendar(null);
   };
 
   const handleCarFormClose = () => {
@@ -120,8 +134,8 @@ export default function CarsTab() {
     } catch (err: unknown) {
       console.error('Error saving car:', err);
 
-      // Check if it's a 401 error (session expired)
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
+      // Check if it's a 401 error (session expired) - but not for logout
+      if (axios.isAxiosError(err) && err.response?.status === 401 && !err.config?.url?.includes('/admin/logout')) {
         showSnackbar(
           'Сесията ви е изтекла. Моля, влезте отново в системата.',
           'error'
@@ -147,8 +161,8 @@ export default function CarsTab() {
     } catch (err: unknown) {
       console.error('Error deleting car:', err);
 
-      // Check if it's a 401 error (session expired)
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
+      // Check if it's a 401 error (session expired) - but not for logout
+      if (axios.isAxiosError(err) && err.response?.status === 401 && !err.config?.url?.includes('/admin/logout')) {
         showSnackbar(
           'Сесията ви е изтекла. Моля, влезте отново в системата.',
           'error'
@@ -321,7 +335,16 @@ export default function CarsTab() {
                 </CardContent>
 
                 {/* Card Actions */}
-                <CardActions sx={{ justifyContent: 'right', px: 2, pb: 2 }}>
+                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                  <Button
+                    size="small"
+                    startIcon={<CalendarToday />}
+                    onClick={() => handleOpenCalendar(car)}
+                    sx={{ color: 'primary.main' }}
+                  >
+                    Календар
+                  </Button>
+                  
                   <Box>
                     <Tooltip title={texts.edit}>
                       <IconButton
@@ -399,6 +422,13 @@ export default function CarsTab() {
           setDeleteDialogOpen(false);
           setCarToDelete(null);
         }}
+      />
+
+      {/* Car Calendar Dialog */}
+      <CarCalendarDialog
+        open={calendarOpen}
+        onClose={handleCloseCalendar}
+        car={selectedCarForCalendar}
       />
     </Box>
   );

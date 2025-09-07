@@ -62,8 +62,15 @@ export interface AdminBooking {
 }
 
 // Create axios instance with default config
+const getAdminBaseURL = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return APP_CONFIG.devUrl; // http://localhost:5002
+  }
+  return `${APP_CONFIG.url}/api`; // https://sof-car.eu/api
+};
+
 const adminApi = axios.create({
-  baseURL: `${APP_CONFIG.url}/api`,
+  baseURL: getAdminBaseURL(),
   withCredentials: true, // Important for cookies
   headers: {
     'Content-Type': 'application/json',
@@ -75,13 +82,15 @@ adminApi.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Session expired - redirect to login
-      console.warn('Session expired, redirecting to login');
-      // Only redirect if we're not already on login page
-      if (
+      // Check if this is a logout request or if we're already on login page
+      const isLogoutRequest = error.config?.url?.includes('/admin/logout');
+      const isOnLoginPage =
         typeof window !== 'undefined' &&
-        !window.location.pathname.includes('/admin/login')
-      ) {
+        window.location.pathname.includes('/admin/login');
+
+      // Only show session expired message for actual session expiration, not logout
+      if (!isLogoutRequest && !isOnLoginPage) {
+        console.warn('Session expired, redirecting to login');
         alert('Сесията ви е изтекла. Моля, влезте отново в системата.');
         window.location.href = '/admin/login';
       }
@@ -531,4 +540,23 @@ export const useAdmin = (
     carsError,
     bookingsError,
   };
+};
+
+// Hook for getting bookings for a specific car
+export const useCarBookings = (
+  carId: string | null,
+  enabled: boolean = true
+) => {
+  return useQuery({
+    queryKey: ['admin', 'car-bookings', carId],
+    queryFn: () => adminApiFunctions.getBookings({ car_id: carId! }),
+    enabled: !!carId && enabled,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 (unauthorized)
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
 };

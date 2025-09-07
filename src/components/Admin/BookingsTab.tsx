@@ -243,7 +243,7 @@ export default function BookingsTab() {
           onError: (error: unknown) => {
             console.error('Failed to update booking:', error);
 
-            // Check if it's a 401 error (session expired)
+            // Check if it's a 401 error (session expired) - but not for logout
             if (
               error &&
               typeof error === 'object' &&
@@ -251,7 +251,10 @@ export default function BookingsTab() {
               error.response &&
               typeof error.response === 'object' &&
               'status' in error.response &&
-              error.response.status === 401
+              error.response.status === 401 &&
+              !(error as { config?: { url?: string } }).config?.url?.includes(
+                '/admin/logout'
+              )
             ) {
               // Show session expired message and redirect to login
               showSnackbar(
@@ -291,13 +294,16 @@ export default function BookingsTab() {
         onError: (error: unknown) => {
           console.error('Failed to delete booking:', error);
 
-          // Check if it's a 401 error (session expired)
+          // Check if it's a 401 error (session expired) - but not for logout
           if (
             error &&
             typeof error === 'object' &&
             'response' in error &&
             (error as { response?: { status?: number } }).response?.status ===
-              401
+              401 &&
+            !(error as { config?: { url?: string } }).config?.url?.includes(
+              '/admin/logout'
+            )
           ) {
             // Redirect to login page
             showSnackbar(

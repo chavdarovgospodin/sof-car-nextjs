@@ -2,6 +2,7 @@ export const APP_CONFIG = {
   name: 'SofCar Yambol',
   description: 'Car rental service in Yambol',
   url: 'https://sof-car.eu',
+  devUrl: 'http://localhost:5002',
   phone: '0879994212',
   email: '2016.sofcar@gmail.com',
   address: 'Western Industrial Zone, ul. "Yambolen" 18, 8601 Yambol',

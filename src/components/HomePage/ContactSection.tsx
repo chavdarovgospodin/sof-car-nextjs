@@ -46,7 +46,7 @@ export function ContactSection({
           >
             <iframe
               title="SofCar Location in Yambol"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2888.23093507278!2d26.496532776052938!3d42.494557571180806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40a634192fba13c3%3A0x8c34d893296c506b!2sWestern%20Industrial%20Zone%2C%20ul.%20%22Yambolen%22%2018%2C%208601%2C%208600%20Yambol!5e1!3m2!1sen!2sbg!4v1757084431247!5m2!1sen!2sbg"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3577.7291506991833!2d26.4990608!3d42.4944651!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40a635b9e4e74ffd%3A0x6468c381ace92082!2zU29mIENhciBSZW50YWwgLyDQmtC-0LvQuCDQv9C-0LQg0L3QsNC10Lwg0K_QvNCx0L7QuyAvIFlhbWJvbA!5e1!3m2!1sen!2sbg!4v1757248567924!5m2!1sen!2sbg"
               width="100%"
               height="100%"
               style={{ border: 0 }}
