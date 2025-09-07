@@ -1,8 +1,9 @@
 // API Configuration
 import { APP_CONFIG } from '../utils/constants';
 
+// Използваме абсолютен URL за API заявките, независимо от basePath
 export const API_CONFIG = {
-  BASE_URL: `${APP_CONFIG.url}/api`,
+  BASE_URL: 'https://sof-car.eu/api',
   ENDPOINTS: {
     ROOT: '/',
     CARS: '/cars',

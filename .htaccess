@@ -1,14 +1,21 @@
 # Enable rewrite engine
 RewriteEngine On
 
-# API routes - don't redirect to index.html
-RewriteCond %{REQUEST_URI} ^/api/
-RewriteRule ^api/(.*)$ - [L]
+# Exclude /api/ requests from being rewritten
+RewriteRule ^api/ - [L]
 
-# Handle client routing, return all requests to index.html
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
+# Route /new/ requests to the new site (don't rewrite)
+RewriteRule ^new/ - [L]
+
+# Redirect /bg/ and /en/ to /new/bg/ and /new/en/
+RewriteRule ^bg/(.*)$ /new/bg/$1 [R=301,L]
+RewriteRule ^en/(.*)$ /new/en/$1 [R=301,L]
+RewriteRule ^bg/?$ /new/bg/ [R=301,L]
+RewriteRule ^en/?$ /new/en/ [R=301,L]
+
+# Route root requests to old site
+RewriteRule ^$ /sof-car.eu/ [L]
+RewriteRule ^(?!new/|api/|sof-car\.eu/)(.*)$ /sof-car.eu/$1 [L]
 
 # Security headers
 Header always set X-Frame-Options DENY

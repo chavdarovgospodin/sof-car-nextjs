@@ -2,6 +2,8 @@
 const nextConfig = {
   output: 'export', // Статичен export за cPanel
   trailingSlash: true, // За production
+  basePath: '/new', // Добави това
+  assetPrefix: '/new', // Добави това
   // Development server configuration
   // devIndicators: {
   //   buildActivity: true,
