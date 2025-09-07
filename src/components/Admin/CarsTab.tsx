@@ -85,7 +85,8 @@ export default function CarsTab() {
   const [carToDelete, setCarToDelete] = useState<AdminCar | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [selectedCarForCalendar, setSelectedCarForCalendar] = useState<AdminCar | null>(null);
+  const [selectedCarForCalendar, setSelectedCarForCalendar] =
+    useState<AdminCar | null>(null);
 
   const handleAddCar = () => {
     setEditingCar(null);
@@ -135,7 +136,11 @@ export default function CarsTab() {
       console.error('Error saving car:', err);
 
       // Check if it's a 401 error (session expired) - but not for logout
-      if (axios.isAxiosError(err) && err.response?.status === 401 && !err.config?.url?.includes('/admin/logout')) {
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.status === 401 &&
+        !err.config?.url?.includes('/admin/logout')
+      ) {
         showSnackbar(
           'Сесията ви е изтекла. Моля, влезте отново в системата.',
           'error'
@@ -162,7 +167,11 @@ export default function CarsTab() {
       console.error('Error deleting car:', err);
 
       // Check if it's a 401 error (session expired) - but not for logout
-      if (axios.isAxiosError(err) && err.response?.status === 401 && !err.config?.url?.includes('/admin/logout')) {
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.status === 401 &&
+        !err.config?.url?.includes('/admin/logout')
+      ) {
         showSnackbar(
           'Сесията ви е изтекла. Моля, влезте отново в системата.',
           'error'
@@ -184,7 +193,7 @@ export default function CarsTab() {
   };
 
   const getMainImage = (car: AdminCar) => {
-    return car.image_url;
+    return car.image_urls?.[0] || null;
   };
 
   if (isLoadingCars) {
@@ -335,7 +344,9 @@ export default function CarsTab() {
                 </CardContent>
 
                 {/* Card Actions */}
-                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                <CardActions
+                  sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}
+                >
                   <Button
                     size="small"
                     startIcon={<CalendarToday />}
@@ -344,7 +355,7 @@ export default function CarsTab() {
                   >
                     Календар
                   </Button>
-                  
+
                   <Box>
                     <Tooltip title={texts.edit}>
                       <IconButton

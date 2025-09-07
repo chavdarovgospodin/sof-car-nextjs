@@ -9,7 +9,7 @@ export interface Car {
   price_per_day: number;
   deposit_amount: number;
   is_active: boolean;
-  image_url: string;
+  image_urls: string[];
   fuel_type: string;
   transmission: string;
   features?: string[];

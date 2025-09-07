@@ -27,7 +27,7 @@ export interface AdminCar {
   price_per_day: number;
   deposit_amount: number;
   is_active: boolean;
-  image_url: string | null; // Single image URL instead of car_images array
+  image_urls: string[]; // Array of image URLs
   fuel_type: 'petrol' | 'diesel' | 'electric' | 'hybrid';
   transmission: 'manual' | 'automatic';
   features?: string[];

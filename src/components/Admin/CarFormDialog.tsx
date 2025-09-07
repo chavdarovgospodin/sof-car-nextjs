@@ -23,7 +23,13 @@ import {
   FormHelperText,
   Fade,
 } from '@mui/material';
-import { Close, Add, Delete, CloudUpload } from '@mui/icons-material';
+import {
+  Close,
+  Add,
+  ArrowUpward,
+  Delete,
+  CloudUpload,
+} from '@mui/icons-material';
 import { AdminCar } from '@/hooks/useAdmin';
 import { useSnackbar } from '../HomePage/SnackbarProvider';
 
@@ -132,9 +138,9 @@ export default function CarFormDialog({
         transmission: car.transmission || '',
       });
 
-      // Set existing image - backend now uses single image_url
-      if (car.image_url) {
-        setImageUrls([car.image_url]);
+      // Set existing images - backend now uses image_urls array
+      if (car.image_urls && car.image_urls.length > 0) {
+        setImageUrls(car.image_urls);
       }
     } else {
       // Reset form for new car
@@ -207,6 +213,21 @@ export default function CarFormDialog({
     setImageUrls((prev: string[]) =>
       prev.filter((_, i: number) => i !== index)
     );
+  };
+
+  const handleMoveImage = (fromIndex: number, toIndex: number) => {
+    setImageUrls((prev: string[]) => {
+      const newUrls = [...prev];
+      const [movedUrl] = newUrls.splice(fromIndex, 1);
+      newUrls.splice(toIndex, 0, movedUrl);
+      return newUrls;
+    });
+  };
+
+  const handleMoveToFirst = (index: number) => {
+    if (index > 0) {
+      handleMoveImage(index, 0);
+    }
   };
 
   const validateForm = () => {
@@ -283,7 +304,7 @@ export default function CarFormDialog({
           | 'hybrid',
         transmission: formData.transmission as 'manual' | 'automatic',
         features: formData.features,
-        image_url: imageUrls.length > 0 ? imageUrls[0] : null, // Single image URL
+        image_urls: imageUrls, // Array of image URLs
       };
 
       await onSubmit(carData);
@@ -569,6 +590,10 @@ export default function CarFormDialog({
             <Typography variant="h6" gutterBottom>
               {texts.images}
             </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Първата снимка ще бъде използвана като заглавна навсякъде в сайта.
+              Можеш да преместиш която и да е снимка на първо място с бутона ↑.
+            </Typography>
           </Box>
 
           <Box>
@@ -598,7 +623,8 @@ export default function CarFormDialog({
                   key={index}
                   sx={{
                     position: 'relative',
-                    border: '1px solid #ddd',
+                    border:
+                      index === 0 ? '3px solid #1976d2' : '1px solid #ddd',
                     borderRadius: 1,
                     overflow: 'hidden',
                     width: 150,
@@ -614,19 +640,68 @@ export default function CarFormDialog({
                       objectFit: 'cover',
                     }}
                   />
-                  <IconButton
-                    size="small"
-                    color="error"
+
+                  {/* Main image indicator */}
+                  {index === 0 && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        left: 4,
+                        backgroundColor: '#1976d2',
+                        color: 'white',
+                        px: 1,
+                        py: 0.5,
+                        borderRadius: 0.5,
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      ГЛАВНА
+                    </Box>
+                  )}
+
+                  {/* Action buttons */}
+                  <Box
                     sx={{
                       position: 'absolute',
                       top: 4,
                       right: 4,
-                      backgroundColor: 'rgba(255,255,255,0.8)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 0.5,
                     }}
-                    onClick={() => handleRemoveImage(index)}
                   >
-                    <Delete />
-                  </IconButton>
+                    {index > 0 && (
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        sx={{
+                          backgroundColor: 'rgba(255,255,255,0.9)',
+                          width: 24,
+                          height: 24,
+                        }}
+                        onClick={() => handleMoveToFirst(index)}
+                        title="Направи главна снимка"
+                      >
+                        <ArrowUpward sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    )}
+
+                    <IconButton
+                      size="small"
+                      color="error"
+                      sx={{
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        width: 24,
+                        height: 24,
+                      }}
+                      onClick={() => handleRemoveImage(index)}
+                      title="Изтрий снимка"
+                    >
+                      <Delete sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
                 </Box>
               ))}
             </Box>

@@ -79,7 +79,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
   const filteredCars: CarData[] =
     carsResponse?.cars?.map((car) => ({
       ...car,
-      image_url: car.image_url,
+      image_urls: car.image_urls,
       available: true, // We'll check availability separately
       features: car.features || [], // Use existing features or empty array
       price: car.price_per_day, // Map price_per_day to price for compatibility

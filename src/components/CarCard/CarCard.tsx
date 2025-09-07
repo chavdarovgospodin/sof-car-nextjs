@@ -106,9 +106,9 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
           overflow: 'hidden',
         }}
       >
-        {car.image_url ? (
+        {car.image_urls?.[0] ? (
           <Image
-            src={car.image_url}
+            src={car.image_urls[0]}
             alt={`${car.brand} ${car.model}`}
             fill
             style={{

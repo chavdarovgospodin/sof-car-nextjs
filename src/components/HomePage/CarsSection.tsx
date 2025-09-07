@@ -77,7 +77,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
     (carsResponse &&
       carsResponse?.cars.map((car) => ({
         ...car,
-        imageUrl: car.image_url,
+        imageUrl: car.image_urls?.[0] || null,
         available: true,
         features: car.features || [],
         price: car.price_per_day,
@@ -334,9 +334,9 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                           justifyContent: 'center',
                         }}
                       >
-                        {car.image_url ? (
+                        {car.image_urls?.[0] ? (
                           <Image
-                            src={car.image_url}
+                            src={car.image_urls[0]}
                             alt={`${car.brand} ${car.model}`}
                             fill
                             style={{
@@ -588,7 +588,9 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                           },
                         }}
                       >
-                        {currentLang === 'bg' ? 'Резервирай сега' : 'Book Now'}
+                        {currentLang === 'bg'
+                          ? 'Вижте наличности'
+                          : 'See Availabilities'}
                       </Button>
                     </Box>
                   </Box>
