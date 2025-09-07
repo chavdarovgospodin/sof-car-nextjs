@@ -21,11 +21,11 @@ module.exports = {
   // Multi-language support - simplified
   alternateRefs: [
     {
-      href: `${siteUrl}/new/bg`,
+      href: `${siteUrl}/bg`,
       hreflang: 'bg',
     },
     {
-      href: `${siteUrl}/new/en`,
+      href: `${siteUrl}/en`,
       hreflang: 'en',
     },
   ],
