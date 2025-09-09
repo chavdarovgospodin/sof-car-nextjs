@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -11,650 +11,312 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
+import { TermsConditionsPageProps } from './TermsConditionsPage.types';
+import { texts, enTexts } from './TermsConditionsPage.lang';
+import { styles } from './TermsConditionsPage.styles';
 import {
-  CheckCircle,
-  Info,
-  Warning,
-  Cancel,
-  LocalShipping,
-  Security,
-  Payment,
-} from '@mui/icons-material';
+  createRentalConditions,
+  createRentalDocuments,
+  createCancellationRules,
+  createDeliveryOptions,
+  createInsuranceTypes,
+  createPaymentTerms,
+  createContactInfo,
+  rentalConditionIcon,
+  documentIcon,
+  cancellationIcons,
+  deliveryIcon,
+  insuranceIcon,
+  paymentIcon,
+} from './TermsConditionsPage.const';
 import { APP_CONFIG } from '../../utils/constants';
 
-interface TermsConditionsPageProps {
-  lang: Promise<string>;
-}
-
 export function TermsConditionsPage({ lang }: TermsConditionsPageProps) {
-  const [currentLang, setCurrentLang] = React.useState('bg');
+  const [currentLang, setCurrentLang] = useState('bg');
 
-  React.useEffect(() => {
+  useEffect(() => {
     lang.then(setCurrentLang);
   }, [lang]);
 
+  const currentTexts = currentLang === 'bg' ? texts : enTexts;
+  const rentalConditions = createRentalConditions(currentTexts);
+  const rentalDocuments = createRentalDocuments(currentTexts);
+  const cancellationRules = createCancellationRules(currentTexts);
+  const deliveryOptions = createDeliveryOptions(currentTexts);
+  const insuranceTypes = createInsuranceTypes(currentTexts);
+  const paymentTerms = createPaymentTerms(currentTexts);
+  const contactInfo = createContactInfo(currentTexts);
+
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>
+    <Box sx={styles.pageContainer}>
       {/* Hero Section */}
-      <Box
-        sx={{
-          py: { xs: 6, md: 8 },
-          background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-          color: 'white',
-        }}
-      >
+      <Box sx={styles.heroSection}>
         <Container maxWidth="lg">
           <Typography
             variant="h2"
             component="h1"
             textAlign="center"
             gutterBottom
-            sx={{ mb: 3 }}
+            sx={styles.heroTitle}
           >
-            {currentLang === 'bg'
-              ? 'Общи условия и политики'
-              : 'Terms & Conditions'}
+            {currentTexts.title}
           </Typography>
           <Typography
             variant="h5"
             component="p"
             textAlign="center"
-            sx={{ opacity: 0.9 }}
+            sx={styles.heroSubtitle}
           >
-            {currentLang === 'bg'
-              ? 'Пълна информация за вашите права и задължения при наемане на автомобили'
-              : 'Complete information about your rights and obligations when renting cars'}
+            {currentTexts.subtitle}
           </Typography>
         </Container>
       </Box>
 
       {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+      <Container maxWidth="lg" sx={styles.mainContent}>
         {/* General Terms */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '1. Общи условия за наемане'
-              : '1. General Rental Terms'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.sections.generalTerms.title}
           </Typography>
           <Typography variant="body1" paragraph>
-            {currentLang === 'bg'
-              ? 'Наемането на автомобили от Соф Кар Rental се регулира от следните общи условия:'
-              : 'Car rental from Sof Car Rental is governed by the following general terms:'}
+            {currentTexts.sections.generalTerms.description}
           </Typography>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.subsectionTitle}
           >
-            {currentLang === 'bg'
-              ? '1.1 Условия за наемане'
-              : '1.1 Rental Conditions'}
+            {currentTexts.sections.generalTerms.rentalConditions.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Наемането е възможно за лица на възраст 21+ години'
-                    : 'Rental is available for persons aged 21+ years'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Необходимо е валидно шофьорско удостоверение с минимален стаж 2 години'
-                    : "Valid driver's license with minimum 2 years experience required"
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Изисква се валидна лична карта или паспорт'
-                    : 'Valid ID card or passport required'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Минималният период за наем е 5 дни'
-                    : 'Minimum rental period is 5 days'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Максималният период за наем е 30 дни'
-                    : 'Maximum rental period is 30 days'
-                }
-              />
-            </ListItem>
+            {rentalConditions.map((condition, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{rentalConditionIcon}</ListItemIcon>
+                <ListItemText primary={condition.text} />
+              </ListItem>
+            ))}
           </List>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.subsectionTitle}
           >
-            {currentLang === 'bg'
-              ? '1.2 Документи за наемане'
-              : '1.2 Rental Documents'}
+            {currentTexts.sections.generalTerms.rentalDocuments.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Валидно шофьорско удостоверение'
-                    : "Valid driver's license"
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Лична карта или паспорт'
-                    : 'ID card or passport'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Договор за наем (подписан при вземане)'
-                    : 'Rental contract (signed upon pickup)'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Депозит в размер на 200 лева'
-                    : 'Deposit of 200 BGN'
-                }
-              />
-            </ListItem>
+            {rentalDocuments.map((document, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{documentIcon}</ListItemIcon>
+                <ListItemText primary={document.text} />
+              </ListItem>
+            ))}
           </List>
         </Paper>
 
         {/* Cancellation Policy */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '2. Политика за отказ'
-              : '2. Cancellation Policy'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.sections.cancellationPolicy.title}
           </Typography>
           <Typography variant="body1" paragraph>
-            {currentLang === 'bg'
-              ? 'Политиката за отказ на резервация се прилага както следва:'
-              : 'The reservation cancellation policy applies as follows:'}
+            {currentTexts.sections.cancellationPolicy.description}
           </Typography>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.subsectionTitle}
           >
-            {currentLang === 'bg'
-              ? '2.1 Отказ преди 24 часа'
-              : '2.1 Cancellation before 24 hours'}
+            {currentTexts.sections.cancellationPolicy.before24h.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="success" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Пълно възстановяване на сумата'
-                    : 'Full refund of the amount'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="success" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Без допълнителни такси'
-                    : 'No additional fees'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="success" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Възстановяване в рамките на 5 работни дни'
-                    : 'Refund within 5 business days'
-                }
-              />
-            </ListItem>
+            {cancellationRules.before24h.map((rule, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{cancellationIcons.before24h}</ListItemIcon>
+                <ListItemText primary={rule.text} />
+              </ListItem>
+            ))}
           </List>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.subsectionTitle}
           >
-            {currentLang === 'bg'
-              ? '2.2 Отказ в рамките на 24 часа'
-              : '2.2 Cancellation within 24 hours'}
+            {currentTexts.sections.cancellationPolicy.within24h.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <Warning color="warning" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Удържане на 50% от сумата'
-                    : '50% of the amount is withheld'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Възстановяване на 50% в рамките на 5 работни дни'
-                    : '50% refund within 5 business days'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Info color="info" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Приложимо за резервации за следващия ден'
-                    : 'Applicable for reservations for the next day'
-                }
-              />
-            </ListItem>
+            {cancellationRules.within24h.map((rule, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{cancellationIcons.within24h}</ListItemIcon>
+                <ListItemText primary={rule.text} />
+              </ListItem>
+            ))}
           </List>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.subsectionTitle}
           >
-            {currentLang === 'bg'
-              ? '2.3 Отказ в деня на резервация'
-              : '2.3 Cancellation on the day of reservation'}
+            {currentTexts.sections.cancellationPolicy.sameDay.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <Cancel color="error" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Удържане на 100% от сумата'
-                    : '100% of the amount is withheld'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Cancel color="error" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg' ? 'Без възстановяване' : 'No refund'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Info color="info" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Приложимо за резервации за същия ден'
-                    : 'Applicable for reservations for the same day'
-                }
-              />
-            </ListItem>
+            {cancellationRules.sameDay.map((rule, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{cancellationIcons.sameDay}</ListItemIcon>
+                <ListItemText primary={rule.text} />
+              </ListItem>
+            ))}
           </List>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.subsectionTitle}
           >
-            {currentLang === 'bg'
-              ? '2.4 Форсмажорни обстоятелства'
-              : '2.4 Force Majeure'}
+            {currentTexts.sections.cancellationPolicy.forceMajeure.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="success" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'При природни бедствия, пандемии, войни'
-                    : 'In case of natural disasters, pandemics, wars'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <CheckCircle color="success" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Пълно възстановяване на сумата'
-                    : 'Full refund of the amount'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Info color="info" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Необходимо е документално потвърждение'
-                    : 'Documentary confirmation required'
-                }
-              />
-            </ListItem>
+            {cancellationRules.forceMajeure.map((rule, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{cancellationIcons.forceMajeure}</ListItemIcon>
+                <ListItemText primary={rule.text} />
+              </ListItem>
+            ))}
           </List>
         </Paper>
 
         {/* Delivery Policy */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '3. Политика за доставка'
-              : '3. Delivery Policy'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.sections.deliveryPolicy.title}
           </Typography>
           <Typography variant="body1" paragraph>
-            {currentLang === 'bg'
-              ? 'Политиката за доставка на автомобили включва:'
-              : 'The car delivery policy includes:'}
+            {currentTexts.sections.deliveryPolicy.description}
           </Typography>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.subsectionTitle}
           >
-            {currentLang === 'bg'
-              ? '3.1 Вземане на автомобила'
-              : '3.1 Car Pickup'}
+            {currentTexts.sections.deliveryPolicy.pickup.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <LocalShipping color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Вземане от офиса в Ямбол - без допълнителна такса'
-                    : 'Pickup from Yambol office - no additional fee'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <LocalShipping color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Доставка на друго място в Ямбол - 50 лева'
-                    : 'Delivery to other location in Yambol - 50 BGN'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <LocalShipping color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  currentLang === 'bg'
-                    ? 'Доставка на летище - 100 лева'
-                    : 'Airport delivery - 100 BGN'
-                }
-              />
-            </ListItem>
+            {deliveryOptions.map((option, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{deliveryIcon}</ListItemIcon>
+                <ListItemText primary={option.text} />
+              </ListItem>
+            ))}
           </List>
         </Paper>
 
         {/* Insurance and Liability */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '4. Застраховане и отговорност'
-              : '4. Insurance and Liability'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.sections.insurance.title}
           </Typography>
           <Typography variant="body1" paragraph>
-            {currentLang === 'bg'
-              ? 'Всички автомобили са застраховани с пълно покритие:'
-              : 'All cars are fully insured with comprehensive coverage:'}
+            {currentTexts.sections.insurance.description}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <Security color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg'
-                      ? 'Автокаско:'
-                      : 'Collision insurance:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? 'Покрива щетите при пътнотранспортно произшествие'
-                    : 'Covers damages in case of traffic accident'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Security color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg'
-                      ? 'Гражданска отговорност:'
-                      : 'Liability insurance:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? 'Покрива щетите на трети лица'
-                    : 'Covers damages to third parties'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Security color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg'
-                      ? 'Денонощна помощ:'
-                      : '24/7 assistance:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? 'Помощ на пътя при проблеми'
-                    : 'Roadside assistance in case of problems'
-                }
-              />
-            </ListItem>
+            {insuranceTypes.map((insurance, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{insuranceIcon}</ListItemIcon>
+                <ListItemText
+                  primary={<strong>{insurance.title}</strong>}
+                  secondary={insurance.description}
+                />
+              </ListItem>
+            ))}
           </List>
         </Paper>
 
         {/* Payment Terms */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '5. Условия за плащане'
-              : '5. Payment Terms'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.sections.paymentTerms.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <Payment color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg' ? 'Депозит:' : 'Deposit:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? '200-500 лева в зависимост от класа автомобил'
-                    : '200-500 BGN depending on car class'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Payment color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg' ? 'Плащане:' : 'Payment:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? 'В брой или с кредитна карта при вземане'
-                    : 'Cash or credit card upon pickup'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Payment color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg'
-                      ? 'Възстановяване на депозита:'
-                      : 'Deposit refund:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? 'При връщане на автомобила в добро състояние'
-                    : 'When returning the car in good condition'
-                }
-              />
-            </ListItem>
+            {paymentTerms.map((term, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{paymentIcon}</ListItemIcon>
+                <ListItemText
+                  primary={<strong>{term.title}</strong>}
+                  secondary={term.description}
+                />
+              </ListItem>
+            ))}
           </List>
         </Paper>
 
         {/* Contact Information */}
-        <Paper sx={{ p: { xs: 3, md: 4 } }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg' ? '6. Контакти' : '6. Contact Information'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.sections.contact.title}
           </Typography>
           <Typography variant="body1" paragraph>
-            {currentLang === 'bg'
-              ? 'За въпроси относно общите условия или за резервация, моля свържете се с нас:'
-              : 'For questions about terms and conditions or for reservations, please contact us:'}
+            {currentTexts.sections.contact.description}
           </Typography>
-          <Box sx={{ mt: 3 }}>
+          <Box sx={styles.contactInfo}>
             <Typography variant="body1" paragraph>
-              <strong>Email:</strong> {APP_CONFIG.email}
+              <strong>{contactInfo.email}</strong> {APP_CONFIG.email}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>Phone:</strong> +359 87 999 4212
+              <strong>{currentTexts.sections.contact.info.phone}</strong>{' '}
+              {contactInfo.phone}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>Address:</strong>
-              {currentLang === 'bg'
-                ? 'Западна промишлена зона, ул. "Ямболен" 18, 8601 Ямбол'
-                : APP_CONFIG.address}
-              , България
+              <strong>{currentTexts.sections.contact.info.address}</strong>{' '}
+              {contactInfo.address}, България
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>Business Hours:</strong>{' '}
-              {currentLang === 'bg'
-                ? 'Понеделник - Петък: 8:00 - 18:00'
-                : 'Monday - Friday: 8:00 AM - 6:00 PM'}
+              <strong>
+                {currentTexts.sections.contact.info.businessHours}
+              </strong>{' '}
+              {contactInfo.businessHours}
             </Typography>
           </Box>
         </Paper>
