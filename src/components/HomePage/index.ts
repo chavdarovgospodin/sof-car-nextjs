@@ -6,4 +6,3 @@ export { AboutSection } from './AboutSection';
 export { FeaturesSection } from './FeaturesSection';
 export { CarsSection } from './CarsSection';
 export { ContactSection } from './ContactSection';
-export { SnackbarProvider, useSnackbar } from './SnackbarProvider';

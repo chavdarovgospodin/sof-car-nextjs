@@ -28,7 +28,7 @@ import CarFormDialog from './CarFormDialog';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import { CarCalendarDialog } from './CarCalendarDialog';
 import { useAdmin, AdminCar } from '@/hooks/useAdmin';
-import { useSnackbar } from '@/components/HomePage/SnackbarProvider';
+import { useSnackbar } from '@/providers/SnackbarProvider';
 import axios from 'axios';
 
 // Currency conversion function (approximate BGN to EUR rate)

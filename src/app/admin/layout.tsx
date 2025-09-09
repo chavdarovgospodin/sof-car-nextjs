@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { SnackbarProvider } from '@/components/HomePage/SnackbarProvider';
+import { SnackbarProvider } from '@/providers/SnackbarProvider';
 import AdminGlobalLoading from '@/components/Admin/AdminGlobalLoading';
 import { useAdmin } from '@/hooks/useAdmin';
 

@@ -24,7 +24,7 @@ import {
   ExpandMore,
   Info,
 } from '@mui/icons-material';
-import { LanguageSwitcher } from '../LanguageSwitcher/LanguageSwitcher';
+import { LanguageSwitcher } from '../LanguageSwitcher';
 import { APP_CONFIG } from '@/utils/constants';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useState, useEffect } from 'react';

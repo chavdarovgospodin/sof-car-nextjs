@@ -5,7 +5,7 @@ import { useTranslations } from '../../hooks/useTranslations';
 import { HeroSection } from './HeroSection';
 import { AboutSection } from './AboutSection';
 import { ContactSection } from './ContactSection';
-import { SnackbarProvider, useSnackbar } from './SnackbarProvider';
+import { SnackbarProvider, useSnackbar } from '@/providers/SnackbarProvider';
 import { CarsSection } from './CarsSection';
 
 function HomePageContent() {
