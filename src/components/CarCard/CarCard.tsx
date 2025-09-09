@@ -71,7 +71,7 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
     <Card
       sx={{
         width: '100%',
-        maxWidth: 400,
+        maxWidth: '100%',
         height: 'fit-content',
         transition: 'all 0.3s ease',
         '&:hover': {

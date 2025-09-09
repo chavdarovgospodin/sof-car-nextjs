@@ -12,6 +12,8 @@ import {
   Divider,
   Chip,
   Grid,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -38,6 +40,10 @@ export function CarDetailsDialog({
   t,
 }: CarDetailsDialogProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery('(max-width: 430px)');
 
   if (!car) return null;
 
@@ -70,8 +76,41 @@ export function CarDetailsDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth={isMobile ? false : 'lg'}
+      fullWidth={!isMobile}
+      fullScreen={isSmallMobile}
+      PaperProps={{
+        sx: {
+          ...(isMobile && {
+            margin: isSmallMobile ? 0 : 1,
+            maxHeight: isSmallMobile ? '100vh' : '95vh',
+            height: isSmallMobile ? '100vh' : 'auto',
+            width: isSmallMobile ? '100vw' : '95vw',
+            borderRadius: isSmallMobile ? 0 : 2,
+          }),
+
+          ...(!isMobile && {
+            maxWidth: 'lg',
+          }),
+        },
+      }}
+      scroll="body"
+    >
+      <DialogTitle
+        sx={{
+          ...(isMobile && {
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
+            backgroundColor: 'background.paper',
+            borderBottom: '1px solid rgba(0,0,0,0.12)',
+            py: { xs: 1.5, sm: 2 },
+          }),
+        }}
+      >
         <Box
           sx={{
             display: 'flex',
