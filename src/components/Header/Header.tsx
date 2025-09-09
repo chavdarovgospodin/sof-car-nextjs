@@ -39,7 +39,7 @@ export function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallDevice = useMediaQuery('(max-width: 480px)');
-  const { t, currentLang } = useTranslations();
+  const { currentLang } = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -64,11 +64,6 @@ export function Header() {
 
   const navigationItems = [
     {
-      sectionId: 'about',
-      label: currentLang === 'bg' ? 'За нас' : 'About Us',
-      isScroll: true,
-    },
-    {
       sectionId: 'offers',
       label: currentLang === 'bg' ? 'Автомобили' : 'Cars',
       isScroll: true,
@@ -77,6 +72,11 @@ export function Header() {
       sectionId: 'contact',
       label: currentLang === 'bg' ? 'Контакти' : 'Contact',
       isScroll: true,
+    },
+    {
+      isScroll: false,
+      href: `/${currentLang}/about`,
+      label: currentLang === 'bg' ? 'За нас' : 'About Us',
     },
   ];
 
@@ -136,8 +136,10 @@ export function Header() {
         // Ако сме на главната страница, просто скролираме
         scrollToSection(item.sectionId);
       }
+    } else if (!item.isScroll && item.href) {
+      // За линкове без scroll (като about, booking) навигираме директно
+      router.push(item.href);
     }
-    // За линкове без scroll (като booking) няма нужда от допълнителна логика
   };
 
   const drawer = (
@@ -167,14 +169,11 @@ export function Header() {
       <List sx={{ p: 2 }}>
         {navigationItems.map((item) => (
           <ListItem
-            key={item.sectionId}
-            component={item.isScroll ? 'div' : 'a'}
-            href={undefined}
+            key={item.sectionId || item.href}
+            component="div"
             onClick={() => {
               handleNavigationClick(item);
-              if (item.isScroll) {
-                handleDrawerToggle();
-              }
+              handleDrawerToggle();
             }}
             sx={{
               textDecoration: 'none',
@@ -262,16 +261,14 @@ export function Header() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {navigationItems.map((item) => (
               <Button
-                key={item.sectionId}
+                key={item.sectionId || item.href}
                 href={undefined}
-                onClick={
-                  item.isScroll ? () => handleNavigationClick(item) : undefined
-                }
+                onClick={() => handleNavigationClick(item)}
                 color="inherit"
                 sx={{
                   textTransform: 'none',
                   fontWeight: 500,
-                  cursor: item.isScroll ? 'pointer' : 'default',
+                  cursor: 'pointer',
                   '&:hover': {
                     backgroundColor: 'action.hover',
                   },
