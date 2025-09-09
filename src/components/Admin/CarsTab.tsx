@@ -255,7 +255,7 @@ export default function CarsTab() {
                 <CardMedia
                   component="img"
                   height="200"
-                  image={mainImage || '/images/car-placeholder.jpg'}
+                  image={mainImage ?? undefined}
                   alt={`${car.brand} ${car.model}`}
                   sx={{ objectFit: 'cover' }}
                 />

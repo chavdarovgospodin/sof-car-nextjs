@@ -29,7 +29,7 @@ import {
   Person,
 } from '@mui/icons-material';
 import type { CarData } from '../../types/api';
-import { CarDetailsDialog } from './CarDetailsDialog';
+import { CarDetailsDialog } from '../CarDetailsDialog/CarDetailsDialog';
 
 interface CarCardProps {
   car: CarData;

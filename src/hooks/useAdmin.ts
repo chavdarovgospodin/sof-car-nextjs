@@ -29,6 +29,7 @@ export interface AdminCar {
   is_active: boolean;
   image_urls: string[]; // Array of image URLs
   imageFiles?: File[]; // Array of files for upload
+  main_image_index?: number; // Index of image to make main (for reordering)
   fuel_type: 'petrol' | 'diesel' | 'electric' | 'hybrid';
   transmission: 'manual' | 'automatic';
   features?: string[];

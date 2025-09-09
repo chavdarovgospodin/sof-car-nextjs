@@ -33,10 +33,9 @@ import {
 import { AdminCar } from '@/hooks/useAdmin';
 
 const convertToEUR = (bgnAmount: number): number => {
-  return Math.round((bgnAmount / 1.96) * 100) / 100; // Round to 2 decimal places
+  return Math.round((bgnAmount / 1.96) * 100) / 100;
 };
 
-// Helper function to display EUR equivalent
 const getEURDisplay = (bgnAmount: number): string => {
   return convertToEUR(bgnAmount).toFixed(2);
 };
@@ -98,6 +97,13 @@ const texts = {
   loading: 'Зареждане...',
 };
 
+interface ImageItem {
+  url: string;
+  file?: File;
+  isNew: boolean;
+  originalIndex?: number;
+}
+
 export default function CarFormDialog({
   open,
   onClose,
@@ -112,12 +118,11 @@ export default function CarFormDialog({
     year: new Date().getFullYear(),
     fuel_type: '',
     class: '',
-    price_per_day_bgn: 0, // Price in BGN
-    deposit_amount_bgn: 0, // Deposit in BGN
+    price_per_day_bgn: 0,
+    deposit_amount_bgn: 0,
     available: true,
     features: [] as string[],
     transmission: '',
-    // New structured features
     seats: 5,
     large_luggage: 1,
     small_luggage: 1,
@@ -129,10 +134,8 @@ export default function CarFormDialog({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [newFeature, setNewFeature] = useState('');
-  const [imageUrls, setImageUrls] = useState<string[]>([]); // Storage URLs from backend
-  const [originalImageUrls, setOriginalImageUrls] = useState<string[]>([]); // Original URLs for tracking changes
-  const [imageFiles, setImageFiles] = useState<File[]>([]); // New files to upload
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]); // Base64 previews for new files
+  const [allImages, setAllImages] = useState<ImageItem[]>([]);
+  const [originalImageUrls, setOriginalImageUrls] = useState<string[]>([]);
 
   useEffect(() => {
     if (isEditing && car) {
@@ -142,12 +145,11 @@ export default function CarFormDialog({
         year: car.year,
         fuel_type: car.fuel_type || '',
         class: car.class,
-        price_per_day_bgn: car.price_per_day, // Already in BGN
-        deposit_amount_bgn: car.deposit_amount, // Already in BGN
+        price_per_day_bgn: car.price_per_day,
+        deposit_amount_bgn: car.deposit_amount,
         available: !!car.is_active,
         features: car.features ? [...car.features] : [],
         transmission: car.transmission || '',
-        // Parse structured features from car data
         seats: car.seats || 5,
         large_luggage: car.large_luggage || 1,
         small_luggage: car.small_luggage || 1,
@@ -157,14 +159,17 @@ export default function CarFormDialog({
         ac: car.ac || false,
       });
 
-      // Set existing images - backend now uses image_urls array
+      // Зареждаме съществуващите снимки
       const urls = car.image_urls || [];
-      setImageUrls(urls); // Storage URLs from backend
-      setOriginalImageUrls(urls); // Save original URLs for change tracking
-      setImageFiles([]); // Clear files when editing existing car
-      setPreviewUrls([]); // Clear previews when editing existing car
+      const existingImages: ImageItem[] = urls.map((url, index) => ({
+        url,
+        isNew: false,
+        originalIndex: index,
+      }));
+      setAllImages(existingImages);
+      setOriginalImageUrls(urls);
     } else {
-      // Reset form for new car
+      // Reset за нова кола
       setFormData({
         brand: '',
         model: '',
@@ -176,7 +181,6 @@ export default function CarFormDialog({
         available: true,
         features: [],
         transmission: '',
-        // Reset structured features to defaults
         seats: 5,
         large_luggage: 1,
         small_luggage: 1,
@@ -185,10 +189,8 @@ export default function CarFormDialog({
         four_wd: false,
         ac: false,
       });
-      setImageUrls([]);
+      setAllImages([]);
       setOriginalImageUrls([]);
-      setImageFiles([]);
-      setPreviewUrls([]);
     }
     setErrors({});
   }, [car, isEditing]);
@@ -200,7 +202,16 @@ export default function CarFormDialog({
       const value = target.type === 'checkbox' ? target.checked : target.value;
       setFormData((prev) => ({ ...prev, [field]: value }));
 
-      // Clear error when user types
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: '' }));
+      }
+    };
+
+  const handleSelectChange =
+    (field: string) => (event: { target: { value: string } }) => {
+      const value = event.target.value;
+      setFormData((prev) => ({ ...prev, [field]: value }));
+
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: '' }));
       }
@@ -226,18 +237,16 @@ export default function CarFormDialog({
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
 
-    // Store files directly
-    setImageFiles((prev: File[]) => [...prev, ...files]);
-
-    // Create preview URLs for display
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
-          setPreviewUrls((prev: string[]) => [
-            ...prev,
-            e.target!.result as string,
-          ]);
+          const newImage: ImageItem = {
+            url: e.target.result as string,
+            file: file,
+            isNew: true,
+          };
+          setAllImages((prev) => [...prev, newImage]);
         }
       };
       reader.readAsDataURL(file);
@@ -245,65 +254,20 @@ export default function CarFormDialog({
   };
 
   const handleRemoveImage = (index: number) => {
-    // Check if it's a storage URL or preview URL
-    if (index < imageUrls.length) {
-      // Removing storage URL
-      setImageUrls((prev: string[]) =>
-        prev.filter((_, i: number) => i !== index)
-      );
-    } else {
-      // Removing preview URL
-      const previewIndex = index - imageUrls.length;
-      setPreviewUrls((prev: string[]) =>
-        prev.filter((_, i: number) => i !== previewIndex)
-      );
-      setImageFiles((prev: File[]) =>
-        prev.filter((_, i: number) => i !== previewIndex)
-      );
-    }
-  };
-
-  const handleMoveImage = (fromIndex: number, toIndex: number) => {
-    if (fromIndex < imageUrls.length && toIndex < imageUrls.length) {
-      // Moving within storage URLs
-      setImageUrls((prev: string[]) => {
-        const newUrls = [...prev];
-        const [movedUrl] = newUrls.splice(fromIndex, 1);
-        if (movedUrl) {
-          newUrls.splice(toIndex, 0, movedUrl);
-        }
-        return newUrls;
-      });
-    } else if (fromIndex >= imageUrls.length && toIndex >= imageUrls.length) {
-      // Moving within preview URLs
-      const fromPreviewIndex = fromIndex - imageUrls.length;
-      const toPreviewIndex = toIndex - imageUrls.length;
-
-      setPreviewUrls((prev: string[]) => {
-        const newUrls = [...prev];
-        const [movedUrl] = newUrls.splice(fromPreviewIndex, 1);
-        if (movedUrl) {
-          newUrls.splice(toPreviewIndex, 0, movedUrl);
-        }
-        return newUrls;
-      });
-
-      setImageFiles((prev: File[]) => {
-        const newFiles = [...prev];
-        const [movedFile] = newFiles.splice(fromPreviewIndex, 1);
-        if (movedFile) {
-          newFiles.splice(toPreviewIndex, 0, movedFile);
-        }
-        return newFiles;
-      });
-    }
-    // Note: Cross-movement between storage and preview URLs is not supported
+    setAllImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleMoveToFirst = (index: number) => {
-    if (index > 0) {
-      handleMoveImage(index, 0);
-    }
+    if (index === 0) return;
+
+    setAllImages((prev) => {
+      const newImages = [...prev];
+      const [movedImage] = newImages.splice(index, 1);
+      if (movedImage) {
+        newImages.unshift(movedImage);
+      }
+      return newImages;
+    });
   };
 
   const validateForm = () => {
@@ -324,7 +288,7 @@ export default function CarFormDialog({
     if (!formData.transmission.trim()) {
       newErrors.transmission = 'Трансмисията е задължителна';
     }
-    if (formData.year < 1900 || formData.year > new Date().getFullYear() + 2) {
+    if (formData.year < 1990 || formData.year > new Date().getFullYear() + 2) {
       newErrors.year = 'Невалидна година';
     }
     if (formData.price_per_day_bgn <= 0) {
@@ -334,16 +298,14 @@ export default function CarFormDialog({
       newErrors.deposit_amount_bgn = 'Депозитът не може да е отрицателен';
     }
 
-    // Validate enum values
     const allowedClasses = ['economy', 'standard', 'premium'];
     if (!allowedClasses.includes(formData.class)) {
-      newErrors.class = 'Невалиден клас. Допустими: economy, standard, premium';
+      newErrors.class = 'Невалиден клас';
     }
 
     const allowedFuelTypes = ['petrol', 'diesel', 'hybrid', 'electric', 'lpg'];
     if (!allowedFuelTypes.includes(formData.fuel_type)) {
-      newErrors.fuel_type =
-        'Невалиден тип гориво. Допустими: petrol, diesel, hybrid, electric, lpg';
+      newErrors.fuel_type = 'Невалиден тип гориво';
     }
 
     const allowedTransmissions = [
@@ -353,8 +315,7 @@ export default function CarFormDialog({
       'semi-automatic',
     ];
     if (!allowedTransmissions.includes(formData.transmission)) {
-      newErrors.transmission =
-        'Невалидна трансмисия. Допустими: manual, automatic, cvt, semi-automatic';
+      newErrors.transmission = 'Невалидна трансмисия';
     }
 
     setErrors(newErrors);
@@ -365,14 +326,13 @@ export default function CarFormDialog({
     if (!validateForm()) return;
 
     try {
-      // Prepare base car data
       const carData: Partial<AdminCar> = {
         brand: formData.brand,
         model: formData.model,
         year: Number(formData.year),
         class: formData.class as 'economy' | 'standard' | 'premium',
-        price_per_day: Number(formData.price_per_day_bgn), // Keep in BGN
-        deposit_amount: Number(formData.deposit_amount_bgn), // Keep in BGN
+        price_per_day: Number(formData.price_per_day_bgn),
+        deposit_amount: Number(formData.deposit_amount_bgn),
         is_active: formData.available,
         fuel_type: formData.fuel_type as
           | 'petrol'
@@ -381,7 +341,6 @@ export default function CarFormDialog({
           | 'hybrid',
         transmission: formData.transmission as 'manual' | 'automatic',
         features: formData.features,
-        // Structured features
         seats: Number(formData.seats),
         large_luggage: Number(formData.large_luggage),
         small_luggage: Number(formData.small_luggage),
@@ -391,42 +350,42 @@ export default function CarFormDialog({
         ac: formData.ac,
       };
 
-      // IMPORTANT: Only add image_urls if there are changes
+      const existingUrls: string[] = [];
+      const newFiles: File[] = [];
+
+      allImages.forEach((image) => {
+        if (!image.isNew) {
+          existingUrls.push(image.url);
+        } else if (image.file) {
+          newFiles.push(image.file);
+        }
+      });
+
       if (isEditing && car) {
-        // Check if there are image changes (deletions/reordering)
         const urlsChanged =
-          JSON.stringify(originalImageUrls) !== JSON.stringify(imageUrls);
-        const hasNewFiles = imageFiles.length > 0;
+          JSON.stringify(originalImageUrls) !== JSON.stringify(existingUrls);
+        const hasNewFiles = newFiles.length > 0;
 
         if (urlsChanged || hasNewFiles) {
-          // There are changes - send current URLs
-          carData.image_urls = imageUrls;
-          console.log('Image changes detected:', {
-            original: originalImageUrls,
-            current: imageUrls,
-            changed: urlsChanged,
-            newFiles: hasNewFiles,
+          carData.image_urls = existingUrls;
+          console.log('Image changes:', {
+            originalCount: originalImageUrls.length,
+            currentCount: existingUrls.length,
+            newFilesCount: newFiles.length,
+            firstImage: allImages[0]?.isNew ? 'new' : 'existing',
           });
-        } else {
-          // No changes - don't send image_urls
-          console.log('No image changes detected');
         }
-      } else {
-        // New car - don't send image_urls (backend will handle empty array)
-        console.log('New car - not sending image_urls');
       }
 
-      // Add new files if any
-      if (imageFiles.length > 0) {
-        carData.imageFiles = imageFiles.filter((f) => f); // Filter undefined
+      if (newFiles.length > 0) {
+        carData.imageFiles = newFiles;
       }
 
-      console.log('Submitting car data:', {
-        ...carData,
-        hasImageUrls: 'image_urls' in carData,
-        imageUrlsCount: carData.image_urls?.length,
-        newFilesCount: carData.imageFiles?.length,
-      });
+      if (allImages.length > 0 && allImages[0].isNew) {
+        const existingCount = allImages.filter((img) => !img.isNew).length;
+        const newImagePosition = existingCount;
+        carData.main_image_index = newImagePosition;
+      }
 
       await onSubmit(carData);
       onClose();
@@ -523,66 +482,52 @@ export default function CarFormDialog({
               />
             </Box>
 
-            <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
-              <FormControl fullWidth>
-                <InputLabel>{texts.fuelType}</InputLabel>
-                <Select
-                  error={!!errors.fuel_type}
-                  required
-                  value={formData.fuel_type}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      fuel_type: e.target.value,
-                    }))
-                  }
-                  label={texts.fuelType}
-                >
-                  <MenuItem value="petrol">{texts.fuelTypes.gasoline}</MenuItem>
-                  <MenuItem value="diesel">{texts.fuelTypes.diesel}</MenuItem>
-                  <MenuItem value="electric">
-                    {texts.fuelTypes.electric}
-                  </MenuItem>
-                  <MenuItem value="hybrid">{texts.fuelTypes.hybrid}</MenuItem>
-                </Select>
-                {errors.fuel_type && (
-                  <FormHelperText error>{errors.fuel_type}</FormHelperText>
-                )}
-              </FormControl>
-            </Box>
-
-            <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
-              <FormControl fullWidth>
+            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+              <FormControl fullWidth error={!!errors.class} required>
                 <InputLabel>{texts.class}</InputLabel>
                 <Select
-                  error={!!errors.class}
-                  required
                   value={formData.class}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, class: e.target.value }))
-                  }
+                  onChange={handleSelectChange('class')}
                   label={texts.class}
                 >
                   <MenuItem value="economy">{texts.classes.economy}</MenuItem>
                   <MenuItem value="standard">{texts.classes.standard}</MenuItem>
                   <MenuItem value="premium">{texts.classes.premium}</MenuItem>
                 </Select>
+                {errors.class && (
+                  <FormHelperText>{errors.class}</FormHelperText>
+                )}
+              </FormControl>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+              <FormControl fullWidth error={!!errors.fuel_type} required>
+                <InputLabel>{texts.fuelType}</InputLabel>
+                <Select
+                  value={formData.fuel_type}
+                  onChange={handleSelectChange('fuel_type')}
+                  label={texts.fuelType}
+                >
+                  <MenuItem value="petrol">Бензин</MenuItem>
+                  <MenuItem value="diesel">Дизел</MenuItem>
+                  <MenuItem value="hybrid">Хибрид</MenuItem>
+                  <MenuItem value="electric">Електрически</MenuItem>
+                  <MenuItem value="lpg">Газ (LPG)</MenuItem>
+                </Select>
+                {errors.fuel_type && (
+                  <FormHelperText>{errors.fuel_type}</FormHelperText>
+                )}
               </FormControl>
             </Box>
 
-            <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
-              <FormControl fullWidth>
+            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+              <FormControl fullWidth error={!!errors.transmission} required>
                 <InputLabel>{texts.transmission}</InputLabel>
                 <Select
-                  error={!!errors.transmission}
-                  required
                   value={formData.transmission}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      transmission: e.target.value,
-                    }))
-                  }
+                  onChange={handleSelectChange('transmission')}
                   label={texts.transmission}
                 >
                   <MenuItem value="manual">
@@ -591,20 +536,13 @@ export default function CarFormDialog({
                   <MenuItem value="automatic">
                     {texts.transmissions.automatic}
                   </MenuItem>
+                  <MenuItem value="cvt">CVT</MenuItem>
+                  <MenuItem value="semi-automatic">Полуавтоматична</MenuItem>
                 </Select>
+                {errors.transmission && (
+                  <FormHelperText>{errors.transmission}</FormHelperText>
+                )}
               </FormControl>
-            </Box>
-
-            <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.available}
-                    onChange={handleInputChange('available')}
-                  />
-                }
-                label={formData.available ? texts.active : texts.inactive}
-              />
             </Box>
           </Box>
 
@@ -620,42 +558,45 @@ export default function CarFormDialog({
             <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
               <TextField
                 fullWidth
-                label={texts.pricePerDay}
+                label={`${texts.pricePerDay} (BGN)`}
                 type="number"
                 value={formData.price_per_day_bgn}
                 onChange={handleInputChange('price_per_day_bgn')}
                 error={!!errors.price_per_day_bgn}
                 helperText={
                   errors.price_per_day_bgn ||
-                  (formData.price_per_day_bgn > 0
-                    ? `≈ ${getEURDisplay(formData.price_per_day_bgn)} €`
-                    : '')
+                  `≈ €${getEURDisplay(formData.price_per_day_bgn)}`
                 }
                 required
-                InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>лв</Typography>,
-                }}
               />
             </Box>
 
             <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
               <TextField
                 fullWidth
-                label={texts.depositAmount}
+                label={`${texts.depositAmount} (BGN)`}
                 type="number"
                 value={formData.deposit_amount_bgn}
                 onChange={handleInputChange('deposit_amount_bgn')}
                 error={!!errors.deposit_amount_bgn}
                 helperText={
                   errors.deposit_amount_bgn ||
-                  (formData.deposit_amount_bgn > 0
-                    ? `≈ ${getEURDisplay(formData.deposit_amount_bgn)} €`
-                    : '')
+                  `≈ €${getEURDisplay(formData.deposit_amount_bgn)}`
                 }
                 required
-                InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>лв</Typography>,
-                }}
+              />
+            </Box>
+
+            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.available}
+                    onChange={handleInputChange('available')}
+                    color="primary"
+                  />
+                }
+                label={formData.available ? texts.active : texts.inactive}
               />
             </Box>
           </Box>
@@ -669,66 +610,41 @@ export default function CarFormDialog({
           </Box>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
-              <TextField
-                fullWidth
-                label={texts.seats}
-                type="number"
-                value={formData.seats}
-                onChange={handleInputChange('seats')}
-                inputProps={{ min: 1, max: 9 }}
-              />
-            </Box>
-
-            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
-              <TextField
-                fullWidth
-                label={texts.largeLuggage}
-                type="number"
-                value={formData.large_luggage}
-                onChange={handleInputChange('large_luggage')}
-                inputProps={{ min: 0, max: 10 }}
-              />
-            </Box>
-
-            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
-              <TextField
-                fullWidth
-                label={texts.smallLuggage}
-                type="number"
-                value={formData.small_luggage}
-                onChange={handleInputChange('small_luggage')}
-                inputProps={{ min: 0, max: 10 }}
-              />
-            </Box>
-
-            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
-              <TextField
-                fullWidth
-                label={texts.doors}
-                type="number"
-                value={formData.doors}
-                onChange={handleInputChange('doors')}
-                inputProps={{ min: 2, max: 5 }}
-              />
-            </Box>
-
-            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
-              <TextField
-                fullWidth
-                label={texts.minAge}
-                type="number"
-                value={formData.min_age}
-                onChange={handleInputChange('min_age')}
-                inputProps={{ min: 18, max: 99 }}
-                InputProps={{
-                  endAdornment: <Typography sx={{ ml: 1 }}>г.</Typography>,
-                }}
-              />
-            </Box>
-          </Box>
-
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+            <TextField
+              label={texts.seats}
+              type="number"
+              value={formData.seats}
+              onChange={handleInputChange('seats')}
+              sx={{ width: 120 }}
+            />
+            <TextField
+              label={texts.largeLuggage}
+              type="number"
+              value={formData.large_luggage}
+              onChange={handleInputChange('large_luggage')}
+              sx={{ width: 120 }}
+            />
+            <TextField
+              label={texts.smallLuggage}
+              type="number"
+              value={formData.small_luggage}
+              onChange={handleInputChange('small_luggage')}
+              sx={{ width: 120 }}
+            />
+            <TextField
+              label={texts.doors}
+              type="number"
+              value={formData.doors}
+              onChange={handleInputChange('doors')}
+              sx={{ width: 120 }}
+            />
+            <TextField
+              label={texts.minAge}
+              type="number"
+              value={formData.min_age}
+              onChange={handleInputChange('min_age')}
+              sx={{ width: 150 }}
+            />
             <FormControlLabel
               control={
                 <Switch
@@ -738,7 +654,6 @@ export default function CarFormDialog({
               }
               label={texts.fourWd}
             />
-
             <FormControlLabel
               control={
                 <Switch
@@ -750,7 +665,7 @@ export default function CarFormDialog({
             />
           </Box>
 
-          {/* Custom Features */}
+          {/* Features */}
           <Box>
             <Divider sx={{ my: 2 }} />
             <Typography variant="h6" gutterBottom>
@@ -829,9 +744,9 @@ export default function CarFormDialog({
 
             {/* Image Previews */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              {[...imageUrls, ...previewUrls].map((url, index) => (
+              {allImages.map((image, index) => (
                 <Box
-                  key={index}
+                  key={`${image.url}-${index}`}
                   sx={{
                     position: 'relative',
                     border:
@@ -843,7 +758,7 @@ export default function CarFormDialog({
                   }}
                 >
                   <Image
-                    src={url}
+                    src={image.url}
                     alt={`Preview ${index + 1}`}
                     fill
                     sizes="150px"
@@ -869,6 +784,26 @@ export default function CarFormDialog({
                       }}
                     >
                       ГЛАВНА
+                    </Box>
+                  )}
+
+                  {/* New image indicator */}
+                  {image.isNew && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 4,
+                        left: 4,
+                        backgroundColor: '#4caf50',
+                        color: 'white',
+                        px: 0.5,
+                        py: 0.25,
+                        borderRadius: 0.25,
+                        fontSize: '0.65rem',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      НОВА
                     </Box>
                   )}
 

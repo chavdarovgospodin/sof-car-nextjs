@@ -18,10 +18,8 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  Divider,
 } from '@mui/material';
 import {
-  DirectionsCar,
   CheckCircle,
   Warning,
   Info,

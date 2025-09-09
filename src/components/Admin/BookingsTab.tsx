@@ -38,7 +38,6 @@ const getEURDisplay = (bgnAmount: number): string => {
 };
 
 export default function BookingsTab() {
-  // Директни български текстове за админ панела
   const texts = {
     title: 'Резервации',
     refresh: 'Обнови',
