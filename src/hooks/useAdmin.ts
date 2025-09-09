@@ -234,6 +234,12 @@ const adminApiFunctions = {
     return response.data;
   },
 
+  // Metrics
+  getUsageOverview: async () => {
+    const response = await adminApi.get('/usage-overview');
+    return response.data;
+  },
+
   // Bookings
   getBookings: async (params?: {
     status?: string;
@@ -266,7 +272,8 @@ const adminApiFunctions = {
 // Hook
 export const useAdmin = (
   activeTab?: 'bookings' | 'cars' | 'none',
-  skipStatusCheck = false
+  skipStatusCheck = false,
+  loadMetrics = false
 ) => {
   const queryClient = useQueryClient();
 
@@ -555,6 +562,26 @@ export const useAdmin = (
     },
   });
 
+  // Metrics queries - only load when explicitly requested
+  const {
+    data: usageOverview,
+    isLoading: isLoadingMetrics,
+    refetch: refetchMetrics,
+    error: metricsError,
+  } = useQuery({
+    queryKey: ['admin', 'metrics', 'usage-overview'],
+    queryFn: adminApiFunctions.getUsageOverview,
+    enabled: !!adminUser?.logged_in && loadMetrics,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 (unauthorized)
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
   // Extract data from backend responses
   const cars = carsResponse?.cars || [];
   const bookings = bookingsResponse?.bookings || [];
@@ -566,11 +593,13 @@ export const useAdmin = (
     bookings,
     carsResponse,
     bookingsResponse,
+    usageOverview,
 
     // Loading states
     isLoadingUser,
     isLoadingCars,
     isLoadingBookings,
+    isLoadingMetrics,
 
     // Auth mutations
     login: loginMutation.mutate,
@@ -587,6 +616,9 @@ export const useAdmin = (
     updateCarWithImage: updateCarWithImageMutation.mutateAsync,
     deleteCar: deleteCarMutation.mutateAsync,
     deleteCarImage: deleteCarImageMutation.mutate,
+
+    // Metrics functions
+    getUsageOverview: adminApiFunctions.getUsageOverview,
 
     isCreatingCar:
       createCarMutation.isPending || createCarWithImageMutation.isPending,
@@ -605,11 +637,13 @@ export const useAdmin = (
     refetchUser,
     refetchCars,
     refetchBookings,
+    refetchMetrics,
 
     // Error states
     userError,
     carsError,
     bookingsError,
+    metricsError,
   };
 };
 
