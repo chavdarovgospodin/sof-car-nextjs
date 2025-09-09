@@ -14,6 +14,14 @@ export interface Car {
   transmission: string;
   features?: string[];
   description?: string;
+  // Structured features
+  seats?: number;
+  large_luggage?: number;
+  small_luggage?: number;
+  doors?: number;
+  min_age?: number;
+  four_wd?: boolean;
+  ac?: boolean;
 }
 
 // Extended CarData for frontend compatibility

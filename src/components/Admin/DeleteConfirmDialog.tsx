@@ -16,6 +16,7 @@ interface DeleteConfirmDialogProps {
   open: boolean;
   title: string;
   message: string;
+  warningMessage?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -24,6 +25,7 @@ export default function DeleteConfirmDialog({
   open,
   title,
   message,
+  warningMessage,
   onConfirm,
   onCancel,
 }: DeleteConfirmDialogProps) {
@@ -58,6 +60,12 @@ export default function DeleteConfirmDialog({
             This action cannot be undone.
           </Typography>
         </Alert>
+
+        {warningMessage && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography variant="body2">{warningMessage}</Typography>
+          </Alert>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>

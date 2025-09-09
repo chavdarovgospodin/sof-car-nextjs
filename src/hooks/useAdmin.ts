@@ -28,9 +28,18 @@ export interface AdminCar {
   deposit_amount: number;
   is_active: boolean;
   image_urls: string[]; // Array of image URLs
+  imageFiles?: File[]; // Array of files for upload
   fuel_type: 'petrol' | 'diesel' | 'electric' | 'hybrid';
   transmission: 'manual' | 'automatic';
   features?: string[];
+  // Structured features
+  seats?: number;
+  large_luggage?: number;
+  small_luggage?: number;
+  doors?: number;
+  min_age?: number;
+  four_wd?: boolean;
+  ac?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -124,8 +133,35 @@ const adminApiFunctions = {
   },
 
   createCar: async (carData: Partial<AdminCar>) => {
-    const response = await adminApi.post('/admin/cars', carData);
-    return response.data;
+    // If there are image files, send as FormData
+    if (carData.imageFiles && carData.imageFiles.length > 0) {
+      const formData = new FormData();
+
+      // Add all car data fields
+      Object.entries(carData).forEach(([key, value]) => {
+        if (key === 'imageFiles') {
+          // Add image files
+          carData.imageFiles?.forEach((file) => {
+            formData.append('images', file);
+          });
+        } else if (key === 'features' && Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+
+      const response = await adminApi.post('/admin/cars', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      // No images, send as JSON
+      const response = await adminApi.post('/admin/cars', carData);
+      return response.data;
+    }
   },
 
   createCarWithImage: async (formData: FormData) => {
@@ -138,8 +174,43 @@ const adminApiFunctions = {
   },
 
   updateCar: async (id: string, carData: Partial<AdminCar>) => {
-    const response = await adminApi.put(`/admin/cars/${id}`, carData);
-    return response.data;
+    const hasImageFiles = carData.imageFiles && carData.imageFiles.length > 0;
+    const hasImageUrls = 'image_urls' in carData; // Check if field is present
+
+    // If there are image files OR image_urls changes, use FormData
+    if (hasImageFiles || hasImageUrls) {
+      const formData = new FormData();
+
+      // Add all car data fields
+      Object.entries(carData).forEach(([key, value]) => {
+        if (key === 'imageFiles') {
+          // Add new image files
+          carData.imageFiles?.forEach((file) => {
+            formData.append('images', file);
+          });
+        } else if (key === 'image_urls') {
+          // IMPORTANT: Send image_urls as JSON string
+          formData.append('image_urls', JSON.stringify(value || []));
+        } else if (key === 'features' && Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+
+      const response = await adminApi.put(`/admin/cars/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      // No image changes - send as JSON
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { imageFiles, image_urls, ...jsonData } = carData;
+      const response = await adminApi.put(`/admin/cars/${id}`, jsonData);
+      return response.data;
+    }
   },
 
   updateCarWithImage: async (id: string, formData: FormData) => {
@@ -510,10 +581,10 @@ export const useAdmin = (
     loginMutation,
 
     // Car mutations
-    createCar: createCarMutation.mutate,
-    createCarWithImage: createCarWithImageMutation.mutate,
-    updateCar: updateCarMutation.mutate,
-    updateCarWithImage: updateCarWithImageMutation.mutate,
+    createCar: createCarMutation.mutateAsync,
+    createCarWithImage: createCarWithImageMutation.mutateAsync,
+    updateCar: updateCarMutation.mutateAsync,
+    updateCarWithImage: updateCarWithImageMutation.mutateAsync,
     deleteCar: deleteCarMutation.mutateAsync,
     deleteCarImage: deleteCarImageMutation.mutate,
 

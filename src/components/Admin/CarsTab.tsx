@@ -62,7 +62,7 @@ export default function CarsTab() {
     add: 'Добави',
     description: 'Описание',
     images: 'Снимки',
-    uploadImages: 'Качи снимка',
+    uploadImages: 'Качи снимки',
     active: 'Активен',
     inactive: 'Неактивен',
     edit: 'Редактирай',
@@ -428,6 +428,7 @@ export default function CarsTab() {
               )
             : ''
         }
+        warningMessage="⚠️ ВНИМАНИЕ: Ако този автомобил има активни резервации, не може да бъде изтрит!"
         onConfirm={handleDeleteConfirm}
         onCancel={() => {
           setDeleteDialogOpen(false);

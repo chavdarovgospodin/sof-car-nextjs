@@ -31,12 +31,6 @@ import {
   CloudUpload,
 } from '@mui/icons-material';
 import { AdminCar } from '@/hooks/useAdmin';
-import { useSnackbar } from '../HomePage/SnackbarProvider';
-
-// Currency conversion functions (approximate BGN to EUR rate)
-const convertToBGN = (euroAmount: number): number => {
-  return Math.round(euroAmount * 1.96 * 100) / 100; // Round to 2 decimal places
-};
 
 const convertToEUR = (bgnAmount: number): number => {
   return Math.round((bgnAmount / 1.96) * 100) / 100; // Round to 2 decimal places
@@ -81,7 +75,6 @@ const texts = {
     manual: 'Ръчна',
     automatic: 'Автоматична',
   },
-  seats: 'Места',
   pricePerDay: 'Цена на ден',
   depositAmount: 'Депозит',
   isActive: 'Активен',
@@ -90,8 +83,16 @@ const texts = {
   pricing: 'Ценообразуване',
   features: 'Екстри',
   addFeature: 'Добави екстра',
+  structuredFeatures: 'Основни характеристики',
+  seats: 'Места',
+  largeLuggage: 'Голям куфар',
+  smallLuggage: 'Малък куфар',
+  doors: 'Врати',
+  minAge: 'Минимална възраст',
+  fourWd: '4WD задвижване',
+  ac: 'Климатик',
   images: 'Снимки',
-  uploadImages: 'Качи снимка',
+  uploadImages: 'Качи снимки',
   cancel: 'Отказ',
   save: 'Запази',
   loading: 'Зареждане...',
@@ -116,12 +117,22 @@ export default function CarFormDialog({
     available: true,
     features: [] as string[],
     transmission: '',
+    // New structured features
+    seats: 5,
+    large_luggage: 1,
+    small_luggage: 1,
+    doors: 4,
+    min_age: 21,
+    four_wd: false,
+    ac: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [newFeature, setNewFeature] = useState('');
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const { showSnackbar } = useSnackbar();
+  const [imageUrls, setImageUrls] = useState<string[]>([]); // Storage URLs from backend
+  const [originalImageUrls, setOriginalImageUrls] = useState<string[]>([]); // Original URLs for tracking changes
+  const [imageFiles, setImageFiles] = useState<File[]>([]); // New files to upload
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]); // Base64 previews for new files
 
   useEffect(() => {
     if (isEditing && car) {
@@ -136,12 +147,22 @@ export default function CarFormDialog({
         available: !!car.is_active,
         features: car.features ? [...car.features] : [],
         transmission: car.transmission || '',
+        // Parse structured features from car data
+        seats: car.seats || 5,
+        large_luggage: car.large_luggage || 1,
+        small_luggage: car.small_luggage || 1,
+        doors: car.doors || 4,
+        min_age: car.min_age || 21,
+        four_wd: car.four_wd || false,
+        ac: car.ac || false,
       });
 
       // Set existing images - backend now uses image_urls array
-      if (car.image_urls && car.image_urls.length > 0) {
-        setImageUrls(car.image_urls);
-      }
+      const urls = car.image_urls || [];
+      setImageUrls(urls); // Storage URLs from backend
+      setOriginalImageUrls(urls); // Save original URLs for change tracking
+      setImageFiles([]); // Clear files when editing existing car
+      setPreviewUrls([]); // Clear previews when editing existing car
     } else {
       // Reset form for new car
       setFormData({
@@ -155,8 +176,19 @@ export default function CarFormDialog({
         available: true,
         features: [],
         transmission: '',
+        // Reset structured features to defaults
+        seats: 5,
+        large_luggage: 1,
+        small_luggage: 1,
+        doors: 4,
+        min_age: 21,
+        four_wd: false,
+        ac: false,
       });
       setImageUrls([]);
+      setOriginalImageUrls([]);
+      setImageFiles([]);
+      setPreviewUrls([]);
     }
     setErrors({});
   }, [car, isEditing]);
@@ -194,12 +226,15 @@ export default function CarFormDialog({
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
 
-    // Create preview URLs
+    // Store files directly
+    setImageFiles((prev: File[]) => [...prev, ...files]);
+
+    // Create preview URLs for display
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
-          setImageUrls((prev: string[]) => [
+          setPreviewUrls((prev: string[]) => [
             ...prev,
             e.target!.result as string,
           ]);
@@ -210,18 +245,59 @@ export default function CarFormDialog({
   };
 
   const handleRemoveImage = (index: number) => {
-    setImageUrls((prev: string[]) =>
-      prev.filter((_, i: number) => i !== index)
-    );
+    // Check if it's a storage URL or preview URL
+    if (index < imageUrls.length) {
+      // Removing storage URL
+      setImageUrls((prev: string[]) =>
+        prev.filter((_, i: number) => i !== index)
+      );
+    } else {
+      // Removing preview URL
+      const previewIndex = index - imageUrls.length;
+      setPreviewUrls((prev: string[]) =>
+        prev.filter((_, i: number) => i !== previewIndex)
+      );
+      setImageFiles((prev: File[]) =>
+        prev.filter((_, i: number) => i !== previewIndex)
+      );
+    }
   };
 
   const handleMoveImage = (fromIndex: number, toIndex: number) => {
-    setImageUrls((prev: string[]) => {
-      const newUrls = [...prev];
-      const [movedUrl] = newUrls.splice(fromIndex, 1);
-      newUrls.splice(toIndex, 0, movedUrl);
-      return newUrls;
-    });
+    if (fromIndex < imageUrls.length && toIndex < imageUrls.length) {
+      // Moving within storage URLs
+      setImageUrls((prev: string[]) => {
+        const newUrls = [...prev];
+        const [movedUrl] = newUrls.splice(fromIndex, 1);
+        if (movedUrl) {
+          newUrls.splice(toIndex, 0, movedUrl);
+        }
+        return newUrls;
+      });
+    } else if (fromIndex >= imageUrls.length && toIndex >= imageUrls.length) {
+      // Moving within preview URLs
+      const fromPreviewIndex = fromIndex - imageUrls.length;
+      const toPreviewIndex = toIndex - imageUrls.length;
+
+      setPreviewUrls((prev: string[]) => {
+        const newUrls = [...prev];
+        const [movedUrl] = newUrls.splice(fromPreviewIndex, 1);
+        if (movedUrl) {
+          newUrls.splice(toPreviewIndex, 0, movedUrl);
+        }
+        return newUrls;
+      });
+
+      setImageFiles((prev: File[]) => {
+        const newFiles = [...prev];
+        const [movedFile] = newFiles.splice(fromPreviewIndex, 1);
+        if (movedFile) {
+          newFiles.splice(toPreviewIndex, 0, movedFile);
+        }
+        return newFiles;
+      });
+    }
+    // Note: Cross-movement between storage and preview URLs is not supported
   };
 
   const handleMoveToFirst = (index: number) => {
@@ -289,6 +365,7 @@ export default function CarFormDialog({
     if (!validateForm()) return;
 
     try {
+      // Prepare base car data
       const carData: Partial<AdminCar> = {
         brand: formData.brand,
         model: formData.model,
@@ -304,8 +381,52 @@ export default function CarFormDialog({
           | 'hybrid',
         transmission: formData.transmission as 'manual' | 'automatic',
         features: formData.features,
-        image_urls: imageUrls, // Array of image URLs
+        // Structured features
+        seats: Number(formData.seats),
+        large_luggage: Number(formData.large_luggage),
+        small_luggage: Number(formData.small_luggage),
+        doors: Number(formData.doors),
+        min_age: Number(formData.min_age),
+        four_wd: formData.four_wd,
+        ac: formData.ac,
       };
+
+      // IMPORTANT: Only add image_urls if there are changes
+      if (isEditing && car) {
+        // Check if there are image changes (deletions/reordering)
+        const urlsChanged =
+          JSON.stringify(originalImageUrls) !== JSON.stringify(imageUrls);
+        const hasNewFiles = imageFiles.length > 0;
+
+        if (urlsChanged || hasNewFiles) {
+          // There are changes - send current URLs
+          carData.image_urls = imageUrls;
+          console.log('Image changes detected:', {
+            original: originalImageUrls,
+            current: imageUrls,
+            changed: urlsChanged,
+            newFiles: hasNewFiles,
+          });
+        } else {
+          // No changes - don't send image_urls
+          console.log('No image changes detected');
+        }
+      } else {
+        // New car - don't send image_urls (backend will handle empty array)
+        console.log('New car - not sending image_urls');
+      }
+
+      // Add new files if any
+      if (imageFiles.length > 0) {
+        carData.imageFiles = imageFiles.filter((f) => f); // Filter undefined
+      }
+
+      console.log('Submitting car data:', {
+        ...carData,
+        hasImageUrls: 'image_urls' in carData,
+        imageUrlsCount: carData.image_urls?.length,
+        newFilesCount: carData.imageFiles?.length,
+      });
 
       await onSubmit(carData);
       onClose();
@@ -539,7 +660,97 @@ export default function CarFormDialog({
             </Box>
           </Box>
 
-          {/* Features */}
+          {/* Structured Features */}
+          <Box>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              {texts.structuredFeatures}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
+              <TextField
+                fullWidth
+                label={texts.seats}
+                type="number"
+                value={formData.seats}
+                onChange={handleInputChange('seats')}
+                inputProps={{ min: 1, max: 9 }}
+              />
+            </Box>
+
+            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
+              <TextField
+                fullWidth
+                label={texts.largeLuggage}
+                type="number"
+                value={formData.large_luggage}
+                onChange={handleInputChange('large_luggage')}
+                inputProps={{ min: 0, max: 10 }}
+              />
+            </Box>
+
+            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
+              <TextField
+                fullWidth
+                label={texts.smallLuggage}
+                type="number"
+                value={formData.small_luggage}
+                onChange={handleInputChange('small_luggage')}
+                inputProps={{ min: 0, max: 10 }}
+              />
+            </Box>
+
+            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
+              <TextField
+                fullWidth
+                label={texts.doors}
+                type="number"
+                value={formData.doors}
+                onChange={handleInputChange('doors')}
+                inputProps={{ min: 2, max: 5 }}
+              />
+            </Box>
+
+            <Box sx={{ minWidth: 120, flex: '1 1 120px' }}>
+              <TextField
+                fullWidth
+                label={texts.minAge}
+                type="number"
+                value={formData.min_age}
+                onChange={handleInputChange('min_age')}
+                inputProps={{ min: 18, max: 99 }}
+                InputProps={{
+                  endAdornment: <Typography sx={{ ml: 1 }}>г.</Typography>,
+                }}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.four_wd}
+                  onChange={handleInputChange('four_wd')}
+                />
+              }
+              label={texts.fourWd}
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.ac}
+                  onChange={handleInputChange('ac')}
+                />
+              }
+              label={texts.ac}
+            />
+          </Box>
+
+          {/* Custom Features */}
           <Box>
             <Divider sx={{ my: 2 }} />
             <Typography variant="h6" gutterBottom>
@@ -618,7 +829,7 @@ export default function CarFormDialog({
 
             {/* Image Previews */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              {imageUrls.map((url, index) => (
+              {[...imageUrls, ...previewUrls].map((url, index) => (
                 <Box
                   key={index}
                   sx={{
