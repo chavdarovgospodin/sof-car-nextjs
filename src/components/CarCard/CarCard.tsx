@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -12,9 +12,9 @@ import {
   Chip,
   Grid,
   Divider,
-  useMediaQuery,
   Tooltip,
   IconButton,
+  Fade,
 } from '@mui/material';
 import {
   DirectionsCar,
@@ -22,8 +22,14 @@ import {
   Euro,
   Security,
   Info,
+  ZoomIn,
+  DriveEta,
+  Luggage,
+  AcUnit,
+  Person,
 } from '@mui/icons-material';
 import type { CarData } from '../../types/api';
+import { CarDetailsDialog } from './CarDetailsDialog';
 
 interface CarCardProps {
   car: CarData;
@@ -36,7 +42,8 @@ interface CarCardProps {
 }
 
 export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
-  const isSmallDevice = useMediaQuery('(max-width: 480px)');
+  const [isHovered, setIsHovered] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Calculate total price for the rental period
   const calculateTotalPrice = () => {
@@ -104,17 +111,90 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
+          cursor: 'pointer',
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setIsModalOpen(true)}
       >
         {car.image_urls?.[0] ? (
-          <Image
-            src={car.image_urls[0]}
-            alt={`${car.brand} ${car.model}`}
-            fill
-            style={{
-              objectFit: 'cover',
-            }}
-          />
+          <>
+            <Image
+              src={car.image_urls[0]}
+              alt={`${car.brand} ${car.model}`}
+              fill
+              style={{
+                objectFit: 'cover',
+                opacity: isHovered ? 0.7 : 1,
+                transition: 'opacity 0.3s ease',
+              }}
+            />
+
+            {/* Hover overlay with zoom icon */}
+            <Fade in={isHovered}>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'flex-start',
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                  zIndex: 1,
+                }}
+              >
+                <Box
+                  sx={{
+                    borderRadius: '50%',
+                    width: 50,
+                    height: 50,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: 2,
+                  }}
+                >
+                  <ZoomIn sx={{ fontSize: 30 }} />
+                </Box>
+              </Box>
+            </Fade>
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 2,
+                display: { xs: 'block', md: 'none' }, // Само на mobile
+              }}
+            >
+              <IconButton
+                size="small"
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  animation: 'pulse 2s infinite',
+                  '@keyframes pulse': {
+                    '0%': {
+                      transform: 'scale(1)',
+                      opacity: 0.8,
+                    },
+                    '50%': {
+                      transform: 'scale(1.1)',
+                      opacity: 1,
+                    },
+                    '100%': {
+                      transform: 'scale(1)',
+                      opacity: 0.8,
+                    },
+                  },
+                }}
+              >
+                <ZoomIn sx={{ fontSize: 18, color: '#1976d2' }} />
+              </IconButton>
+            </Box>
+          </>
         ) : (
           <DirectionsCar sx={{ fontSize: 80, color: '#ccc' }} />
         )}
@@ -134,45 +214,115 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
           {car.brand} {car.model} - {car.year}
         </Typography>
 
-        {car.features && car.features.length > 0 && (
-          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+        {/* Structured Features with Icons */}
+        <Box
+          sx={{
+            mt: 1,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1.5,
+            alignItems: 'center',
+          }}
+        >
+          {/* Seats */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Person sx={{ fontSize: 16, color: '#666' }} />
             <Typography variant="caption" color="text.secondary">
-              {car.features.slice(0, 4).join(', ')}
-              {car.features.length > 4 && '...'}
+              {car.seats || 5} {t('booking.seats')}
             </Typography>
-            {car.features.length > 5 && (
-              <Tooltip
-                title={
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 'bold', mb: 1 }}
-                    >
-                      Всички характеристики:
-                    </Typography>
-                    {car.features.map((feature, index) => (
-                      <Typography key={index} variant="body2" sx={{ mb: 0.5 }}>
-                        • {feature}
-                      </Typography>
-                    ))}
-                  </Box>
-                }
-                arrow
-                placement="top"
-                sx={{
-                  '& .MuiTooltip-tooltip': {
-                    maxWidth: 300,
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                  },
-                }}
-              >
-                <IconButton size="small" sx={{ p: 0.5 }}>
-                  <Info sx={{ fontSize: 16, color: 'primary.main' }} />
-                </IconButton>
-              </Tooltip>
-            )}
           </Box>
-        )}
+
+          {/* Transmission */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <DriveEta sx={{ fontSize: 16, color: '#666' }} />
+            <Typography variant="caption" color="text.secondary">
+              {car.transmission === 'automatic'
+                ? t('booking.automaticTransmission')
+                : t('booking.manualTransmission')}
+            </Typography>
+          </Box>
+
+          {/* Luggage */}
+          {(car.large_luggage || car.small_luggage) && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Luggage sx={{ fontSize: 16, color: '#666' }} />
+              <Typography variant="caption" color="text.secondary">
+                {car.large_luggage && car.small_luggage
+                  ? `${t('booking.largeLuggage')} x${car.large_luggage}, ${t(
+                      'booking.smallLuggage'
+                    )} x${car.small_luggage}`
+                  : car.large_luggage
+                  ? `${t('booking.largeLuggage')} x${car.large_luggage}`
+                  : `${t('booking.smallLuggage')} x${car.small_luggage}`}
+              </Typography>
+            </Box>
+          )}
+
+          {/* AC */}
+          {car.ac && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <AcUnit sx={{ fontSize: 16, color: '#666' }} />
+              <Typography variant="caption" color="text.secondary">
+                {t('booking.ac')}
+              </Typography>
+            </Box>
+          )}
+
+          {/* 4WD */}
+          {car.four_wd && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <DirectionsCar sx={{ fontSize: 16, color: '#666' }} />
+              <Typography variant="caption" color="text.secondary">
+                {t('booking.fourWd')}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Custom Features - if any */}
+          {car.features && car.features.length > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography variant="caption" color="text.secondary">
+                {car.features.slice(0, 2).join(', ')}
+                {car.features.length > 2 && '...'}
+              </Typography>
+              {car.features.length > 2 && (
+                <Tooltip
+                  title={
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ fontWeight: 'bold', mb: 1 }}
+                      >
+                        {t('booking.possibilities')}:
+                      </Typography>
+                      {car.features.map((feature, index) => (
+                        <Typography
+                          key={index}
+                          variant="body2"
+                          sx={{ mb: 0.5 }}
+                        >
+                          • {feature}
+                        </Typography>
+                      ))}
+                    </Box>
+                  }
+                  arrow
+                  placement="top"
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      maxWidth: 300,
+                      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    },
+                  }}
+                >
+                  <IconButton size="small" sx={{ p: 0.5 }}>
+                    <Info sx={{ fontSize: 16, color: 'primary.main' }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          )}
+        </Box>
 
         <Divider sx={{ marginY: 1 }} />
 
@@ -309,6 +459,14 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
           {t('booking.bookButton')}
         </Button>
       </CardActions>
+
+      {/* Car Details Dialog */}
+      <CarDetailsDialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        car={car}
+        t={t}
+      />
     </Card>
   );
 }

@@ -14,6 +14,7 @@ import {
   useMediaQuery,
   useTheme,
   Alert,
+  Tooltip,
 } from '@mui/material';
 import {
   ChevronLeft,
@@ -22,6 +23,7 @@ import {
   People,
   Settings,
   Route,
+  Info,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -322,7 +324,9 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                       {/* Left Side - Car Image */}
                       <Box
                         sx={{
-                          width: isSmallDevice ? 310 : { xs: 350, sm: 320 },
+                          width: isSmallDevice
+                            ? '100%'
+                            : { xs: '100%', sm: 320 },
                           height: isSmallDevice ? 200 : { xs: 250, sm: 220 },
                           position: 'relative',
                           backgroundColor: '#fafafa',
@@ -461,7 +465,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                                 }}
                               >
                                 {currentLang === 'bg'
-                                  ? 'Неограничен километраж'
+                                  ? 'Неограничен пробег'
                                   : 'Unlimited mileage'}
                               </Typography>
                             </Box>
@@ -510,19 +514,48 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
                                       />
                                     ))}
                                   {car.features.length > 3 && (
-                                    <Chip
-                                      label={`+${car.features.length - 3}`}
-                                      size="small"
+                                    <Tooltip
+                                      title={
+                                        <Box>
+                                          <Typography
+                                            variant="subtitle2"
+                                            sx={{ fontWeight: 'bold', mb: 1 }}
+                                          >
+                                            {currentLang === 'bg'
+                                              ? 'Възможности'
+                                              : 'Features'}
+                                          </Typography>
+                                          {car.features.map(
+                                            (feature, index) => (
+                                              <Typography
+                                                key={index}
+                                                variant="body2"
+                                                sx={{ mb: 0.5 }}
+                                              >
+                                                • {feature}
+                                              </Typography>
+                                            )
+                                          )}
+                                        </Box>
+                                      }
+                                      arrow
+                                      placement="top"
                                       sx={{
-                                        backgroundColor: '#e3f2fd',
-                                        color: '#1976d2',
-                                        fontSize: '0.7rem',
-                                        height: 20,
-                                        '& .MuiChip-label': {
-                                          px: 0.8,
+                                        '& .MuiTooltip-tooltip': {
+                                          maxWidth: 300,
+                                          backgroundColor: 'rgba(0, 0, 0, 0.9)',
                                         },
                                       }}
-                                    />
+                                    >
+                                      <IconButton size="small" sx={{ p: 0.5 }}>
+                                        <Info
+                                          sx={{
+                                            fontSize: 16,
+                                            color: 'primary.main',
+                                          }}
+                                        />
+                                      </IconButton>
+                                    </Tooltip>
                                   )}
                                 </Box>
                               </Box>

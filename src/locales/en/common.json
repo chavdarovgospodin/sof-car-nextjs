@@ -82,7 +82,21 @@
     "securityInfo": "Your data is protected with SSL encryption. We do not store credit card information.",
     "depositRequired": "Deposit Required",
     "depositInfo": "The deposit is paid when receiving the car and is refunded when returning it in good condition",
-    "carFeatures": "Car Features"
+    "carFeatures": "Car Features",
+    "seats": "seats",
+    "transmission": "Transmission",
+    "manualTransmission": "Manual",
+    "automaticTransmission": "Automatic",
+    "luggage": "Luggage",
+    "largeLuggage": "Large luggage",
+    "smallLuggage": "Small luggage",
+    "doors": "Doors",
+    "minAge": "Minimum age",
+    "fourWd": "4WD drive",
+    "ac": "Air conditioning",
+    "possibilities": "Possibilities",
+    "characteristics": "Characteristics",
+    "payedRoadTax": "Paid road tax"
   },
   "cars": {
     "economy": "Economy Class",
