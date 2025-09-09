@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { PricingPage } from '@/components/PricingPage/PricingPage';
+import { PricingPage } from '@/components/PricingPage';
 
 // Generate static params for static export
 export async function generateStaticParams() {

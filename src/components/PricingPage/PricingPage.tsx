@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -19,154 +19,70 @@ import {
   ListItemText,
   Chip,
 } from '@mui/material';
+import { CheckCircle } from '@mui/icons-material';
+import { PricingPageProps } from './PricingPage.types';
+import { texts, enTexts } from './PricingPage.lang';
+import { styles } from './PricingPage.styles';
 import {
-  CheckCircle,
-  Warning,
-  Info,
-  LocationOn,
-  Flight,
-} from '@mui/icons-material';
-
-interface PricingPageProps {
-  lang: Promise<string>;
-}
+  createAdditionalFees,
+  createPricingData,
+  createIncludedFeatures,
+  createImportantNotes,
+} from './PricingPage.const';
 
 export function PricingPage({ lang }: PricingPageProps) {
-  const [currentLang, setCurrentLang] = React.useState('bg');
+  const [currentLang, setCurrentLang] = useState('bg');
 
-  React.useEffect(() => {
+  useEffect(() => {
     lang.then(setCurrentLang);
   }, [lang]);
 
-  const pricingData = [
-    {
-      class: currentLang === 'bg' ? 'Икономичен клас' : 'Economy Class',
-      models:
-        currentLang === 'bg'
-          ? 'Opel Corsa, VW Polo, подобни'
-          : 'Opel Corsa, VW Polo, similar',
-      price: 30,
-      deposit: 200,
-      features: [
-        currentLang === 'bg' ? 'Малки градски автомобили' : 'Small city cars',
-        currentLang === 'bg' ? '4-5 пътника' : '4-5 passengers',
-        currentLang === 'bg' ? '300-400л багаж' : '300-400L luggage',
-        currentLang === 'bg' ? '5-7л/100км' : '5-7L/100km',
-      ],
-    },
-    {
-      class: currentLang === 'bg' ? 'Стандартен клас' : 'Standard Class',
-      models:
-        currentLang === 'bg'
-          ? 'Skoda Octavia, VW Golf, подобни'
-          : 'Skoda Octavia, VW Golf, similar',
-      price: 50,
-      deposit: 300,
-      features: [
-        currentLang === 'bg'
-          ? 'Семейни седани и комби'
-          : 'Family sedans and wagons',
-        currentLang === 'bg' ? '5 пътника' : '5 passengers',
-        currentLang === 'bg' ? '500-600л багаж' : '500-600L luggage',
-        currentLang === 'bg' ? '6-8л/100км' : '6-8L/100km',
-      ],
-    },
-    {
-      class: currentLang === 'bg' ? 'Луксозен клас' : 'Premium Class',
-      models:
-        currentLang === 'bg'
-          ? 'VW Arteon, Audi A4, подобни'
-          : 'VW Arteon, Audi A4, similar',
-      price: 80,
-      deposit: 500,
-      features: [
-        currentLang === 'bg'
-          ? 'Бизнес седани и SUV'
-          : 'Business sedans and SUVs',
-        currentLang === 'bg' ? '5-7 пътника' : '5-7 passengers',
-        currentLang === 'bg' ? '600+л багаж' : '600+L luggage',
-        currentLang === 'bg' ? '7-9л/100км' : '7-9L/100km',
-      ],
-    },
-  ];
+  const currentTexts = currentLang === 'bg' ? texts : enTexts;
 
-  const additionalFees = [
-    {
-      service: currentLang === 'bg' ? 'Офис Ямбол' : 'Yambol Office',
-      fee: currentLang === 'bg' ? 'Без такса' : 'No fee',
-      icon: <CheckCircle color="success" />,
-    },
-    {
-      service:
-        currentLang === 'bg'
-          ? 'Друго място в Ямбол'
-          : 'Other location in Yambol',
-      fee: '50 BGN',
-      icon: <LocationOn color="primary" />,
-    },
-    {
-      service: currentLang === 'bg' ? 'Летище София' : 'Sofia Airport',
-      fee: '100 BGN',
-      icon: <Flight color="primary" />,
-    },
-    {
-      service: currentLang === 'bg' ? 'Летище Бургас' : 'Burgas Airport',
-      fee: '100 BGN',
-      icon: <Flight color="primary" />,
-    },
-    {
-      service: currentLang === 'bg' ? 'Летище Варна' : 'Varna Airport',
-      fee: '100 BGN',
-      icon: <Flight color="primary" />,
-    },
-  ];
+  const pricingData = createPricingData(currentTexts);
+  const additionalFees = createAdditionalFees(currentTexts);
+  const includedFeatures = createIncludedFeatures(currentTexts);
+  const importantNotes = createImportantNotes(currentTexts);
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>
+    <Box sx={styles.pageContainer}>
       {/* Hero Section */}
-      <Box
-        sx={{
-          py: { xs: 6, md: 8 },
-          background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-          color: 'white',
-        }}
-      >
+      <Box sx={styles.heroSection}>
         <Container maxWidth="lg">
           <Typography
             variant="h2"
             component="h1"
             textAlign="center"
             gutterBottom
-            sx={{ mb: 3 }}
+            sx={styles.heroTitle}
           >
-            {currentLang === 'bg' ? 'Цени и тарифи' : 'Pricing & Rates'}
+            {currentTexts.title}
           </Typography>
           <Typography
             variant="h5"
             component="p"
             textAlign="center"
-            sx={{ opacity: 0.9 }}
+            sx={styles.heroSubtitle}
           >
-            {currentLang === 'bg'
-              ? 'Пълна информация за цените, таксите и депозитите при наемане на автомобили'
-              : 'Complete information about prices, fees and deposits for car rental'}
+            {currentTexts.subtitle}
           </Typography>
         </Container>
       </Box>
 
       {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+      <Container maxWidth="lg" sx={styles.mainContent}>
         {/* Base Prices */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '1. Основни цени за наемане'
-              : '1. Base Rental Prices'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.basePrices.title}
           </Typography>
           <Typography variant="body1" paragraph>
-            {currentLang === 'bg'
-              ? 'Цените включват всички основни услуги и са валидни за минимален период от 5 дни:'
-              : 'Prices include all basic services and are valid for a minimum period of 5 days:'}
+            {currentTexts.basePrices.description}
           </Typography>
 
           <TableContainer>
@@ -175,88 +91,71 @@ export function PricingPage({ lang }: PricingPageProps) {
                 <TableRow>
                   <TableCell>
                     <Typography variant="h6">
-                      {currentLang === 'bg' ? 'Клас автомобил' : 'Car Class'}
+                      {currentTexts.basePrices.table.carClass}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="h6">
-                      {currentLang === 'bg' ? 'Цена на ден' : 'Daily Rate'}
+                      {currentTexts.basePrices.table.dailyRate}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="h6">
-                      {currentLang === 'bg' ? 'Депозит' : 'Deposit'}
+                      {currentTexts.basePrices.table.deposit}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="h6">
-                      {currentLang === 'bg' ? 'Характеристики' : 'Features'}
+                      {currentTexts.basePrices.table.features}
                     </Typography>
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {pricingData.map((row, index) => (
-                  <TableRow
-                    key={index}
-                    sx={{
-                      '&:nth-of-type(odd)': { backgroundColor: 'grey.50' },
-                    }}
-                  >
+                  <TableRow key={index} sx={styles.tableRow}>
                     <TableCell>
                       <Box>
-                        <Typography
-                          variant="h6"
-                          color="primary.main"
-                          gutterBottom
-                        >
+                        <Typography variant="h6" sx={styles.classTitle}>
                           {row.class}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={styles.classModels}>
                           {row.models}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography
-                          variant="h4"
-                          color="primary.main"
-                          component="span"
-                        >
+                      <Box sx={styles.priceContainer}>
+                        <Typography variant="h4" sx={styles.priceValue}>
                           {row.price}
                         </Typography>
                         <Typography
                           variant="h6"
                           component="span"
-                          sx={{ ml: 1 }}
+                          sx={styles.priceCurrency}
                         >
-                          BGN
+                          {currentTexts.basePrices.currency}
                         </Typography>
-                        <Typography
-                          variant="body2"
-                          component="div"
-                          color="text.secondary"
-                        >
-                          /{currentLang === 'bg' ? 'ден' : 'day'}
+                        <Typography variant="body2" sx={styles.pricePerDay}>
+                          /{currentTexts.basePrices.perDay}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h6" color="success.main">
-                          {row.deposit} BGN
+                      <Box sx={styles.depositContainer}>
+                        <Typography variant="h6" sx={styles.depositValue}>
+                          {row.deposit} {currentTexts.basePrices.currency}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {currentLang === 'bg' ? 'депозит' : 'deposit'}
+                        <Typography variant="body2" sx={styles.depositLabel}>
+                          {currentTexts.basePrices.depositLabel}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <List dense>
                         {row.features.map((feature, featureIndex) => (
-                          <ListItem key={featureIndex} sx={{ py: 0 }}>
-                            <ListItemIcon sx={{ minWidth: 32 }}>
+                          <ListItem key={featureIndex} sx={styles.featureItem}>
+                            <ListItemIcon sx={styles.featureIcon}>
                               <CheckCircle
                                 color="primary"
                                 sx={{ fontSize: '1rem' }}
@@ -278,41 +177,33 @@ export function PricingPage({ lang }: PricingPageProps) {
         </Paper>
 
         {/* Additional Fees */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '2. Допълнителни такси'
-              : '2. Additional Fees'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.additionalFees.title}
           </Typography>
           <Typography variant="body1" paragraph>
-            {currentLang === 'bg'
-              ? 'Следните такси се прилагат в допълнение на основната цена:'
-              : 'The following fees apply in addition to the base price:'}
+            {currentTexts.additionalFees.description}
           </Typography>
 
           <Typography
             variant="h5"
             component="h3"
             gutterBottom
-            sx={{ mt: 3, mb: 2 }}
+            sx={styles.pickupDeliveryTitle}
           >
-            {currentLang === 'bg'
-              ? '2.1 Такси за вземане/връщане'
-              : '2.1 Pickup/Delivery Fees'}
+            {currentTexts.additionalFees.pickupDelivery.title}
           </Typography>
 
           <Grid container spacing={2}>
             {additionalFees.map((fee, index) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    textAlign: 'center',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  <Box sx={{ mb: 1 }}>{fee.icon}</Box>
+                <Paper sx={styles.feeCard}>
+                  <Box sx={styles.feeIcon}>{fee.icon}</Box>
                   <Typography variant="h6" gutterBottom>
                     {fee.service}
                   </Typography>
@@ -320,7 +211,7 @@ export function PricingPage({ lang }: PricingPageProps) {
                     label={fee.fee}
                     color={
                       fee.fee ===
-                      (currentLang === 'bg' ? 'Без такса' : 'No fee')
+                      currentTexts.additionalFees.pickupDelivery.fees.noFee
                         ? 'success'
                         : 'primary'
                     }
@@ -333,195 +224,69 @@ export function PricingPage({ lang }: PricingPageProps) {
         </Paper>
 
         {/* What's Included */}
-        <Paper sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg'
-              ? '3. Какво е включено в цената'
-              : "3. What's Included in the Price"}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.whatsIncluded.title}
           </Typography>
-          <Grid container spacing={3}>
+          <Grid container spacing={3} sx={styles.includedFeaturesGrid}>
             <Grid size={{ xs: 12, md: 6 }}>
               <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <strong>
-                        {currentLang === 'bg'
-                          ? 'Пълно застраховане'
-                          : 'Full Insurance'}
-                      </strong>
-                    }
-                    secondary={
-                      currentLang === 'bg'
-                        ? 'Автокаско и гражданска отговорност'
-                        : 'Collision and liability insurance'
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <strong>
-                        {currentLang === 'bg'
-                          ? '24/7 Поддръжка'
-                          : '24/7 Support'}
-                      </strong>
-                    }
-                    secondary={
-                      currentLang === 'bg'
-                        ? 'Денонощна помощ на пътя'
-                        : '24/7 roadside assistance'
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <strong>
-                        {currentLang === 'bg'
-                          ? 'Без лимит километри'
-                          : 'Unlimited Mileage'}
-                      </strong>
-                    }
-                    secondary={
-                      currentLang === 'bg'
-                        ? 'Шофирайте колкото искате'
-                        : 'Drive as much as you want'
-                    }
-                  />
-                </ListItem>
+                {includedFeatures.slice(0, 3).map((feature, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      <CheckCircle color="success" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={<strong>{feature.title}</strong>}
+                      secondary={feature.description}
+                    />
+                  </ListItem>
+                ))}
               </List>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <strong>
-                        {currentLang === 'bg'
-                          ? 'Техническа поддръжка'
-                          : 'Technical Support'}
-                      </strong>
-                    }
-                    secondary={
-                      currentLang === 'bg'
-                        ? 'При проблем с автомобила'
-                        : "If there's a problem with the car"
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <strong>
-                        {currentLang === 'bg'
-                          ? 'Резервен автомобил'
-                          : 'Replacement Car'}
-                      </strong>
-                    }
-                    secondary={
-                      currentLang === 'bg' ? 'При необходимост' : 'When needed'
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <strong>
-                        {currentLang === 'bg'
-                          ? 'Детайлна документация'
-                          : 'Detailed Documentation'}
-                      </strong>
-                    }
-                    secondary={
-                      currentLang === 'bg'
-                        ? 'Договор и фактура'
-                        : 'Contract and invoice'
-                    }
-                  />
-                </ListItem>
+                {includedFeatures.slice(3).map((feature, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      <CheckCircle color="success" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={<strong>{feature.title}</strong>}
+                      secondary={feature.description}
+                    />
+                  </ListItem>
+                ))}
               </List>
             </Grid>
           </Grid>
         </Paper>
 
         {/* Important Notes */}
-        <Paper sx={{ p: { xs: 3, md: 4 } }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {currentLang === 'bg' ? '4. Важни забележки' : '4. Important Notes'}
+        <Paper sx={styles.paper}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={styles.sectionTitle}
+          >
+            {currentTexts.importantNotes.title}
           </Typography>
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <Info color="info" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg'
-                      ? 'Минимален период:'
-                      : 'Minimum period:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? '5 дни за всички класове автомобили'
-                    : '5 days for all car classes'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Warning color="warning" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg' ? 'Депозит:' : 'Deposit:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? 'Възстановява се при връщане на автомобила в добро състояние'
-                    : 'Refunded when the car is returned in good condition'
-                }
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Info color="info" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <strong>
-                    {currentLang === 'bg' ? 'Резервация:' : 'Reservation:'}
-                  </strong>
-                }
-                secondary={
-                  currentLang === 'bg'
-                    ? 'Препоръчително е да резервирате поне 24 часа предварително'
-                    : 'It is recommended to book at least 24 hours in advance'
-                }
-              />
-            </ListItem>
+            {importantNotes.map((note, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{note.icon}</ListItemIcon>
+                <ListItemText
+                  primary={<strong>{note.title}</strong>}
+                  secondary={note.description}
+                />
+              </ListItem>
+            ))}
           </List>
         </Paper>
       </Container>
