@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { useTranslations } from '../../hooks/useTranslations';
-import { HeroSection } from './HeroSection';
-import { AboutSection } from './AboutSection';
-import { ContactSection } from './ContactSection';
+import {
+  HeroSection,
+  AboutSection,
+  CarsSection,
+  ContactSection,
+} from './index';
 import { SnackbarProvider, useSnackbar } from '@/providers/SnackbarProvider';
-import { CarsSection } from './CarsSection';
 
 function HomePageContent() {
   const { currentLang } = useTranslations();
