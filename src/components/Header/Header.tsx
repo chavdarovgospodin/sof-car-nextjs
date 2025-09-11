@@ -32,6 +32,8 @@ import { useScrollLock } from '@/hooks/useScrollLock';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { styles } from './Header.styles';
+import { getNavigationItems, getInfoItems, getTexts } from './Header.const';
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -62,43 +64,9 @@ export function Header() {
     }
   }, [pathname]); // Dependency on pathname to re-run when route changes
 
-  const navigationItems = [
-    {
-      sectionId: 'offers',
-      label: currentLang === 'bg' ? 'Автомобили' : 'Cars',
-      isScroll: true,
-    },
-    {
-      sectionId: 'contact',
-      label: currentLang === 'bg' ? 'Контакти' : 'Contact',
-      isScroll: true,
-    },
-    {
-      isScroll: false,
-      href: `/${currentLang}/about`,
-      label: currentLang === 'bg' ? 'За нас' : 'About Us',
-    },
-  ];
-
-  const infoItems = [
-    {
-      href: `/${currentLang}/privacy-policy`,
-      label:
-        currentLang === 'bg' ? 'Политика за поверителност' : 'Privacy Policy',
-    },
-    {
-      href: `/${currentLang}/terms-conditions`,
-      label: currentLang === 'bg' ? 'Общи условия' : 'Terms & Conditions',
-    },
-    {
-      href: `/${currentLang}/pricing`,
-      label: currentLang === 'bg' ? 'Цени и тарифи' : 'Pricing',
-    },
-    {
-      href: `/${currentLang}/services`,
-      label: currentLang === 'bg' ? 'Услуги и автомобили' : 'Services & Cars',
-    },
-  ];
+  const navigationItems = getNavigationItems(currentLang);
+  const infoItems = getInfoItems(currentLang);
+  const texts = getTexts(currentLang);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -143,17 +111,8 @@ export function Header() {
   };
 
   const drawer = (
-    <Box sx={{ width: 280 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          p: 2,
-          borderBottom: 1,
-          borderColor: 'divider',
-        }}
-      >
+    <Box sx={styles.drawerContent}>
+      <Box sx={styles.drawerHeader}>
         <Image
           src="/logo_main.webp"
           alt="SofCar Logo"
@@ -166,7 +125,7 @@ export function Header() {
         </IconButton>
       </Box>
 
-      <List sx={{ p: 2 }}>
+      <List sx={styles.drawerList}>
         {navigationItems.map((item) => (
           <ListItem
             key={item.sectionId || item.href}
@@ -175,28 +134,16 @@ export function Header() {
               handleNavigationClick(item);
               handleDrawerToggle();
             }}
-            sx={{
-              textDecoration: 'none',
-              color: 'inherit',
-              borderRadius: 1,
-              mb: 1,
-              cursor: 'pointer',
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
+            sx={styles.drawerListItem}
           >
             <ListItemText primary={item.label} />
           </ListItem>
         ))}
 
         {/* Info Dropdown in Mobile */}
-        <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-          <Typography
-            variant="subtitle2"
-            sx={{ mb: 1, color: 'text.secondary' }}
-          >
-            {currentLang === 'bg' ? 'Информация' : 'Information'}
+        <ListItem sx={styles.infoSection}>
+          <Typography variant="subtitle2" sx={styles.infoSectionTitle}>
+            {texts.information}
           </Typography>
           {infoItems.map((infoItem) => (
             <ListItem
@@ -204,16 +151,7 @@ export function Header() {
               component="a"
               href={infoItem.href}
               onClick={handleDrawerToggle}
-              sx={{
-                textDecoration: 'none',
-                color: 'inherit',
-                pl: 3,
-                py: 0.5,
-                borderRadius: 1,
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
+              sx={styles.infoListItem}
             >
               <ListItemText
                 primary={infoItem.label}
@@ -227,16 +165,8 @@ export function Header() {
   );
 
   return (
-    <AppBar
-      position="sticky"
-      sx={{
-        backgroundColor: 'white',
-        opacity: 0.9,
-        color: 'text.primary',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-      }}
-    >
-      <Toolbar sx={{ justifyContent: 'space-between', px: '0 !important' }}>
+    <AppBar position="sticky" sx={styles.appBar}>
+      <Toolbar sx={styles.toolbar}>
         {/* Logo */}
         <Link
           href={`/${currentLang}`}
@@ -258,21 +188,14 @@ export function Header() {
 
         {/* Desktop Navigation */}
         {!isMobile && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={styles.desktopNavigation}>
             {navigationItems.map((item) => (
               <Button
                 key={item.sectionId || item.href}
                 href={undefined}
                 onClick={() => handleNavigationClick(item)}
                 color="inherit"
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
-                }}
+                sx={styles.navButton}
               >
                 {item.label}
               </Button>
@@ -283,15 +206,9 @@ export function Header() {
               onClick={handleInfoMenuOpen}
               color="inherit"
               endIcon={<ExpandMore />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 500,
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
+              sx={styles.infoButton}
             >
-              {currentLang === 'bg' ? 'Информация' : 'Information'}
+              {texts.information}
             </Button>
 
             <Menu
@@ -309,25 +226,7 @@ export function Header() {
               disableScrollLock={true}
               slotProps={{
                 paper: {
-                  sx: {
-                    overflow: 'visible',
-                    mt: 1,
-                    transition: 'all 0.2s ease-in-out',
-                    '&:before': {
-                      content: '""',
-                      display: 'block',
-                      position: 'absolute',
-                      top: 0,
-                      left: '50%',
-                      width: 0,
-                      height: 0,
-                      transform: 'translateX(-50%)',
-                      borderLeft: '8px solid transparent',
-                      borderRight: '8px solid transparent',
-                      borderBottom: '8px solid white',
-                      filter: 'drop-shadow(0 -1px 2px rgba(0,0,0,0.1))',
-                    },
-                  },
+                  sx: styles.infoMenu,
                 },
               }}
             >
@@ -337,7 +236,7 @@ export function Header() {
                   component="a"
                   href={infoItem.href}
                   onClick={handleInfoMenuClose}
-                  sx={{ minWidth: 200 }}
+                  sx={styles.menuItem}
                 >
                   <ListItemIcon>
                     <Info fontSize="small" />
@@ -350,19 +249,12 @@ export function Header() {
         )}
 
         {/* Right side */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={styles.rightSide}>
           {isMobile && <LanguageSwitcher isMobile={isMobile} />}
           {/* Phone number */}
 
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              marginRight: 2,
-            }}
-          >
-            <Phone sx={{ fontSize: 20, color: 'primary.main' }} />
+          <Box sx={styles.phoneContainer}>
+            <Phone sx={styles.phoneIcon} />
             <Link
               href={`tel:${APP_CONFIG.phone}`}
               color="inherit"
@@ -387,6 +279,7 @@ export function Header() {
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
+              sx={styles.mobileMenuButton}
             >
               <MenuIcon />
             </IconButton>
@@ -404,13 +297,7 @@ export function Header() {
           keepMounted: true,
           disableScrollLock: true,
         }}
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            boxSizing: 'border-box',
-            width: 280,
-          },
-        }}
+        sx={styles.drawer}
       >
         {drawer}
       </Drawer>
