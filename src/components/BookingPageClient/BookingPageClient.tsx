@@ -11,7 +11,7 @@ import {
   useMediaQuery,
   // Snackbar, // commented for development
 } from '@mui/material';
-import { DateSearch } from '../DateSearch/DateSearch';
+import { DateSearch } from '../DateSearch';
 import { CarCard } from '../CarCard/CarCard';
 import type { CarData } from '../../types/api';
 import { useCars, useCreateBooking } from '../../hooks/useApi';

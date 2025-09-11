@@ -16,13 +16,14 @@ import {
   encodeDateRange,
   decodeDateRange,
 } from '@/utils/dateUtils';
-
-interface DateSearchProps {
-  onSearch: (startDate: Date | null, endDate: Date | null) => void;
-  onInitialized?: (hasUrlParams: boolean) => void;
-  isLoading?: boolean;
-  t: (key: string, values?: Record<string, unknown>) => string;
-}
+import { DateSearchProps } from './DateSearch.types';
+import { styles } from './DateSearch.styles';
+import {
+  getMinStartDate,
+  shouldDisableTime,
+  timeSteps,
+  dateFormat,
+} from './DateSearch.const';
 
 export const DateSearch: React.FC<DateSearchProps> = ({
   onSearch,
@@ -214,50 +215,20 @@ export const DateSearch: React.FC<DateSearchProps> = ({
     setError('');
   };
 
-  // Function to disable time slots outside business hours (8:00-20:00)
-  const shouldDisableTime = (value: unknown, view: unknown) => {
-    if (view === 'hours') {
-      const date = value instanceof Date ? value : new Date(value as Date);
-      const hour = date.getHours();
-      return hour < 8 || hour >= 20; // Disable hours before 8 AM and after 8 PM
-    }
-    return false; // Allow all minutes
-  };
-
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        padding: 4,
-        backgroundColor: '#ffffff',
-        borderRadius: 3,
-        marginBottom: 3,
-        border: '1px solid #e0e0e0',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-      }}
-    >
+    <Paper elevation={3} sx={styles.paper}>
       {isInitializing && (
-        <Box sx={{ textAlign: 'center', py: 2, mb: 2 }}>
+        <Box sx={styles.loadingContainer}>
           <Typography variant="body2" color="text.secondary">
             {t('booking.loadingDates')}
           </Typography>
         </Box>
       )}
-      <Typography
-        variant="h4"
-        component="h2"
-        sx={{
-          textAlign: 'center',
-          marginBottom: 4,
-          color: '#1976d2',
-          fontWeight: 'bold',
-          fontSize: { xs: '1.5rem', md: '2rem' },
-        }}
-      >
+      <Typography variant="h4" component="h2" sx={styles.title}>
         {t('booking.searchTitle')}
       </Typography>
 
-      <Grid container spacing={4} alignItems="center">
+      <Grid container spacing={4} sx={styles.grid}>
         <Grid size={{ xs: 12, md: 4 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateTimePicker
@@ -273,14 +244,9 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                 setStartDateOpen(false);
                 // Don't clear errors automatically - let validation handle it
               }}
-              minDateTime={(() => {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                tomorrow.setHours(0, 0, 0, 0);
-                return tomorrow;
-              })()}
+              minDateTime={getMinStartDate()}
               ampm={false}
-              format="dd/MM/yyyy HH:mm"
+              format={dateFormat}
               autoFocus={false}
               shouldDisableTime={shouldDisableTime}
               slotProps={{
@@ -302,71 +268,18 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                     },
                   },
                   InputProps: {
-                    startAdornment: (
-                      <CalendarToday
-                        sx={{ marginRight: 1, color: '#1976d2' }}
-                      />
-                    ),
+                    startAdornment: <CalendarToday sx={styles.calendarIcon} />,
                   },
-                  sx: {
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      '&:hover': {
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1976d2',
-                        },
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      },
-                      '&.Mui-focused': {
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1976d2',
-                          borderWidth: 2,
-                        },
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      pointerEvents: 'none',
-                    },
-                  },
+                  sx: styles.datePickerTextField,
                 },
                 inputAdornment: {
                   position: 'end',
                 },
                 popper: {
-                  sx: {
-                    '& .MuiPickersLayout-root': {
-                      backgroundColor: '#fff',
-                      borderRadius: 2,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    },
-                    '& .MuiPickersLayout-contentWrapper': {
-                      backgroundColor: '#fff',
-                    },
-                    '& .MuiPickersLayout-actionBar': {
-                      backgroundColor: '#f8f9fa',
-                      borderTop: '1px solid #e0e0e0',
-                    },
-                  },
+                  sx: styles.popper,
                 },
               }}
-              timeSteps={{ minutes: 15 }}
+              timeSteps={timeSteps}
             />
           </LocalizationProvider>
         </Grid>
@@ -387,7 +300,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               maxDateTime={startDate ? getMaxEndDate(startDate) : undefined}
               disabled={isLoading || isInitializing || !startDate || !endDate}
               ampm={false}
-              format="dd/MM/yyyy HH:mm"
+              format={dateFormat}
               autoFocus={false}
               closeOnSelect
               shouldDisableTime={shouldDisableTime}
@@ -410,76 +323,18 @@ export const DateSearch: React.FC<DateSearchProps> = ({
                     },
                   },
                   InputProps: {
-                    startAdornment: (
-                      <AccessTime sx={{ marginRight: 1, color: '#1976d2' }} />
-                    ),
+                    startAdornment: <AccessTime sx={styles.timeIcon} />,
                   },
-                  sx: {
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      '&:hover': {
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1976d2',
-                        },
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      },
-                      '&.Mui-focused': {
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1976d2',
-                          borderWidth: 2,
-                        },
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      pointerEvents: 'none',
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: startDate ? '#1976d2' : '#666',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                    },
-                  },
+                  sx: styles.endDateTextField,
                 },
                 inputAdornment: {
                   position: 'end',
                 },
                 popper: {
-                  sx: {
-                    '& .MuiPickersLayout-root': {
-                      backgroundColor: '#fff',
-                      borderRadius: 2,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    },
-                    '& .MuiPickersLayout-contentWrapper': {
-                      backgroundColor: '#fff',
-                    },
-                    '& .MuiPickersLayout-actionBar': {
-                      backgroundColor: '#f8f9fa',
-                      borderTop: '1px solid #e0e0e0',
-                    },
-                  },
+                  sx: styles.popper,
                 },
               }}
-              timeSteps={{ minutes: 15 }}
+              timeSteps={timeSteps}
             />
           </LocalizationProvider>
         </Grid>
@@ -498,19 +353,7 @@ export const DateSearch: React.FC<DateSearchProps> = ({
               Boolean(error)
             }
             startIcon={<Search />}
-            sx={{
-              backgroundColor: '#1976d2',
-              '&:hover': {
-                backgroundColor: '#1565c0',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 6px 20px rgba(25, 118, 210, 0.3)',
-              },
-              height: 56,
-              fontSize: '1.1rem',
-              borderRadius: 2,
-              transition: 'all 0.2s ease',
-              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
-            }}
+            sx={styles.searchButton}
           >
             {isLoading
               ? t('booking.searchButtonLoading')
@@ -520,29 +363,13 @@ export const DateSearch: React.FC<DateSearchProps> = ({
       </Grid>
 
       {error && (
-        <Alert
-          severity="error"
-          sx={{
-            marginTop: 3,
-            borderRadius: 2,
-            '& .MuiAlert-icon': {
-              color: '#d32f2f',
-            },
-          }}
-        >
+        <Alert severity="error" sx={styles.errorAlert}>
           {error}
         </Alert>
       )}
 
-      <Box sx={{ marginTop: 3, textAlign: 'center' }}>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            marginBottom: 1,
-            fontWeight: 500,
-          }}
-        >
+      <Box sx={styles.infoContainer}>
+        <Typography variant="body2" color="text.secondary" sx={styles.infoText}>
           {t('booking.dateRangeInfo')}
         </Typography>
       </Box>

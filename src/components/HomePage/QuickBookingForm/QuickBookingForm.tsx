@@ -87,7 +87,7 @@ function QuickBookingForm({
       pickupDateTime.toDate(),
       returnDateTime.toDate()
     );
-    router.push(`/${currentLang}/booking?dates=${dateRange}`);
+    router.push(`/${currentLang}/booking/?d=${dateRange}`);
   };
 
   return (
