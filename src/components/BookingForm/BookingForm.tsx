@@ -24,17 +24,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import type { CarData } from '../../types/api';
-
-interface BookingData {
-  clientFirstName: string;
-  clientLastName: string;
-  clientEmail: string;
-  clientPhone: string;
-  paymentMethod: string;
-  termsAccepted: boolean;
-}
-import Joi from 'joi';
 import { Controller, useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
 import {
@@ -44,27 +33,15 @@ import {
   CalendarToday,
   CheckCircle,
 } from '@mui/icons-material';
-import { TermsConditionsDialog } from './TermsConditionsDialog';
-
-interface BookingFormProps {
-  car: CarData;
-  searchDates: {
-    start: Date | null;
-    end: Date | null;
-  };
-  onSubmit: (formData: {
-    clientFirstName: string;
-    clientLastName: string;
-    clientPhone: string;
-    clientEmail: string;
-    paymentMethod: string;
-  }) => Promise<void>;
-  isLoading: boolean;
-  t: (key: string, values?: Record<string, unknown>) => string;
-  open: boolean;
-  onClose: () => void;
-  lang: string;
-}
+import { TermsConditionsDialog } from './TermsConditionsDialog/TermsConditionsDialog';
+import { BookingFormProps, BookingData } from './BookingForm.types';
+import { styles } from './BookingForm.styles';
+import {
+  createValidationSchema,
+  calculateTotalDays,
+  calculateTotalPrice,
+  getDefaultValues,
+} from './BookingForm.const';
 
 export function BookingForm({
   car,
@@ -78,7 +55,7 @@ export function BookingForm({
 }: BookingFormProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [paymentMethod, setPaymentMethod] = useState<string>('card');
+  const [paymentMethod, setPaymentMethod] = useState<string>('vpos');
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   const [termsDialogOpen, setTermsDialogOpen] = useState<boolean>(false);
 
@@ -87,78 +64,13 @@ export function BookingForm({
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<Partial<BookingData>>({
-    resolver: joiResolver(
-      Joi.object({
-        clientFirstName: Joi.string()
-          .min(2)
-          .max(20)
-          .required()
-          .messages({
-            'string.min': t('booking.clientFirstNameMin'),
-            'string.max': t('booking.clientFirstNameMax'),
-            'string.empty': t('booking.clientFirstNameRequired'),
-          }),
-        clientLastName: Joi.string()
-          .min(2)
-          .max(20)
-          .required()
-          .messages({
-            'string.min': t('booking.clientLastNameMin'),
-            'string.max': t('booking.clientLastNameMax'),
-            'string.empty': t('booking.clientLastNameRequired'),
-          }),
-        clientEmail: Joi.string()
-          .email()
-          .required()
-          .messages({
-            'string.email': t('booking.clientEmailInvalid'),
-            'string.empty': t('booking.clientEmailRequired'),
-          }),
-        clientPhone: Joi.string()
-          .pattern(/^[0-9+\-\s()]+$/)
-          .min(10)
-          .max(15)
-          .required()
-          .messages({
-            'string.pattern.base': t('booking.clientPhoneInvalid'),
-            'string.min': t('booking.clientPhoneMin'),
-            'string.max': t('booking.clientPhoneMax'),
-            'string.empty': t('booking.clientPhoneRequired'),
-          }),
-        termsAccepted: Joi.boolean()
-          .valid(true)
-          .required()
-          .messages({
-            'any.only': t('booking.termsRequired'),
-            'any.required': t('booking.termsRequired'),
-          }),
-      })
-    ),
-    defaultValues: {
-      clientFirstName: '',
-      clientLastName: '',
-      clientEmail: '',
-      clientPhone: '',
-      termsAccepted: false,
-    },
+    resolver: joiResolver(createValidationSchema(t)),
+    defaultValues: getDefaultValues(),
     mode: 'onChange',
   });
 
-  const calculateTotalDays = () => {
-    if (!searchDates.start || !searchDates.end) return 0;
-    const diffTime = Math.abs(
-      searchDates.end.getTime() - searchDates.start.getTime()
-    );
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
-  const calculateTotalPrice = () => {
-    const days = calculateTotalDays();
-    return days * car.price_per_day;
-  };
-
-  const totalDays = calculateTotalDays();
-  const totalPrice = calculateTotalPrice();
+  const totalDays = calculateTotalDays(searchDates);
+  const totalPrice = calculateTotalPrice(car, searchDates);
 
   const handleFormSubmit = async (data: Partial<BookingData>) => {
     try {
@@ -190,6 +102,7 @@ export function BookingForm({
       disableScrollLock={true}
       keepMounted={false}
       sx={{
+        ...styles.dialog,
         '& .MuiDialog-paper': {
           margin: isMobile ? 0 : 2,
           maxHeight: isMobile ? '100vh' : 'calc(100vh - 32px)',
@@ -200,34 +113,23 @@ export function BookingForm({
       <DialogTitle>
         {t('booking.title')} {car.brand} {car.model}
       </DialogTitle>
-      <DialogContent sx={{ p: isMobile ? '16px 8px' : '20px 24px' }}>
+      <DialogContent sx={isMobile ? styles.dialogContent : { p: '20px 24px' }}>
         <Box sx={{ mt: 2 }}>
           {/* Car Details Section - Better Presentation */}
-          <Paper sx={{ p: isMobile ? 1 : 3, mb: 3 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                mb: 3,
-                color: '#1976d2',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-              }}
-            >
+          <Paper sx={isMobile ? styles.carDetailsPaper : { p: 3, mb: 3 }}>
+            <Typography variant="h5" sx={styles.carDetailsTitle}>
               <CarRental />
               {t('booking.carDetails')}
             </Typography>
 
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, md: 6 }}>
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}
-                >
+                <Box sx={styles.carInfoContainer}>
                   <Chip
                     label={`${car.brand} ${car.model}`}
                     color="primary"
                     variant="outlined"
-                    sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+                    sx={styles.carChip}
                   />
                   <Chip
                     label={car.class}
@@ -237,21 +139,17 @@ export function BookingForm({
                 </Box>
 
                 {/* Car Year Display */}
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
-                >
+                <Box sx={styles.yearContainer}>
                   <Typography variant="body1" color="text.secondary">
                     <strong>{t('booking.year')}:</strong> {car.year}
                   </Typography>
                 </Box>
 
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
-                >
+                <Box sx={styles.priceContainer}>
                   <Typography
                     variant="h6"
                     color="primary"
-                    sx={{ fontWeight: 'bold' }}
+                    sx={styles.priceText}
                   >
                     {car.price_per_day.toFixed(0)} лв / ≈
                     {(car.price_per_day / 1.96).toFixed(2)} €{' '}
@@ -261,20 +159,14 @@ export function BookingForm({
               </Grid>
 
               <Grid size={{ xs: 12, md: 6 }}>
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}
-                >
+                <Box sx={styles.daysContainer}>
                   <CalendarToday color="action" />
                   <Typography variant="h6" color="text.secondary">
                     {totalDays} {t('booking.bookingDays')}
                   </Typography>
                 </Box>
 
-                <Typography
-                  variant="h4"
-                  color="primary"
-                  sx={{ fontWeight: 'bold' }}
-                >
+                <Typography variant="h4" color="primary" sx={styles.totalPrice}>
                   {(totalPrice * 1.96).toFixed(0)} лв
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -283,33 +175,16 @@ export function BookingForm({
               </Grid>
             </Grid>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={styles.divider} />
 
             {/* Car Features */}
             {car.features && car.features.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: 'primary.main',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    marginBottom: 2,
-                  }}
-                >
+              <Box sx={styles.featuresContainer}>
+                <Typography variant="h6" sx={styles.featuresTitle}>
                   <CheckCircle sx={{ fontSize: 20 }} />
                   {t('booking.carFeatures')}
                 </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                    marginBottom: 2,
-                  }}
-                >
+                <Box sx={styles.featuresChips}>
                   {car.features.map((feature, index) => (
                     <Chip
                       key={index}
@@ -317,60 +192,29 @@ export function BookingForm({
                       variant="outlined"
                       color="primary"
                       size="small"
-                      sx={{
-                        fontSize: '0.75rem',
-                        height: 28,
-                        '& .MuiChip-label': {
-                          padding: '0 8px',
-                        },
-                      }}
+                      sx={styles.featureChip}
                     />
                   ))}
                 </Box>
               </Box>
             )}
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={styles.divider} />
 
             {/* Deposit Information */}
-            <Box
-              sx={{
-                marginBottom: 2,
-                padding: 2,
-                backgroundColor: '#fff3e0',
-                borderRadius: 2,
-                border: '1px solid #ffb74d',
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 'bold',
-                  color: '#e65100',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  marginBottom: 1,
-                }}
-              >
+            <Box sx={styles.depositContainer}>
+              <Typography variant="h6" sx={styles.depositTitle}>
                 <Security sx={{ fontSize: 20 }} />
                 {t('booking.depositRequired')}
               </Typography>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 'bold',
-                  color: '#e65100',
-                  marginBottom: 1,
-                }}
-              >
+              <Typography variant="h5" sx={styles.depositAmount}>
                 {car.deposit_amount.toFixed(0)} лв / ≈
                 {(car.deposit_amount / 1.96).toFixed(2)} €
               </Typography>
               <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ fontSize: '0.875rem' }}
+                sx={styles.depositInfo}
               >
                 {t('booking.depositInfo')}
               </Typography>
@@ -393,13 +237,13 @@ export function BookingForm({
           </Paper>
 
           {/* Client Information + Payment Methods Section */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h5" sx={{ mb: 3, color: '#1976d2' }}>
+          <Paper sx={styles.clientInfoPaper}>
+            <Typography variant="h5" sx={styles.clientInfoTitle}>
               {t('booking.clientInformation')}
             </Typography>
 
             <form onSubmit={handleSubmit(handleFormSubmit)}>
-              <Grid container spacing={3} sx={{ mb: 4 }}>
+              <Grid container spacing={3} sx={styles.formGrid}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="clientFirstName"
@@ -474,7 +318,7 @@ export function BookingForm({
               </Grid>
 
               {/* Terms and Conditions Checkbox */}
-              <Box sx={{ mb: 3 }}>
+              <Box sx={styles.termsContainer}>
                 <Controller
                   name="termsAccepted"
                   control={control}
@@ -501,14 +345,7 @@ export function BookingForm({
                             color="primary"
                             size="small"
                             onClick={() => setTermsDialogOpen(true)}
-                            sx={{
-                              p: 0,
-                              minWidth: 'auto',
-                              textTransform: 'none',
-                              textDecoration: 'underline',
-                              fontSize: 'inherit',
-                              fontWeight: 'inherit',
-                            }}
+                            sx={styles.termsButton}
                           >
                             {lang === 'en'
                               ? 'General Terms and Conditions'
@@ -523,7 +360,7 @@ export function BookingForm({
                   <Typography
                     variant="caption"
                     color="error"
-                    sx={{ mt: 1, display: 'block' }}
+                    sx={styles.termsError}
                   >
                     {errors.termsAccepted.message}
                   </Typography>
@@ -531,30 +368,31 @@ export function BookingForm({
               </Box>
 
               {/* Payment Methods - Now Functional */}
-              <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={styles.paymentTitle}>
                 {t('booking.paymentMethods')}
               </Typography>
 
-              <FormControl component="fieldset" sx={{ mb: 3 }}>
-                <FormLabel component="legend" sx={{ mb: 2 }}>
+              <FormControl component="fieldset" sx={styles.paymentFormControl}>
+                <FormLabel component="legend" sx={styles.paymentLabel}>
                   {t('booking.selectPaymentMethod')}
                 </FormLabel>
                 <RadioGroup
                   value={paymentMethod}
                   onChange={handlePaymentMethodChange}
-                  sx={{ flexDirection: 'row', gap: 2 }}
+                  sx={styles.radioGroup}
                 >
                   <FormControlLabel
-                    value="card"
+                    value="vpos"
                     checked
                     control={<Radio />}
                     label={
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                      >
+                      <Box sx={styles.paymentOption}>
                         <CreditCard color="primary" />
                         <Typography variant="subtitle1">
-                          {t('booking.creditCard')}
+                          {t('booking.payment')}
+                        </Typography>
+                        <Typography variant="subtitle2">
+                          ({t('booking.paymentDescription')})
                         </Typography>
                       </Box>
                     }
@@ -563,8 +401,8 @@ export function BookingForm({
               </FormControl>
 
               {/* Payment Method Details */}
-              {paymentMethod === 'card' && (
-                <Alert severity="info" sx={{ mb: 3 }}>
+              {paymentMethod === 'vpos' && (
+                <Alert severity="info" sx={styles.alert}>
                   <Typography variant="body2">
                     {t('booking.creditCardInfo')}
                   </Typography>
@@ -572,15 +410,15 @@ export function BookingForm({
               )}
 
               {/* Security and Data Protection Info */}
-              <Alert severity="info" sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Alert severity="info" sx={styles.alert}>
+                <Box sx={styles.securityAlert}>
                   <Security />
                   <Typography>{t('booking.securityInfo')}</Typography>
                 </Box>
               </Alert>
 
               {/* Final Information */}
-              <Alert severity="success" sx={{ mb: 3 }}>
+              <Alert severity="success" sx={styles.alert}>
                 <Typography variant="body2">
                   {t('booking.finalInfo')}
                 </Typography>
@@ -589,7 +427,9 @@ export function BookingForm({
           </Paper>
         </Box>
       </DialogContent>
-      <DialogActions sx={{ justifyContent: isMobile ? 'center' : 'right' }}>
+      <DialogActions
+        sx={isMobile ? styles.dialogActions : { justifyContent: 'right' }}
+      >
         <Button onClick={onClose} color="error" variant="outlined">
           {t('booking.bookingCancel')}
         </Button>
@@ -597,6 +437,7 @@ export function BookingForm({
           onClick={handleSubmit(handleFormSubmit)}
           variant="contained"
           disabled={!isValid || isLoading}
+          sx={styles.confirmButton}
         >
           {isLoading ? (
             <CircularProgress size={24} color="inherit" />
