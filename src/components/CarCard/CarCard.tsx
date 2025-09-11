@@ -28,7 +28,7 @@ import {
   AcUnit,
   Person,
 } from '@mui/icons-material';
-import { CarDetailsDialog } from '../CarDetailsDialog';
+import { CarDetailsDialog } from './CarDetailsDialog';
 import { CarCardProps } from './CarCard.types';
 import { styles } from './CarCard.styles';
 import {

@@ -1,4 +1,4 @@
-import type { CarData } from '../../types/api';
+import type { CarData } from '../../../types/api';
 
 export interface CarDetailsDialogProps {
   open: boolean;
