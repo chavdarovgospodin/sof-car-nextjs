@@ -24,14 +24,9 @@ import {
   CalendarToday,
   DriveEta,
 } from '@mui/icons-material';
-import type { CarData } from '../../types/api';
-
-interface CarDetailsDialogProps {
-  open: boolean;
-  onClose: () => void;
-  car: CarData | null;
-  t: (key: string, values?: Record<string, unknown>) => string;
-}
+import { CarDetailsDialogProps } from './CarDetailsDialog.types';
+import { styles } from './CarDetailsDialog.styles';
+import { getTransmissionText, getLuggageText } from './CarDetailsDialog.const';
 
 export function CarDetailsDialog({
   open,
@@ -46,34 +41,6 @@ export function CarDetailsDialog({
   const isSmallMobile = useMediaQuery('(max-width: 430px)');
 
   if (!car) return null;
-
-  // Helper functions for structured features
-  const getTransmissionText = (transmission: string) => {
-    switch (transmission) {
-      case 'manual':
-        return t('booking.manualTransmission');
-      case 'automatic':
-        return t('booking.automaticTransmission');
-      default:
-        return t('booking.manualTransmission');
-    }
-  };
-
-  const getLuggageText = () => {
-    const large = car.large_luggage || 0;
-    const small = car.small_luggage || 0;
-
-    if (large > 0 && small > 0) {
-      return `${t('booking.largeLuggage')} x${large}, ${t(
-        'booking.smallLuggage'
-      )} x${small}`;
-    } else if (large > 0) {
-      return `${t('booking.largeLuggage')} x${large}`;
-    } else if (small > 0) {
-      return `${t('booking.smallLuggage')} x${small}`;
-    }
-    return '';
-  };
 
   return (
     <Dialog
@@ -101,27 +68,14 @@ export function CarDetailsDialog({
     >
       <DialogTitle
         sx={{
-          ...(isMobile && {
-            position: 'sticky',
-            top: 0,
-            zIndex: 1,
-            backgroundColor: 'background.paper',
-            borderBottom: '1px solid rgba(0,0,0,0.12)',
-            py: { xs: 1.5, sm: 2 },
-          }),
+          ...(isMobile && styles.dialogTitle),
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="h5" component="div" color="primary.main">
+        <Box sx={styles.titleContainer}>
+          <Typography variant="h5" component="div" sx={styles.titleText}>
             {car.brand} {car.model} {car.year}
           </Typography>
-          <IconButton onClick={onClose} sx={{ color: 'primary.main' }}>
+          <IconButton onClick={onClose} sx={styles.closeButton}>
             <Close />
           </IconButton>
         </Box>
@@ -129,44 +83,32 @@ export function CarDetailsDialog({
 
       <Divider sx={{ px: 2 }} />
 
-      <DialogContent sx={{ p: 0 }}>
-        <Box sx={{ p: 3 }}>
+      <DialogContent sx={styles.dialogContent}>
+        <Box sx={styles.contentContainer}>
           {/* Images Section */}
           <Grid
             container
             direction="row"
-            // gridTemplateRows={'60% 40%'}
             spacing={2}
             gap={2}
             size={{ xs: 12, md: 6 }}
-            sx={{ mb: 3 }}
+            sx={styles.imagesGrid}
           >
             {/* Main Image */}
             <Grid
               component={Box}
               size={{ xs: 12, md: 6 }}
-              sx={{
-                position: 'relative',
-                height: { xs: 200, md: 300 },
-                width: { xs: '100%', md: 400 },
-                backgroundColor: '#f5f5f5',
-                maxWidth: 400,
-                borderRadius: 2,
-                overflow: 'hidden',
-                flexShrink: 0,
-              }}
+              sx={styles.mainImageContainer}
             >
               {car.image_urls?.[selectedImageIndex] ? (
                 <Image
                   src={car.image_urls[selectedImageIndex]}
                   alt={`${car.brand} ${car.model}`}
                   fill
-                  style={{
-                    objectFit: 'cover',
-                  }}
+                  style={{ objectFit: 'cover' }}
                 />
               ) : (
-                <DriveEta sx={{ fontSize: 80, color: '#ccc' }} />
+                <DriveEta sx={styles.placeholderIcon} />
               )}
             </Grid>
 
@@ -175,21 +117,10 @@ export function CarDetailsDialog({
               <Grid
                 component={Box}
                 size={{ xs: 12, md: 6 }}
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: {
-                    xs: 'repeat(3, 1fr)', // 3 на ред на малки екрани
-                    md: 'repeat(4, 1fr)', // 4 на ред на големи екрани
-                  },
-                  minWidth: 60,
-                  gap: 1,
-                  maxHeight: { xs: 200, md: 300 }, // Ограничаване на височината
-                }}
+                sx={styles.thumbnailGrid}
               >
                 {car.image_urls.map((url, index) => (
-                  <Grid
-                    component={Box}
-                    size={{ xs: 12, md: 12 }}
+                  <Box
                     key={index}
                     sx={{
                       aspectRatio: '1',
@@ -215,16 +146,14 @@ export function CarDetailsDialog({
                       src={url}
                       alt={`${car.brand} ${car.model} ${index + 1}`}
                       fill
-                      style={{
-                        objectFit: 'cover',
-                      }}
+                      style={{ objectFit: 'cover' }}
                     />
-                  </Grid>
+                  </Box>
                 ))}
               </Grid>
             )}
           </Grid>
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={styles.divider} />
 
           {/* Text Sections - Below Images */}
           <Box>
@@ -233,97 +162,57 @@ export function CarDetailsDialog({
               <Typography
                 variant="h6"
                 gutterBottom
-                sx={{ fontWeight: 'bold', color: '#1976d2' }}
+                sx={styles.characteristicsTitle}
               >
                 {t('booking.characteristics')}:
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+              <Box sx={styles.characteristicsContainer}>
                 {/* Seats */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    minWidth: 'fit-content',
-                  }}
-                >
-                  <Person sx={{ fontSize: 20, color: '#666' }} />
+                <Box sx={styles.characteristicItem}>
+                  <Person sx={styles.characteristicIcon} />
                   <Typography variant="body2">
                     {car.seats || 5} {t('booking.seats')}
                   </Typography>
                 </Box>
 
                 {/* Luggage */}
-                {getLuggageText() && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      minWidth: 'fit-content',
-                    }}
-                  >
-                    <Luggage sx={{ fontSize: 20, color: '#666' }} />
-                    <Typography variant="body2">{getLuggageText()}</Typography>
+                {getLuggageText(car, t) && (
+                  <Box sx={styles.characteristicItem}>
+                    <Luggage sx={styles.characteristicIcon} />
+                    <Typography variant="body2">
+                      {getLuggageText(car, t)}
+                    </Typography>
                   </Box>
                 )}
 
                 {/* Doors */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    minWidth: 'fit-content',
-                  }}
-                >
-                  <DriveEta sx={{ fontSize: 20, color: '#666' }} />
+                <Box sx={styles.characteristicItem}>
+                  <DriveEta sx={styles.characteristicIcon} />
                   <Typography variant="body2">
                     {car.doors || 4} {t('booking.doors')}
                   </Typography>
                 </Box>
 
                 {/* Transmission */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    minWidth: 'fit-content',
-                  }}
-                >
-                  <DriveEta sx={{ fontSize: 20, color: '#666' }} />
+                <Box sx={styles.characteristicItem}>
+                  <DriveEta sx={styles.characteristicIcon} />
                   <Typography variant="body2">
-                    {getTransmissionText(car.transmission || 'manual')}
+                    {getTransmissionText(car.transmission || 'manual', t)}
                   </Typography>
                 </Box>
 
                 {/* AC */}
                 {car.ac && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      minWidth: 'fit-content',
-                    }}
-                  >
-                    <AcUnit sx={{ fontSize: 20, color: '#666' }} />
+                  <Box sx={styles.characteristicItem}>
+                    <AcUnit sx={styles.characteristicIcon} />
                     <Typography variant="body2">{t('booking.ac')}</Typography>
                   </Box>
                 )}
 
                 {/* 4WD */}
                 {car.four_wd && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      minWidth: 'fit-content',
-                    }}
-                  >
-                    <DriveEta sx={{ fontSize: 20, color: '#666' }} />
+                  <Box sx={styles.characteristicItem}>
+                    <DriveEta sx={styles.characteristicIcon} />
                     <Typography variant="body2">
                       {t('booking.fourWd')}
                     </Typography>
@@ -331,15 +220,8 @@ export function CarDetailsDialog({
                 )}
 
                 {/* Min Age */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    minWidth: 'fit-content',
-                  }}
-                >
-                  <CalendarToday sx={{ fontSize: 20, color: '#666' }} />
+                <Box sx={styles.characteristicItem}>
+                  <CalendarToday sx={styles.characteristicIcon} />
                   <Typography variant="body2">
                     {t('booking.minAge')}: {car.min_age || 21} г.
                   </Typography>
@@ -350,23 +232,23 @@ export function CarDetailsDialog({
             {/* Features Section - Only if there are custom features */}
             {car.features && car.features.length > 0 && (
               <>
-                <Divider sx={{ my: 2 }} />
+                <Divider sx={styles.divider} />
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="h6"
                     gutterBottom
-                    sx={{ fontWeight: 'bold', color: '#1976d2' }}
+                    sx={styles.featuresTitle}
                   >
                     {t('booking.possibilities')}:
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  <Box sx={styles.featuresContainer}>
                     {car.features.map((feature, index) => (
                       <Chip
                         key={index}
                         label={feature}
                         variant="outlined"
                         size="small"
-                        sx={{ mb: 1 }}
+                        sx={styles.featureChip}
                       />
                     ))}
                   </Box>
@@ -374,38 +256,38 @@ export function CarDetailsDialog({
               </>
             )}
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={styles.divider} />
 
             {/* Price Includes */}
             <Box>
               <Typography
                 variant="h6"
                 gutterBottom
-                sx={{ fontWeight: 'bold', color: '#1976d2' }}
+                sx={styles.priceIncludesTitle}
               >
                 {t('booking.priceIncludes')}:
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
+              <Box sx={styles.priceIncludesContainer}>
+                <Box sx={styles.priceIncludesItem}>
+                  <CheckCircle sx={styles.checkIcon} />
                   <Typography variant="body2">
                     {t('booking.payedRoadTax')}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
+                <Box sx={styles.priceIncludesItem}>
+                  <CheckCircle sx={styles.checkIcon} />
                   <Typography variant="body2">
                     {t('booking.insurance')}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
+                <Box sx={styles.priceIncludesItem}>
+                  <CheckCircle sx={styles.checkIcon} />
                   <Typography variant="body2">
                     {t('booking.unlimitedMileage')}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: 16, color: '#4caf50' }} />
+                <Box sx={styles.priceIncludesItem}>
+                  <CheckCircle sx={styles.checkIcon} />
                   <Typography variant="body2">
                     {t('booking.assistance')}
                   </Typography>
