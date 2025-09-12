@@ -122,11 +122,11 @@ const theme = createTheme({
   },
 });
 
-interface ProvidersProps {
+interface ThemeProviderProps {
   children: ReactNode;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function ThemeProviderWrapper({ children }: ThemeProviderProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

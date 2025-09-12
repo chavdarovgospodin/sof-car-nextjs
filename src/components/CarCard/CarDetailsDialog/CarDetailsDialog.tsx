@@ -13,7 +13,6 @@ import {
   Chip,
   Grid,
   useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -26,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { CarDetailsDialogProps } from './CarDetailsDialog.types';
 import { styles } from './CarDetailsDialog.styles';
+import { useBreakpoint } from '../../../providers';
 import { getTransmissionText, getLuggageText } from './CarDetailsDialog.const';
 
 export function CarDetailsDialog({
@@ -36,8 +36,7 @@ export function CarDetailsDialog({
 }: CarDetailsDialogProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { isMobile } = useBreakpoint();
   const isSmallMobile = useMediaQuery('(max-width: 430px)');
 
   if (!car) return null;

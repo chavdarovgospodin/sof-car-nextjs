@@ -13,8 +13,6 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -35,14 +33,14 @@ import {
   getInsuranceCoverage,
   getImportantNotes,
 } from './TermsConditionsDialog.const';
+import { useBreakpoint } from '../../../providers';
 
 export function TermsConditionsDialog({
   open,
   onClose,
   lang,
 }: TermsConditionsDialogProps) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { isMobile } = useBreakpoint();
   const isEnglish = lang === 'en';
 
   const content = getTermsContent(isEnglish);

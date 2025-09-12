@@ -11,8 +11,6 @@ import {
   ListItem,
   ListItemText,
   Box,
-  useTheme,
-  useMediaQuery,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -34,13 +32,12 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { styles } from './Header.styles';
 import { getNavigationItems, getInfoItems, getTexts } from './Header.const';
+import { useBreakpoint } from '../../providers';
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [infoAnchorEl, setInfoAnchorEl] = useState<null | HTMLElement>(null);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallDevice = useMediaQuery('(max-width: 480px)');
+  const { isMobile, isSmallMobile } = useBreakpoint();
   const { currentLang } = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
@@ -116,8 +113,8 @@ export function Header() {
         <Image
           src="/logo_main.webp"
           alt="SofCar Logo"
-          width={isSmallDevice ? 80 : 120}
-          height={isSmallDevice ? 50 : 75}
+          width={isSmallMobile ? 80 : 120}
+          height={isSmallMobile ? 50 : 75}
           style={{ objectFit: 'contain' }}
         />
         <IconButton onClick={handleDrawerToggle}>
@@ -180,8 +177,8 @@ export function Header() {
           <Image
             src="/logo_main.webp"
             alt="SofCar Logo"
-            width={isSmallDevice ? 100 : 160}
-            height={isSmallDevice ? 70 : 100}
+            width={isSmallMobile ? 100 : 160}
+            height={isSmallMobile ? 70 : 100}
             style={{ objectFit: 'contain' }}
           />
         </Link>

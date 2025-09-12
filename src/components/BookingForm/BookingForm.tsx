@@ -21,8 +21,6 @@ import {
   FormControlLabel,
   FormControl,
   FormLabel,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
@@ -42,6 +40,7 @@ import {
   calculateTotalPrice,
   getDefaultValues,
 } from './BookingForm.const';
+import { useBreakpoint } from '../../providers';
 
 export function BookingForm({
   car,
@@ -53,8 +52,7 @@ export function BookingForm({
   onClose,
   lang,
 }: BookingFormProps) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { isMobile } = useBreakpoint();
   const [paymentMethod, setPaymentMethod] = useState<string>('vpos');
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   const [termsDialogOpen, setTermsDialogOpen] = useState<boolean>(false);

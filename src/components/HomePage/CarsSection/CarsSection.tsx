@@ -11,8 +11,6 @@ import {
   IconButton,
   Paper,
   Chip,
-  useMediaQuery,
-  useTheme,
   Alert,
   Tooltip,
 } from '@mui/material';
@@ -31,14 +29,14 @@ import { useAllCars } from '../../../hooks/useApi';
 import type { CarData } from '../../../types/api';
 import { CarsSectionProps } from './CarsSection.types';
 import { styles } from './CarsSection.styles';
+import { useBreakpoint } from '../../../providers';
 import { getCarsTexts, getClassLabel } from './CarsSection.const';
 
 export function CarsSection({ currentLang }: CarsSectionProps) {
   const { data: carsResponse, isLoading, error } = useAllCars();
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(0);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { isMobile } = useBreakpoint();
   const carsPerPage = isMobile ? 1 : 2;
 
   const texts = getCarsTexts(currentLang);

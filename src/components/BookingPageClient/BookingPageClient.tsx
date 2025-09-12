@@ -8,7 +8,6 @@ import {
   Grid,
   CircularProgress,
   Alert,
-  useMediaQuery,
   // Snackbar, // commented for development
 } from '@mui/material';
 import { DateSearch } from '../DateSearch';
@@ -17,6 +16,7 @@ import type { CarData } from '../../types/api';
 import { useCars, useCreateBooking } from '../../hooks/useApi';
 import { BookingForm } from '../BookingForm';
 import { useTranslations } from '../../hooks/useTranslations';
+import { useBreakpoint } from '../../providers';
 import { BOOKING_PAGE_CLIENT_CONST } from './BookingPageClient.const';
 import { bookingPageClientStyles } from './BookingPageClient.styles';
 import {
@@ -28,7 +28,7 @@ import {
 
 export default function BookingPageClient({ lang }: BookingPageClientProps) {
   const { t, currentLang } = useTranslations();
-  const isSmallDevice = useMediaQuery('(max-width: 480px)');
+  const { isSmallMobile } = useBreakpoint();
   const [selectedCar, setSelectedCar] = useState<CarData | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [searchDates, setSearchDates] = useState<SearchDates>(() => {
@@ -217,7 +217,7 @@ export default function BookingPageClient({ lang }: BookingPageClientProps) {
                   <Box
                     component="span"
                     sx={
-                      isSmallDevice
+                      isSmallMobile
                         ? bookingPageClientStyles.periodContainerMobile
                         : bookingPageClientStyles.periodContainer
                     }
@@ -231,7 +231,7 @@ export default function BookingPageClient({ lang }: BookingPageClientProps) {
                     <Box>
                       <Box
                         sx={
-                          isSmallDevice
+                          isSmallMobile
                             ? bookingPageClientStyles.dateContainerMobile
                             : bookingPageClientStyles.dateContainer
                         }
@@ -239,7 +239,7 @@ export default function BookingPageClient({ lang }: BookingPageClientProps) {
                         <Typography
                           variant="body2"
                           sx={
-                            isSmallDevice
+                            isSmallMobile
                               ? bookingPageClientStyles.dateTextMobile
                               : bookingPageClientStyles.dateText
                           }
@@ -251,7 +251,7 @@ export default function BookingPageClient({ lang }: BookingPageClientProps) {
                         <Typography
                           variant="body2"
                           sx={
-                            isSmallDevice
+                            isSmallMobile
                               ? bookingPageClientStyles.timeTextMobile
                               : bookingPageClientStyles.timeText
                           }
@@ -270,7 +270,7 @@ export default function BookingPageClient({ lang }: BookingPageClientProps) {
                         <Typography
                           variant="body2"
                           sx={
-                            isSmallDevice
+                            isSmallMobile
                               ? bookingPageClientStyles.dateTextMobile
                               : bookingPageClientStyles.dateText
                           }
@@ -282,7 +282,7 @@ export default function BookingPageClient({ lang }: BookingPageClientProps) {
                         <Typography
                           variant="body2"
                           sx={
-                            isSmallDevice
+                            isSmallMobile
                               ? bookingPageClientStyles.timeTextMobile
                               : bookingPageClientStyles.timeText
                           }
