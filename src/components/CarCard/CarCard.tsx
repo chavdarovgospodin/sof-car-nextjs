@@ -173,6 +173,9 @@ export function CarCard({ car, onBook, t, rentalDates }: CarCardProps) {
                   arrow
                   placement="top"
                   sx={styles.tooltip}
+                  disableTouchListener={false}
+                  enterTouchDelay={0}
+                  leaveTouchDelay={3000}
                 >
                   <IconButton size="small" sx={styles.infoButton}>
                     <Info sx={styles.infoIcon} />

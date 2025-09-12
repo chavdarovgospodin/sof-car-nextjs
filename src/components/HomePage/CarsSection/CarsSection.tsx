@@ -36,8 +36,8 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
   const { data: carsResponse, isLoading, error } = useAllCars();
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(0);
-  const { isMobile } = useBreakpoint();
-  const carsPerPage = isMobile ? 1 : 2;
+  const { isMobile, isTablet } = useBreakpoint();
+  const carsPerPage = isTablet || isMobile ? 1 : 2;
 
   const texts = getCarsTexts(currentLang);
 
@@ -133,7 +133,7 @@ export function CarsSection({ currentLang }: CarsSectionProps) {
               </>
             )}
             {currentCars.map((car) => (
-              <Grid size={{ xs: 12, sm: 6, md: 6 }} key={car.id}>
+              <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }} key={car.id}>
                 <Paper elevation={0} sx={styles.carCard}>
                   {/* Navigation Arrows - Overlay on card */}
                   {totalPages > 1 && isMobile && (
