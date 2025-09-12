@@ -1,0 +1,33 @@
+export const BOOKING_EDIT_DIALOG_CONST = {
+  TEXTS: {
+    title: 'Редактиране на резервация',
+    status: 'Статус',
+    depositStatus: 'Статус на депозит',
+    notes: 'Бележки',
+    notesPlaceholder: 'Въведете бележки за резервацията...',
+    cancel: 'Отказ',
+    save: 'Запази',
+    saving: 'Запазване...',
+    pending: 'Чакаща',
+    confirmed: 'Потвърдена',
+    cancelled: 'Отменена',
+    completed: 'Завършена',
+    depositPending: 'Чакащ',
+    depositPaid: 'Платен',
+    depositRefunded: 'Върнат',
+    required: 'Задължително поле',
+    clientInfo: 'Информация за клиента',
+    car: 'Автомобил',
+  },
+  STATUS_OPTIONS: [
+    { value: 'pending', label: 'Чакаща' },
+    { value: 'confirmed', label: 'Потвърдена' },
+    { value: 'cancelled', label: 'Отменена' },
+    { value: 'completed', label: 'Завършена' },
+  ],
+  DEPOSIT_STATUS_OPTIONS: [
+    { value: 'pending', label: 'Чакащ' },
+    { value: 'paid', label: 'Платен' },
+    { value: 'refunded', label: 'Върнат' },
+  ],
+} as const;

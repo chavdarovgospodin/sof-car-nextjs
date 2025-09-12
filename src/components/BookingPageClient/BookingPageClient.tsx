@@ -15,7 +15,7 @@ import { DateSearch } from '../DateSearch';
 import { CarCard } from '../CarCard/CarCard';
 import type { CarData } from '../../types/api';
 import { useCars, useCreateBooking } from '../../hooks/useApi';
-import { BookingForm } from '../BookingForm/BookingForm';
+import { BookingForm } from '../BookingForm';
 import bgTranslations from '../../locales/bg/common.json';
 import enTranslations from '../../locales/en/common.json';
 

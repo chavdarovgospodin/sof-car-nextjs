@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Backdrop, CircularProgress } from '@mui/material';
+import { Backdrop, CircularProgress, Theme } from '@mui/material';
 import { useIsMutating } from '@tanstack/react-query';
 
 export default function AdminGlobalLoading() {
@@ -19,7 +19,10 @@ export default function AdminGlobalLoading() {
   return (
     <Backdrop
       open={open}
-      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.modal + 1 }}
+      sx={{
+        color: '#fff',
+        zIndex: (theme: Theme) => theme.zIndex.modal + 1,
+      }}
     >
       <CircularProgress color="inherit" />
     </Backdrop>

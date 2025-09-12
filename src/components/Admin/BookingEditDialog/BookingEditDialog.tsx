@@ -16,19 +16,10 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
-import { AdminBooking } from '@/hooks/useAdmin';
-
-interface BookingEditDialogProps {
-  open: boolean;
-  onClose: () => void;
-  booking: AdminBooking | null;
-  onSave: (data: {
-    status?: string;
-    deposit_status?: string;
-    notes?: string;
-  }) => void;
-  isSaving: boolean;
-}
+// import { AdminBooking } from '@/hooks/useAdmin';
+import { BOOKING_EDIT_DIALOG_CONST } from './BookingEditDialog.const';
+import { bookingEditDialogStyles } from './BookingEditDialog.styles';
+import { BookingEditDialogProps, FormData } from './BookingEditDialog.types';
 
 export default function BookingEditDialog({
   open,
@@ -37,31 +28,11 @@ export default function BookingEditDialog({
   onSave,
   isSaving,
 }: BookingEditDialogProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     status: '',
     deposit_status: '',
     notes: '',
   });
-
-  // Български текстове
-  const texts = {
-    title: 'Редактиране на резервация',
-    status: 'Статус',
-    depositStatus: 'Статус на депозит',
-    notes: 'Бележки',
-    notesPlaceholder: 'Въведете бележки за резервацията...',
-    cancel: 'Отказ',
-    save: 'Запази',
-    saving: 'Запазване...',
-    pending: 'Чакаща',
-    confirmed: 'Потвърдена',
-    cancelled: 'Отменена',
-    completed: 'Завършена',
-    depositPending: 'Чакащ',
-    depositPaid: 'Платен',
-    depositRefunded: 'Върнат',
-    required: 'Задължително поле',
-  };
 
   // Update form data when booking changes
   useEffect(() => {
@@ -111,7 +82,7 @@ export default function BookingEditDialog({
     >
       <DialogTitle>
         <Typography variant="h6" component="div">
-          {texts.title}
+          {BOOKING_EDIT_DIALOG_CONST.TEXTS.title}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Резервация #{booking.id.slice(0, 8).toUpperCase()}
@@ -121,9 +92,9 @@ export default function BookingEditDialog({
       <DialogContent>
         <Box sx={{ pt: 1 }}>
           {/* Client Info */}
-          <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+          <Box sx={bookingEditDialogStyles.clientInfoBox}>
             <Typography variant="subtitle2" gutterBottom>
-              Информация за клиента
+              {BOOKING_EDIT_DIALOG_CONST.TEXTS.clientInfo}
             </Typography>
             <Typography variant="body2">
               {booking.client_first_name} {booking.client_last_name}
@@ -134,9 +105,9 @@ export default function BookingEditDialog({
           </Box>
 
           {/* Car Info */}
-          <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+          <Box sx={bookingEditDialogStyles.carInfoBox}>
             <Typography variant="subtitle2" gutterBottom>
-              Автомобил
+              {BOOKING_EDIT_DIALOG_CONST.TEXTS.car}
             </Typography>
             <Typography variant="body2">
               {booking.cars?.brand} {booking.cars?.model} ({booking.cars?.year})
@@ -149,35 +120,42 @@ export default function BookingEditDialog({
           </Box>
 
           {/* Form Fields */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={bookingEditDialogStyles.formFieldsContainer}>
             {/* Status */}
             <FormControl fullWidth>
-              <InputLabel>{texts.status}</InputLabel>
+              <InputLabel>{BOOKING_EDIT_DIALOG_CONST.TEXTS.status}</InputLabel>
               <Select
                 value={formData.status}
                 onChange={handleChange('status')}
-                label={texts.status}
+                label={BOOKING_EDIT_DIALOG_CONST.TEXTS.status}
                 disabled={isSaving}
               >
-                <MenuItem value="pending">{texts.pending}</MenuItem>
-                <MenuItem value="confirmed">{texts.confirmed}</MenuItem>
-                <MenuItem value="cancelled">{texts.cancelled}</MenuItem>
-                <MenuItem value="completed">{texts.completed}</MenuItem>
+                {BOOKING_EDIT_DIALOG_CONST.STATUS_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
 
             {/* Deposit Status */}
             <FormControl fullWidth>
-              <InputLabel>{texts.depositStatus}</InputLabel>
+              <InputLabel>
+                {BOOKING_EDIT_DIALOG_CONST.TEXTS.depositStatus}
+              </InputLabel>
               <Select
                 value={formData.deposit_status}
                 onChange={handleChange('deposit_status')}
-                label={texts.depositStatus}
+                label={BOOKING_EDIT_DIALOG_CONST.TEXTS.depositStatus}
                 disabled={isSaving}
               >
-                <MenuItem value="pending">{texts.depositPending}</MenuItem>
-                <MenuItem value="paid">{texts.depositPaid}</MenuItem>
-                <MenuItem value="refunded">{texts.depositRefunded}</MenuItem>
+                {BOOKING_EDIT_DIALOG_CONST.DEPOSIT_STATUS_OPTIONS.map(
+                  (option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  )
+                )}
               </Select>
             </FormControl>
 
@@ -186,19 +164,19 @@ export default function BookingEditDialog({
               fullWidth
               multiline
               rows={4}
-              label={texts.notes}
+              label={BOOKING_EDIT_DIALOG_CONST.TEXTS.notes}
               value={formData.notes}
               onChange={handleChange('notes')}
-              placeholder={texts.notesPlaceholder}
+              placeholder={BOOKING_EDIT_DIALOG_CONST.TEXTS.notesPlaceholder}
               disabled={isSaving}
             />
           </Box>
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2 }}>
+      <DialogActions sx={bookingEditDialogStyles.dialogActions}>
         <Button onClick={handleClose} disabled={isSaving}>
-          {texts.cancel}
+          {BOOKING_EDIT_DIALOG_CONST.TEXTS.cancel}
         </Button>
         <Button
           onClick={handleSave}
@@ -206,7 +184,9 @@ export default function BookingEditDialog({
           disabled={isSaving}
           startIcon={isSaving ? <CircularProgress size={20} /> : null}
         >
-          {isSaving ? texts.saving : texts.save}
+          {isSaving
+            ? BOOKING_EDIT_DIALOG_CONST.TEXTS.saving
+            : BOOKING_EDIT_DIALOG_CONST.TEXTS.save}
         </Button>
       </DialogActions>
     </Dialog>

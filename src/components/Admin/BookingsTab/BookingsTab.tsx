@@ -27,66 +27,21 @@ import {
 } from '@mui/material';
 import { Search, FilterList, Refresh, Edit, Delete } from '@mui/icons-material';
 import { useAdmin, AdminBooking } from '@/hooks/useAdmin';
-import BookingEditDialog from './BookingEditDialog';
-import DeleteBookingDialog from './DeleteBookingDialog';
+import BookingEditDialog from '../BookingEditDialog';
+import DeleteBookingDialog from '../DeleteBookingDialog';
+import { BOOKINGS_TAB_CONST } from './BookingsTab.const';
+import { bookingsTabStyles } from './BookingsTab.styles';
+import { Filters, SnackbarState } from './BookingsTab.types';
 
 // Currency conversion function (approximate BGN to EUR rate)
 // Helper function to display EUR equivalent
 const getEURDisplay = (bgnAmount: number): string => {
-  const eurAmount = Math.round((bgnAmount / 1.96) * 100) / 100;
+  const eurAmount =
+    Math.round((bgnAmount / BOOKINGS_TAB_CONST.CURRENCY_RATE) * 100) / 100;
   return eurAmount.toFixed(2);
 };
 
 export default function BookingsTab() {
-  const texts = {
-    title: 'Резервации',
-    refresh: 'Обнови',
-    search: 'Търсене',
-    searchPlaceholder: 'Име, имейл, телефон...',
-    status: 'Статус',
-    allStatuses: 'Всички статуси',
-    pending: 'Чакаща',
-    confirmed: 'Потвърдена',
-    cancelled: 'Отменена',
-    depositStatus: 'Статус на депозит',
-    allDepositStatuses: 'Всички депозити',
-    depositPending: 'Чакащ',
-    depositPaid: 'Платено',
-    depositRefunded: 'Върнато',
-    startDate: 'Начална дата',
-    endDate: 'Крайна дата',
-    clearFilters: 'Изчисти филтрите',
-    car: 'Автомобил',
-    client: 'Клиент',
-    dates: 'Дати',
-    totalPrice: 'Обща цена',
-    deposit: 'Депозит',
-    actions: 'Действия',
-    rowsPerPage: 'Редове на страница',
-    of: 'от',
-    noBookings: 'Няма резервации',
-    noBookingsDescription: 'Все още не са направени резервации в системата',
-    carNotFound: 'Автомобилът не е намерен',
-    to: 'до',
-    days: 'дни',
-  };
-
-  // Помощни функции за статуси
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return texts.pending;
-      case 'confirmed':
-        return texts.confirmed;
-      case 'cancelled':
-        return texts.cancelled;
-      case 'deleted':
-        return 'Изтрита';
-      default:
-        return status;
-    }
-  };
-
   const {
     bookings,
     isLoadingBookings,
@@ -97,8 +52,10 @@ export default function BookingsTab() {
     isDeletingBooking,
   } = useAdmin();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [filters, setFilters] = useState({
+  const [rowsPerPage, setRowsPerPage] = useState<number>(
+    BOOKINGS_TAB_CONST.DEFAULT_ROWS_PER_PAGE
+  );
+  const [filters, setFilters] = useState<Filters>({
     status: '',
     depositStatus: '',
     search: '',
@@ -113,15 +70,27 @@ export default function BookingsTab() {
   const [bookingToDelete, setBookingToDelete] = useState<AdminBooking | null>(
     null
   );
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error' | 'warning' | 'info';
-  }>({
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: '',
     severity: 'info',
   });
+
+  // Помощни функции за статуси
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return BOOKINGS_TAB_CONST.TEXTS.pending;
+      case 'confirmed':
+        return BOOKINGS_TAB_CONST.TEXTS.confirmed;
+      case 'cancelled':
+        return BOOKINGS_TAB_CONST.TEXTS.cancelled;
+      case 'deleted':
+        return BOOKINGS_TAB_CONST.TEXTS.deleted;
+      default:
+        return status;
+    }
+  };
 
   // Client-side filtering function
   const getFilteredBookings = () => {
@@ -389,12 +358,7 @@ export default function BookingsTab() {
 
   if (isLoadingBookings) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight={400}
-      >
+      <Box sx={bookingsTabStyles.loadingContainer}>
         <CircularProgress />
       </Box>
     );
@@ -403,45 +367,29 @@ export default function BookingsTab() {
   return (
     <Box>
       {/* Header */}
-      <Box
-        sx={{
-          mb: 3,
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          gap: 2,
-        }}
-      >
+      <Box sx={bookingsTabStyles.header}>
         <Typography variant="h2" component="h2" color="primary">
-          {texts.title}
+          {BOOKINGS_TAB_CONST.TEXTS.title}
         </Typography>
         <Button
           variant="outlined"
           startIcon={<Refresh />}
           onClick={() => refetchBookings()}
         >
-          {texts.refresh}
+          {BOOKINGS_TAB_CONST.TEXTS.refresh}
         </Button>
       </Box>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 2,
-            alignItems: 'center',
-          }}
-        >
-          <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+      <Paper sx={bookingsTabStyles.filtersPaper}>
+        <Box sx={bookingsTabStyles.filtersContainer}>
+          <Box sx={bookingsTabStyles.filterField}>
             <TextField
               fullWidth
-              label={texts.search}
+              label={BOOKINGS_TAB_CONST.TEXTS.search}
               value={filters.search}
               onChange={handleFilterChange('search')}
-              placeholder={texts.searchPlaceholder}
+              placeholder={BOOKINGS_TAB_CONST.TEXTS.searchPlaceholder}
               InputProps={{
                 startAdornment: (
                   <Search sx={{ mr: 1, color: 'text.secondary' }} />
@@ -449,59 +397,60 @@ export default function BookingsTab() {
               }}
             />
           </Box>
-          <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
+          <Box sx={bookingsTabStyles.filterFieldSmall}>
             <FormControl fullWidth>
-              <InputLabel>{texts.status}</InputLabel>
+              <InputLabel>{BOOKINGS_TAB_CONST.TEXTS.status}</InputLabel>
               <Select
                 value={filters.status}
                 onChange={handleFilterChange('status')}
-                label={texts.status}
+                label={BOOKINGS_TAB_CONST.TEXTS.status}
               >
-                <MenuItem value="">{texts.allStatuses}</MenuItem>
-                <MenuItem value="pending">{texts.pending}</MenuItem>
-                <MenuItem value="confirmed">{texts.confirmed}</MenuItem>
-                <MenuItem value="cancelled">{texts.cancelled}</MenuItem>
-                <MenuItem value="deleted">Изтрита</MenuItem>
+                {BOOKINGS_TAB_CONST.STATUS_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>
-          <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
+          <Box sx={bookingsTabStyles.filterFieldSmall}>
             <FormControl fullWidth>
-              <InputLabel>{texts.depositStatus}</InputLabel>
+              <InputLabel>{BOOKINGS_TAB_CONST.TEXTS.depositStatus}</InputLabel>
               <Select
                 value={filters.depositStatus}
                 onChange={handleFilterChange('depositStatus')}
-                label={texts.depositStatus}
+                label={BOOKINGS_TAB_CONST.TEXTS.depositStatus}
               >
-                <MenuItem value="">{texts.allDepositStatuses}</MenuItem>
-                <MenuItem value="pending">{texts.depositPending}</MenuItem>
-                <MenuItem value="paid">{texts.depositPaid}</MenuItem>
-                <MenuItem value="refunded">{texts.depositRefunded}</MenuItem>
+                {BOOKINGS_TAB_CONST.DEPOSIT_STATUS_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>
-          <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
+          <Box sx={bookingsTabStyles.filterFieldSmall}>
             <TextField
               fullWidth
               type="date"
-              label={texts.startDate}
+              label={BOOKINGS_TAB_CONST.TEXTS.startDate}
               value={filters.startDate}
               onChange={handleFilterChange('startDate')}
               InputLabelProps={{ shrink: true }}
             />
           </Box>
-          <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
+          <Box sx={bookingsTabStyles.filterFieldSmall}>
             <TextField
               fullWidth
               type="date"
-              label={texts.endDate}
+              label={BOOKINGS_TAB_CONST.TEXTS.endDate}
               value={filters.endDate}
               onChange={handleFilterChange('endDate')}
               InputLabelProps={{ shrink: true }}
             />
           </Box>
-          <Box sx={{ flex: '0 0 auto' }}>
-            <Tooltip title={texts.clearFilters}>
+          <Box sx={bookingsTabStyles.clearFiltersButton}>
+            <Tooltip title={BOOKINGS_TAB_CONST.TEXTS.clearFilters}>
               <IconButton onClick={clearFilters} color="primary">
                 <FilterList />
               </IconButton>
@@ -510,24 +459,21 @@ export default function BookingsTab() {
         </Box>
       </Paper>
 
-      {/* Error Alert */}
-      {/* Error handling is now done through React Query */}
-
       {/* Bookings Table */}
       <Paper>
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>{texts.car}</TableCell>
-                <TableCell>{texts.client}</TableCell>
-                <TableCell>{texts.dates}</TableCell>
-                <TableCell>{texts.totalPrice}</TableCell>
-                <TableCell>{texts.deposit}</TableCell>
-                <TableCell>{texts.status}</TableCell>
+                <TableCell>{BOOKINGS_TAB_CONST.TEXTS.car}</TableCell>
+                <TableCell>{BOOKINGS_TAB_CONST.TEXTS.client}</TableCell>
+                <TableCell>{BOOKINGS_TAB_CONST.TEXTS.dates}</TableCell>
+                <TableCell>{BOOKINGS_TAB_CONST.TEXTS.totalPrice}</TableCell>
+                <TableCell>{BOOKINGS_TAB_CONST.TEXTS.deposit}</TableCell>
+                <TableCell>{BOOKINGS_TAB_CONST.TEXTS.status}</TableCell>
                 <TableCell>Статус на депозит</TableCell>
                 <TableCell>Бележки</TableCell>
-                <TableCell>{texts.actions}</TableCell>
+                <TableCell>{BOOKINGS_TAB_CONST.TEXTS.actions}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -542,7 +488,7 @@ export default function BookingsTab() {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Box>
+                      <Box sx={bookingsTabStyles.clientCell}>
                         <Typography variant="body2" fontWeight="medium">
                           {booking.client_first_name}
                         </Typography>
@@ -559,21 +505,22 @@ export default function BookingsTab() {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Box>
+                      <Box sx={bookingsTabStyles.datesCell}>
                         <Typography variant="body2">
                           {formatDate(booking.start_date)}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {texts.to} {formatDate(booking.end_date)}
+                          {BOOKINGS_TAB_CONST.TEXTS.to}{' '}
+                          {formatDate(booking.end_date)}
                         </Typography>
                         <br />
                         <Typography variant="caption" color="text.secondary">
-                          {booking.rental_days} {texts.days}
+                          {booking.rental_days} {BOOKINGS_TAB_CONST.TEXTS.days}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Box>
+                      <Box sx={bookingsTabStyles.priceCell}>
                         <Typography variant="body2" fontWeight="medium">
                           {booking.total_price.toFixed(2)} лв
                         </Typography>
@@ -583,7 +530,7 @@ export default function BookingsTab() {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Box>
+                      <Box sx={bookingsTabStyles.depositCell}>
                         <Typography variant="body2" fontWeight="medium">
                           {booking.deposit_amount.toFixed(2)} лв
                         </Typography>
@@ -623,18 +570,13 @@ export default function BookingsTab() {
                       <Typography
                         variant="body2"
                         color="text.secondary"
-                        sx={{
-                          maxWidth: 200,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
+                        sx={bookingsTabStyles.notesCell}
                       >
                         {booking.notes || '-'}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Box sx={bookingsTabStyles.actionsCell}>
                         <>
                           <Tooltip title="Редактиране">
                             <IconButton
@@ -672,28 +614,30 @@ export default function BookingsTab() {
 
         {/* Pagination */}
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={BOOKINGS_TAB_CONST.ROWS_PER_PAGE_OPTIONS}
           component="div"
           count={filteredBookings.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage={texts.rowsPerPage}
+          labelRowsPerPage={BOOKINGS_TAB_CONST.TEXTS.rowsPerPage}
           labelDisplayedRows={({ from, to, count }) =>
-            `${from}-${to} ${texts.of} ${count !== -1 ? count : `>${to}`}`
+            `${from}-${to} ${BOOKINGS_TAB_CONST.TEXTS.of} ${
+              count !== -1 ? count : `>${to}`
+            }`
           }
         />
       </Paper>
 
       {/* No Bookings Message */}
       {bookings && bookings.length === 0 && !isLoadingBookings && (
-        <Box textAlign="center" py={4}>
+        <Box sx={bookingsTabStyles.noBookingsContainer}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            {texts.noBookings}
+            {BOOKINGS_TAB_CONST.TEXTS.noBookings}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {texts.noBookingsDescription}
+            {BOOKINGS_TAB_CONST.TEXTS.noBookingsDescription}
           </Typography>
         </Box>
       )}
@@ -703,12 +647,12 @@ export default function BookingsTab() {
         bookings.length > 0 &&
         filteredBookings.length === 0 &&
         !isLoadingBookings && (
-          <Box textAlign="center" py={4}>
+          <Box sx={bookingsTabStyles.noFilteredResultsContainer}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              Няма резултати за избраните филтри
+              {BOOKINGS_TAB_CONST.TEXTS.noFilteredResults}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Опитайте с различни критерии за търсене
+              {BOOKINGS_TAB_CONST.TEXTS.noFilteredResultsDescription}
             </Typography>
           </Box>
         )}
@@ -736,7 +680,7 @@ export default function BookingsTab() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={bookingsTabStyles.snackbar.anchorOrigin}
       >
         <Alert
           onClose={handleCloseSnackbar}

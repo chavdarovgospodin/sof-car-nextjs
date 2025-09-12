@@ -31,78 +31,24 @@ import {
   CloudUpload,
 } from '@mui/icons-material';
 import { AdminCar } from '@/hooks/useAdmin';
+import { CAR_FORM_DIALOG_CONST } from './CarFormDialog.const';
+import { carFormDialogStyles } from './CarFormDialog.styles';
+import {
+  CarFormDialogProps,
+  FormData,
+  ImageItem,
+  ValidationErrors,
+} from './CarFormDialog.types';
 
 const convertToEUR = (bgnAmount: number): number => {
-  return Math.round((bgnAmount / 1.96) * 100) / 100;
+  return (
+    Math.round((bgnAmount / CAR_FORM_DIALOG_CONST.CURRENCY_RATE) * 100) / 100
+  );
 };
 
 const getEURDisplay = (bgnAmount: number): string => {
   return convertToEUR(bgnAmount).toFixed(2);
 };
-
-interface CarFormDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (carData: Partial<AdminCar>) => Promise<void>;
-  car?: AdminCar | null;
-  isEditing?: boolean;
-  loading?: boolean;
-}
-
-const texts = {
-  title: 'Добавяне на автомобил',
-  editTitle: 'Редактиране на автомобил',
-  basicInformation: 'Основна информация',
-  brand: 'Марка',
-  model: 'Модел',
-  year: 'Година',
-  class: 'Клас',
-  classes: {
-    economy: 'Икономичен',
-    standard: 'Стандартен',
-    premium: 'Премиум',
-  },
-  fuelType: 'Тип гориво',
-  fuelTypes: {
-    gasoline: 'Бензин',
-    diesel: 'Дизел',
-    electric: 'Електрически',
-    hybrid: 'Хибриден',
-  },
-  transmission: 'Трансмисия',
-  transmissions: {
-    manual: 'Ръчна',
-    automatic: 'Автоматична',
-  },
-  pricePerDay: 'Цена на ден',
-  depositAmount: 'Депозит',
-  isActive: 'Активен',
-  active: 'Активен',
-  inactive: 'Неактивен',
-  pricing: 'Ценообразуване',
-  features: 'Екстри',
-  addFeature: 'Добави екстра',
-  structuredFeatures: 'Основни характеристики',
-  seats: 'Места',
-  largeLuggage: 'Голям куфар',
-  smallLuggage: 'Малък куфар',
-  doors: 'Врати',
-  minAge: 'Минимална възраст',
-  fourWd: '4WD задвижване',
-  ac: 'Климатик',
-  images: 'Снимки',
-  uploadImages: 'Качи снимки',
-  cancel: 'Отказ',
-  save: 'Запази',
-  loading: 'Зареждане...',
-};
-
-interface ImageItem {
-  url: string;
-  file?: File;
-  isNew: boolean;
-  originalIndex?: number;
-}
 
 export default function CarFormDialog({
   open,
@@ -112,27 +58,27 @@ export default function CarFormDialog({
   isEditing = false,
   loading = false,
 }: CarFormDialogProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     brand: '',
     model: '',
-    year: new Date().getFullYear(),
+    year: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.year,
     fuel_type: '',
     class: '',
     price_per_day_bgn: 0,
     deposit_amount_bgn: 0,
-    available: true,
-    features: [] as string[],
+    available: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.available,
+    features: [],
     transmission: '',
-    seats: 5,
-    large_luggage: 1,
-    small_luggage: 1,
-    doors: 4,
-    min_age: 21,
-    four_wd: false,
-    ac: false,
+    seats: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.seats,
+    large_luggage: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.largeLuggage,
+    small_luggage: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.smallLuggage,
+    doors: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.doors,
+    min_age: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.minAge,
+    four_wd: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.fourWd,
+    ac: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.ac,
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [newFeature, setNewFeature] = useState('');
   const [allImages, setAllImages] = useState<ImageItem[]>([]);
   const [originalImageUrls, setOriginalImageUrls] = useState<string[]>([]);
@@ -150,13 +96,17 @@ export default function CarFormDialog({
         available: !!car.is_active,
         features: car.features ? [...car.features] : [],
         transmission: car.transmission || '',
-        seats: car.seats || 5,
-        large_luggage: car.large_luggage || 1,
-        small_luggage: car.small_luggage || 1,
-        doors: car.doors || 4,
-        min_age: car.min_age || 21,
-        four_wd: car.four_wd || false,
-        ac: car.ac || false,
+        seats: car.seats || CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.seats,
+        large_luggage:
+          car.large_luggage ||
+          CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.largeLuggage,
+        small_luggage:
+          car.small_luggage ||
+          CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.smallLuggage,
+        doors: car.doors || CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.doors,
+        min_age: car.min_age || CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.minAge,
+        four_wd: car.four_wd || CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.fourWd,
+        ac: car.ac || CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.ac,
       });
 
       // Зареждаме съществуващите снимки
@@ -173,21 +123,21 @@ export default function CarFormDialog({
       setFormData({
         brand: '',
         model: '',
-        year: new Date().getFullYear(),
+        year: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.year,
         fuel_type: '',
         class: '',
         price_per_day_bgn: 0,
         deposit_amount_bgn: 0,
-        available: true,
+        available: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.available,
         features: [],
         transmission: '',
-        seats: 5,
-        large_luggage: 1,
-        small_luggage: 1,
-        doors: 4,
-        min_age: 21,
-        four_wd: false,
-        ac: false,
+        seats: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.seats,
+        large_luggage: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.largeLuggage,
+        small_luggage: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.smallLuggage,
+        doors: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.doors,
+        min_age: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.minAge,
+        four_wd: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.fourWd,
+        ac: CAR_FORM_DIALOG_CONST.DEFAULT_VALUES.ac,
       });
       setAllImages([]);
       setOriginalImageUrls([]);
@@ -271,51 +221,64 @@ export default function CarFormDialog({
   };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: ValidationErrors = {};
 
     if (!formData.brand.trim()) {
-      newErrors.brand = 'Марката е задължителна';
+      newErrors.brand = CAR_FORM_DIALOG_CONST.VALIDATION.brandRequired;
     }
     if (!formData.model.trim()) {
-      newErrors.model = 'Моделът е задължителен';
+      newErrors.model = CAR_FORM_DIALOG_CONST.VALIDATION.modelRequired;
     }
     if (!formData.class.trim()) {
-      newErrors.class = 'Класът е задължителен';
+      newErrors.class = CAR_FORM_DIALOG_CONST.VALIDATION.classRequired;
     }
     if (!formData.fuel_type.trim()) {
-      newErrors.fuel_type = 'Типът гориво е задължителен';
+      newErrors.fuel_type = CAR_FORM_DIALOG_CONST.VALIDATION.fuelTypeRequired;
     }
     if (!formData.transmission.trim()) {
-      newErrors.transmission = 'Трансмисията е задължителна';
+      newErrors.transmission =
+        CAR_FORM_DIALOG_CONST.VALIDATION.transmissionRequired;
     }
-    if (formData.year < 1990 || formData.year > new Date().getFullYear() + 2) {
-      newErrors.year = 'Невалидна година';
+    if (
+      formData.year < CAR_FORM_DIALOG_CONST.MIN_YEAR ||
+      formData.year >
+        new Date().getFullYear() + CAR_FORM_DIALOG_CONST.MAX_YEAR_OFFSET
+    ) {
+      newErrors.year = CAR_FORM_DIALOG_CONST.VALIDATION.invalidYear;
     }
     if (formData.price_per_day_bgn <= 0) {
-      newErrors.price_per_day_bgn = 'Цената трябва да е по-голяма от 0';
+      newErrors.price_per_day_bgn =
+        CAR_FORM_DIALOG_CONST.VALIDATION.invalidPrice;
     }
     if (formData.deposit_amount_bgn < 0) {
-      newErrors.deposit_amount_bgn = 'Депозитът не може да е отрицателен';
+      newErrors.deposit_amount_bgn =
+        CAR_FORM_DIALOG_CONST.VALIDATION.invalidDeposit;
     }
 
-    const allowedClasses = ['economy', 'standard', 'premium'];
-    if (!allowedClasses.includes(formData.class)) {
-      newErrors.class = 'Невалиден клас';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (
+      !CAR_FORM_DIALOG_CONST.ALLOWED_CLASSES.includes(formData.class as any)
+    ) {
+      newErrors.class = CAR_FORM_DIALOG_CONST.VALIDATION.invalidClass;
     }
 
-    const allowedFuelTypes = ['petrol', 'diesel', 'hybrid', 'electric', 'lpg'];
-    if (!allowedFuelTypes.includes(formData.fuel_type)) {
-      newErrors.fuel_type = 'Невалиден тип гориво';
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      !CAR_FORM_DIALOG_CONST.ALLOWED_FUEL_TYPES.includes(
+        formData.fuel_type as any
+      )
+    ) {
+      newErrors.fuel_type = CAR_FORM_DIALOG_CONST.VALIDATION.invalidFuelType;
     }
 
-    const allowedTransmissions = [
-      'manual',
-      'automatic',
-      'cvt',
-      'semi-automatic',
-    ];
-    if (!allowedTransmissions.includes(formData.transmission)) {
-      newErrors.transmission = 'Невалидна трансмисия';
+    if (
+      !CAR_FORM_DIALOG_CONST.ALLOWED_TRANSMISSIONS.includes(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        formData.transmission as any
+      )
+    ) {
+      newErrors.transmission =
+        CAR_FORM_DIALOG_CONST.VALIDATION.invalidTransmission;
     }
 
     setErrors(newErrors);
@@ -417,15 +380,11 @@ export default function CarFormDialog({
       }}
     >
       <DialogTitle>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
+        <Box sx={carFormDialogStyles.dialogTitle}>
           <Typography variant="h6">
-            {isEditing ? texts.editTitle : texts.title}
+            {isEditing
+              ? CAR_FORM_DIALOG_CONST.TEXTS.editTitle
+              : CAR_FORM_DIALOG_CONST.TEXTS.title}
           </Typography>
           <IconButton onClick={handleClose} disabled={loading}>
             <Close />
@@ -434,19 +393,19 @@ export default function CarFormDialog({
       </DialogTitle>
 
       <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={carFormDialogStyles.formContainer}>
           {/* Basic Information */}
           <Box>
-            <Typography variant="h6" gutterBottom>
-              {texts.basicInformation}
+            <Typography variant="h6" sx={carFormDialogStyles.sectionTitle}>
+              {CAR_FORM_DIALOG_CONST.TEXTS.basicInformation}
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+          <Box sx={carFormDialogStyles.formRow}>
+            <Box sx={carFormDialogStyles.formField}>
               <TextField
                 fullWidth
-                label={texts.brand}
+                label={CAR_FORM_DIALOG_CONST.TEXTS.brand}
                 value={formData.brand}
                 onChange={handleInputChange('brand')}
                 error={!!errors.brand}
@@ -455,10 +414,10 @@ export default function CarFormDialog({
               />
             </Box>
 
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+            <Box sx={carFormDialogStyles.formField}>
               <TextField
                 fullWidth
-                label={texts.model}
+                label={CAR_FORM_DIALOG_CONST.TEXTS.model}
                 value={formData.model}
                 onChange={handleInputChange('model')}
                 error={!!errors.model}
@@ -468,11 +427,11 @@ export default function CarFormDialog({
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ minWidth: 150, flex: '1 1 150px' }}>
+          <Box sx={carFormDialogStyles.formRow}>
+            <Box sx={carFormDialogStyles.formFieldSmall}>
               <TextField
                 fullWidth
-                label={texts.year}
+                label={CAR_FORM_DIALOG_CONST.TEXTS.year}
                 type="number"
                 value={formData.year}
                 onChange={handleInputChange('year')}
@@ -482,17 +441,19 @@ export default function CarFormDialog({
               />
             </Box>
 
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+            <Box sx={carFormDialogStyles.formField}>
               <FormControl fullWidth error={!!errors.class} required>
-                <InputLabel>{texts.class}</InputLabel>
+                <InputLabel>{CAR_FORM_DIALOG_CONST.TEXTS.class}</InputLabel>
                 <Select
                   value={formData.class}
                   onChange={handleSelectChange('class')}
-                  label={texts.class}
+                  label={CAR_FORM_DIALOG_CONST.TEXTS.class}
                 >
-                  <MenuItem value="economy">{texts.classes.economy}</MenuItem>
-                  <MenuItem value="standard">{texts.classes.standard}</MenuItem>
-                  <MenuItem value="premium">{texts.classes.premium}</MenuItem>
+                  {CAR_FORM_DIALOG_CONST.CLASS_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </Select>
                 {errors.class && (
                   <FormHelperText>{errors.class}</FormHelperText>
@@ -501,20 +462,20 @@ export default function CarFormDialog({
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+          <Box sx={carFormDialogStyles.formRow}>
+            <Box sx={carFormDialogStyles.formField}>
               <FormControl fullWidth error={!!errors.fuel_type} required>
-                <InputLabel>{texts.fuelType}</InputLabel>
+                <InputLabel>{CAR_FORM_DIALOG_CONST.TEXTS.fuelType}</InputLabel>
                 <Select
                   value={formData.fuel_type}
                   onChange={handleSelectChange('fuel_type')}
-                  label={texts.fuelType}
+                  label={CAR_FORM_DIALOG_CONST.TEXTS.fuelType}
                 >
-                  <MenuItem value="petrol">Бензин</MenuItem>
-                  <MenuItem value="diesel">Дизел</MenuItem>
-                  <MenuItem value="hybrid">Хибрид</MenuItem>
-                  <MenuItem value="electric">Електрически</MenuItem>
-                  <MenuItem value="lpg">Газ (LPG)</MenuItem>
+                  {CAR_FORM_DIALOG_CONST.FUEL_TYPE_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </Select>
                 {errors.fuel_type && (
                   <FormHelperText>{errors.fuel_type}</FormHelperText>
@@ -522,22 +483,21 @@ export default function CarFormDialog({
               </FormControl>
             </Box>
 
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+            <Box sx={carFormDialogStyles.formField}>
               <FormControl fullWidth error={!!errors.transmission} required>
-                <InputLabel>{texts.transmission}</InputLabel>
+                <InputLabel>
+                  {CAR_FORM_DIALOG_CONST.TEXTS.transmission}
+                </InputLabel>
                 <Select
                   value={formData.transmission}
                   onChange={handleSelectChange('transmission')}
-                  label={texts.transmission}
+                  label={CAR_FORM_DIALOG_CONST.TEXTS.transmission}
                 >
-                  <MenuItem value="manual">
-                    {texts.transmissions.manual}
-                  </MenuItem>
-                  <MenuItem value="automatic">
-                    {texts.transmissions.automatic}
-                  </MenuItem>
-                  <MenuItem value="cvt">CVT</MenuItem>
-                  <MenuItem value="semi-automatic">Полуавтоматична</MenuItem>
+                  {CAR_FORM_DIALOG_CONST.TRANSMISSION_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </Select>
                 {errors.transmission && (
                   <FormHelperText>{errors.transmission}</FormHelperText>
@@ -548,17 +508,17 @@ export default function CarFormDialog({
 
           {/* Pricing */}
           <Box>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              {texts.pricing}
+            <Divider sx={carFormDialogStyles.divider} />
+            <Typography variant="h6" sx={carFormDialogStyles.sectionTitle}>
+              {CAR_FORM_DIALOG_CONST.TEXTS.pricing}
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+          <Box sx={carFormDialogStyles.formRow}>
+            <Box sx={carFormDialogStyles.formField}>
               <TextField
                 fullWidth
-                label={`${texts.pricePerDay} (BGN)`}
+                label={`${CAR_FORM_DIALOG_CONST.TEXTS.pricePerDay} (BGN)`}
                 type="number"
                 value={formData.price_per_day_bgn}
                 onChange={handleInputChange('price_per_day_bgn')}
@@ -571,10 +531,10 @@ export default function CarFormDialog({
               />
             </Box>
 
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+            <Box sx={carFormDialogStyles.formField}>
               <TextField
                 fullWidth
-                label={`${texts.depositAmount} (BGN)`}
+                label={`${CAR_FORM_DIALOG_CONST.TEXTS.depositAmount} (BGN)`}
                 type="number"
                 value={formData.deposit_amount_bgn}
                 onChange={handleInputChange('deposit_amount_bgn')}
@@ -587,7 +547,7 @@ export default function CarFormDialog({
               />
             </Box>
 
-            <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
+            <Box sx={carFormDialogStyles.formField}>
               <FormControlLabel
                 control={
                   <Switch
@@ -596,54 +556,58 @@ export default function CarFormDialog({
                     color="primary"
                   />
                 }
-                label={formData.available ? texts.active : texts.inactive}
+                label={
+                  formData.available
+                    ? CAR_FORM_DIALOG_CONST.TEXTS.active
+                    : CAR_FORM_DIALOG_CONST.TEXTS.inactive
+                }
               />
             </Box>
           </Box>
 
           {/* Structured Features */}
           <Box>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              {texts.structuredFeatures}
+            <Divider sx={carFormDialogStyles.divider} />
+            <Typography variant="h6" sx={carFormDialogStyles.sectionTitle}>
+              {CAR_FORM_DIALOG_CONST.TEXTS.structuredFeatures}
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={carFormDialogStyles.formRow}>
             <TextField
-              label={texts.seats}
+              label={CAR_FORM_DIALOG_CONST.TEXTS.seats}
               type="number"
               value={formData.seats}
               onChange={handleInputChange('seats')}
-              sx={{ width: 120 }}
+              sx={carFormDialogStyles.formFieldTiny}
             />
             <TextField
-              label={texts.largeLuggage}
+              label={CAR_FORM_DIALOG_CONST.TEXTS.largeLuggage}
               type="number"
               value={formData.large_luggage}
               onChange={handleInputChange('large_luggage')}
-              sx={{ width: 120 }}
+              sx={carFormDialogStyles.formFieldTiny}
             />
             <TextField
-              label={texts.smallLuggage}
+              label={CAR_FORM_DIALOG_CONST.TEXTS.smallLuggage}
               type="number"
               value={formData.small_luggage}
               onChange={handleInputChange('small_luggage')}
-              sx={{ width: 120 }}
+              sx={carFormDialogStyles.formFieldTiny}
             />
             <TextField
-              label={texts.doors}
+              label={CAR_FORM_DIALOG_CONST.TEXTS.doors}
               type="number"
               value={formData.doors}
               onChange={handleInputChange('doors')}
-              sx={{ width: 120 }}
+              sx={carFormDialogStyles.formFieldTiny}
             />
             <TextField
-              label={texts.minAge}
+              label={CAR_FORM_DIALOG_CONST.TEXTS.minAge}
               type="number"
               value={formData.min_age}
               onChange={handleInputChange('min_age')}
-              sx={{ width: 150 }}
+              sx={carFormDialogStyles.formFieldMedium}
             />
             <FormControlLabel
               control={
@@ -652,7 +616,7 @@ export default function CarFormDialog({
                   onChange={handleInputChange('four_wd')}
                 />
               }
-              label={texts.fourWd}
+              label={CAR_FORM_DIALOG_CONST.TEXTS.fourWd}
             />
             <FormControlLabel
               control={
@@ -661,32 +625,25 @@ export default function CarFormDialog({
                   onChange={handleInputChange('ac')}
                 />
               }
-              label={texts.ac}
+              label={CAR_FORM_DIALOG_CONST.TEXTS.ac}
             />
           </Box>
 
           {/* Features */}
           <Box>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              {texts.features}
+            <Divider sx={carFormDialogStyles.divider} />
+            <Typography variant="h6" sx={carFormDialogStyles.sectionTitle}>
+              {CAR_FORM_DIALOG_CONST.TEXTS.features}
             </Typography>
           </Box>
 
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 2,
-              alignItems: 'center',
-            }}
-          >
+          <Box sx={carFormDialogStyles.featuresContainer}>
             <TextField
               value={newFeature}
               onChange={(e) => setNewFeature(e.target.value)}
               placeholder="Добави екстра"
               onKeyPress={(e) => e.key === 'Enter' && handleAddFeature()}
-              sx={{ minWidth: 200 }}
+              sx={carFormDialogStyles.featuresInput}
             />
             <Button
               variant="outlined"
@@ -694,11 +651,11 @@ export default function CarFormDialog({
               onClick={handleAddFeature}
               disabled={!newFeature.trim()}
             >
-              {texts.addFeature}
+              {CAR_FORM_DIALOG_CONST.TEXTS.addFeature}
             </Button>
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={carFormDialogStyles.featuresChips}>
             {formData.features.map((feature, index) => (
               <Chip
                 key={index}
@@ -712,13 +669,16 @@ export default function CarFormDialog({
 
           {/* Images */}
           <Box>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              {texts.images}
+            <Divider sx={carFormDialogStyles.divider} />
+            <Typography variant="h6" sx={carFormDialogStyles.sectionTitle}>
+              {CAR_FORM_DIALOG_CONST.TEXTS.images}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Първата снимка ще бъде използвана като заглавна навсякъде в сайта.
-              Можеш да преместиш която и да е снимка на първо място с бутона ↑.
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={carFormDialogStyles.imagesDescription}
+            >
+              {CAR_FORM_DIALOG_CONST.TEXTS.firstImageDescription}
             </Typography>
           </Box>
 
@@ -736,25 +696,25 @@ export default function CarFormDialog({
                 variant="outlined"
                 component="span"
                 startIcon={<CloudUpload />}
-                sx={{ mb: 2 }}
+                sx={carFormDialogStyles.uploadButton}
               >
-                {texts.uploadImages}
+                {CAR_FORM_DIALOG_CONST.TEXTS.uploadImages}
               </Button>
             </label>
 
             {/* Image Previews */}
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={carFormDialogStyles.imagesContainer}>
               {allImages.map((image, index) => (
                 <Box
                   key={`${image.url}-${index}`}
                   sx={{
                     position: 'relative',
-                    border:
-                      index === 0 ? '3px solid #1976d2' : '1px solid #ddd',
                     borderRadius: 1,
                     overflow: 'hidden',
                     width: 150,
                     height: 120,
+                    border:
+                      index === 0 ? '3px solid #1976d2' : '1px solid #ddd',
                   }}
                 >
                   <Image
@@ -769,66 +729,27 @@ export default function CarFormDialog({
 
                   {/* Main image indicator */}
                   {index === 0 && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 4,
-                        left: 4,
-                        backgroundColor: '#1976d2',
-                        color: 'white',
-                        px: 1,
-                        py: 0.5,
-                        borderRadius: 0.5,
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      ГЛАВНА
+                    <Box sx={carFormDialogStyles.mainImageIndicator}>
+                      {CAR_FORM_DIALOG_CONST.TEXTS.mainImage}
                     </Box>
                   )}
 
                   {/* New image indicator */}
                   {image.isNew && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: 4,
-                        left: 4,
-                        backgroundColor: '#4caf50',
-                        color: 'white',
-                        px: 0.5,
-                        py: 0.25,
-                        borderRadius: 0.25,
-                        fontSize: '0.65rem',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      НОВА
+                    <Box sx={carFormDialogStyles.newImageIndicator}>
+                      {CAR_FORM_DIALOG_CONST.TEXTS.newImage}
                     </Box>
                   )}
 
                   {/* Action buttons */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 4,
-                      right: 4,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 0.5,
-                    }}
-                  >
+                  <Box sx={carFormDialogStyles.imageActions}>
                     {index > 0 && (
                       <IconButton
                         size="small"
                         color="primary"
-                        sx={{
-                          backgroundColor: 'rgba(255,255,255,0.9)',
-                          width: 24,
-                          height: 24,
-                        }}
+                        sx={carFormDialogStyles.actionButton}
                         onClick={() => handleMoveToFirst(index)}
-                        title="Направи главна снимка"
+                        title={CAR_FORM_DIALOG_CONST.TEXTS.makeMainImage}
                       >
                         <ArrowUpward sx={{ fontSize: 16 }} />
                       </IconButton>
@@ -837,13 +758,9 @@ export default function CarFormDialog({
                     <IconButton
                       size="small"
                       color="error"
-                      sx={{
-                        backgroundColor: 'rgba(255,255,255,0.9)',
-                        width: 24,
-                        height: 24,
-                      }}
+                      sx={carFormDialogStyles.actionButton}
                       onClick={() => handleRemoveImage(index)}
-                      title="Изтрий снимка"
+                      title={CAR_FORM_DIALOG_CONST.TEXTS.deleteImage}
                     >
                       <Delete sx={{ fontSize: 16 }} />
                     </IconButton>
@@ -855,9 +772,9 @@ export default function CarFormDialog({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3 }}>
+      <DialogActions sx={carFormDialogStyles.dialogActions}>
         <Button onClick={handleClose} disabled={loading}>
-          {texts.cancel}
+          {CAR_FORM_DIALOG_CONST.TEXTS.cancel}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -865,7 +782,9 @@ export default function CarFormDialog({
           disabled={loading}
           startIcon={loading ? <div className="spinner" /> : null}
         >
-          {loading ? texts.loading : texts.save}
+          {loading
+            ? CAR_FORM_DIALOG_CONST.TEXTS.loading
+            : CAR_FORM_DIALOG_CONST.TEXTS.save}
         </Button>
       </DialogActions>
     </Dialog>

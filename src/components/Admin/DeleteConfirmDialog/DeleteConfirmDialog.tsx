@@ -11,15 +11,9 @@ import {
   Alert,
 } from '@mui/material';
 import { Warning } from '@mui/icons-material';
-
-interface DeleteConfirmDialogProps {
-  open: boolean;
-  title: string;
-  message: string;
-  warningMessage?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
+import { DELETE_CONFIRM_DIALOG_CONST } from './DeleteConfirmDialog.const';
+import { deleteConfirmDialogStyles } from './DeleteConfirmDialog.styles';
+import { DeleteConfirmDialogProps } from './DeleteConfirmDialog.types';
 
 export default function DeleteConfirmDialog({
   open,
@@ -45,35 +39,35 @@ export default function DeleteConfirmDialog({
       }}
     >
       <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={deleteConfirmDialogStyles.titleContainer}>
           <Warning color="warning" />
           {title}
         </Box>
       </DialogTitle>
 
       <DialogContent>
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <Alert severity="warning" sx={deleteConfirmDialogStyles.alert}>
           <Typography variant="body1" gutterBottom>
             {message}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            This action cannot be undone.
+            {DELETE_CONFIRM_DIALOG_CONST.TEXTS.cannotUndo}
           </Typography>
         </Alert>
 
         {warningMessage && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={deleteConfirmDialogStyles.warningAlert}>
             <Typography variant="body2">{warningMessage}</Typography>
           </Alert>
         )}
       </DialogContent>
 
-      <DialogActions sx={{ p: 3 }}>
+      <DialogActions sx={deleteConfirmDialogStyles.dialogActions}>
         <Button onClick={onCancel} variant="outlined">
-          Cancel
+          {DELETE_CONFIRM_DIALOG_CONST.TEXTS.cancel}
         </Button>
         <Button onClick={onConfirm} variant="contained" color="error">
-          Delete
+          {DELETE_CONFIRM_DIALOG_CONST.TEXTS.delete}
         </Button>
       </DialogActions>
     </Dialog>

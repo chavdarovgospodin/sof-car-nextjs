@@ -10,24 +10,18 @@ import {
   Box,
   CircularProgress,
 } from '@mui/material';
-import { AdminBooking } from '@/hooks/useAdmin';
-
-interface DeleteBookingDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  booking: AdminBooking | null;
-  isDeleting: boolean;
-}
+// import { AdminBooking } from '@/hooks/useAdmin';
+import { DELETE_BOOKING_DIALOG_CONST } from './DeleteBookingDialog.const';
+import { deleteBookingDialogStyles } from './DeleteBookingDialog.styles';
+import { DeleteBookingDialogProps } from './DeleteBookingDialog.types';
 
 // Helper function to format dates
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('bg-BG', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+  return date.toLocaleDateString(
+    DELETE_BOOKING_DIALOG_CONST.LOCALE,
+    DELETE_BOOKING_DIALOG_CONST.DATE_FORMAT_OPTIONS
+  );
 };
 
 export default function DeleteBookingDialog({
@@ -39,19 +33,22 @@ export default function DeleteBookingDialog({
 }: DeleteBookingDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ pb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <DialogTitle sx={deleteBookingDialogStyles.dialogTitle}>
+        <Box sx={deleteBookingDialogStyles.titleContainer}>
           <Typography variant="h6" component="span">
-            Изтриване на резервация
+            {DELETE_BOOKING_DIALOG_CONST.TEXTS.title}
           </Typography>
         </Box>
       </DialogTitle>
       <DialogContent>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Сигурни ли сте, че искате да изтриете резервацията за:
+        <Typography
+          variant="body1"
+          sx={deleteBookingDialogStyles.confirmMessage}
+        >
+          {DELETE_BOOKING_DIALOG_CONST.TEXTS.confirmMessage}
         </Typography>
         {booking && (
-          <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
+          <Box sx={deleteBookingDialogStyles.bookingInfo}>
             <Typography variant="subtitle1" fontWeight="medium">
               {booking.client_first_name} {booking.client_last_name}
             </Typography>
@@ -69,19 +66,21 @@ export default function DeleteBookingDialog({
         <Typography
           variant="body2"
           color="error"
-          sx={{ fontWeight: 'medium', mb: 2 }}
+          sx={deleteBookingDialogStyles.warningMessage}
         >
-          ⚠️ Това действие ще маркира резервацията като изтрита и ще отключи
-          автомобила за тези дати.
+          {DELETE_BOOKING_DIALOG_CONST.TEXTS.warningMessage}
         </Typography>
-        <Typography variant="body2" color="info" sx={{ fontWeight: 'medium' }}>
-          ⚠️ Резервацията ще продължи да бъде видима в администраторския панел,
-          но ще бъде маркирана като изтрита.
+        <Typography
+          variant="body2"
+          color="info"
+          sx={deleteBookingDialogStyles.infoMessage}
+        >
+          {DELETE_BOOKING_DIALOG_CONST.TEXTS.infoMessage}
         </Typography>
       </DialogContent>
-      <DialogActions sx={{ p: 2, gap: 1 }}>
+      <DialogActions sx={deleteBookingDialogStyles.dialogActions}>
         <Button onClick={onClose} variant="outlined" disabled={isDeleting}>
-          Отказ
+          {DELETE_BOOKING_DIALOG_CONST.TEXTS.cancel}
         </Button>
         <Button
           onClick={onConfirm}
@@ -90,7 +89,9 @@ export default function DeleteBookingDialog({
           disabled={isDeleting}
           startIcon={isDeleting ? <CircularProgress size={16} /> : null}
         >
-          {isDeleting ? 'Изтриване...' : 'Изтрий'}
+          {isDeleting
+            ? DELETE_BOOKING_DIALOG_CONST.TEXTS.deleting
+            : DELETE_BOOKING_DIALOG_CONST.TEXTS.delete}
         </Button>
       </DialogActions>
     </Dialog>

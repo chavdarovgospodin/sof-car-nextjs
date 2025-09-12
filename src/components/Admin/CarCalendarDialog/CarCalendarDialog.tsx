@@ -24,31 +24,22 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 // Extend dayjs with plugins
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
-import { AdminCar, useCarBookings } from '../../hooks/useAdmin';
-
-interface CarCalendarDialogProps {
-  open: boolean;
-  onClose: () => void;
-  car: AdminCar | null;
-}
-
-interface Booking {
-  id: string;
-  start_date: string;
-  end_date: string;
-  customer_name: string;
-  status: string;
-}
+import { useCarBookings } from '@/hooks/useAdmin';
+import { CAR_CALENDAR_DIALOG_CONST } from './CarCalendarDialog.const';
+import { carCalendarDialogStyles } from './CarCalendarDialog.styles';
+import {
+  CarCalendarDialogProps,
+  Booking,
+  CurrentMonth,
+  DateStatus,
+} from './CarCalendarDialog.types';
 
 export function CarCalendarDialog({
   open,
   onClose,
   car,
 }: CarCalendarDialogProps) {
-  const [currentMonth, setCurrentMonth] = useState<{
-    month: number;
-    year: number;
-  }>({
+  const [currentMonth, setCurrentMonth] = useState<CurrentMonth>({
     month: dayjs().month(),
     year: dayjs().year(),
   });
@@ -61,7 +52,7 @@ export function CarCalendarDialog({
   } = useCarBookings(car?.id || null, open);
 
   const getDateStatus = useCallback(
-    (date: Dayjs) => {
+    (date: Dayjs): DateStatus => {
       if (!bookingsResponse?.bookings)
         return { status: 'available', booking: null };
 
@@ -87,7 +78,9 @@ export function CarCalendarDialog({
   const colorCalendarDays = useCallback(() => {
     if (!bookingsResponse?.bookings) return;
 
-    const calendarElement = document.querySelector('.car-calendar');
+    const calendarElement = document.querySelector(
+      `.${CAR_CALENDAR_DIALOG_CONST.CALENDAR_CLASS}`
+    );
     if (!calendarElement) return;
 
     // Get current month and year from the calendar header
@@ -100,37 +93,12 @@ export function CarCalendarDialog({
 
     // Parse month and year from the calendar header
     // monthText format: "October 2025" or "Октомври 2025"
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-      'Януари',
-      'Февруари',
-      'Март',
-      'Април',
-      'Май',
-      'Юни',
-      'Юли',
-      'Август',
-      'Септември',
-      'Октомври',
-      'Ноември',
-      'Декември',
-    ];
-
     const parts = monthText.split(' ');
     const monthName = parts[0];
     const year = parseInt(parts[1]);
-    const monthIndex = monthNames.indexOf(monthName);
+    const monthIndex = CAR_CALENDAR_DIALOG_CONST.MONTH_NAMES.indexOf(
+      monthName as (typeof CAR_CALENDAR_DIALOG_CONST.MONTH_NAMES)[number]
+    );
 
     if (monthIndex === -1 || isNaN(year)) return;
 
@@ -150,11 +118,13 @@ export function CarCalendarDialog({
           const { status } = getDateStatus(date);
 
           if (status === 'booked') {
-            (dayElement as HTMLElement).style.backgroundColor = '#f44336';
+            (dayElement as HTMLElement).style.backgroundColor =
+              CAR_CALENDAR_DIALOG_CONST.COLORS.booked;
             (dayElement as HTMLElement).style.color = 'white';
             (dayElement as HTMLElement).style.fontWeight = 'bold';
           } else {
-            (dayElement as HTMLElement).style.backgroundColor = '#4caf50';
+            (dayElement as HTMLElement).style.backgroundColor =
+              CAR_CALENDAR_DIALOG_CONST.COLORS.available;
             (dayElement as HTMLElement).style.color = 'white';
             (dayElement as HTMLElement).style.fontWeight = 'bold';
           }
@@ -192,7 +162,7 @@ export function CarCalendarDialog({
 
     const style = document.createElement('style');
     style.textContent = `
-      .car-calendar .MuiPickersDay-root {
+      .${CAR_CALENDAR_DIALOG_CONST.CALENDAR_CLASS} .MuiPickersDay-root {
         position: relative;
         pointer-events: none;
       }
@@ -203,16 +173,18 @@ export function CarCalendarDialog({
     // Wait for calendar to be rendered and then color days
     const timer = setTimeout(() => {
       colorCalendarDays();
-    }, 100);
+    }, CAR_CALENDAR_DIALOG_CONST.TIMEOUT_DELAY);
 
     // Set up MutationObserver to watch for calendar changes
-    const calendarElement = document.querySelector('.car-calendar');
+    const calendarElement = document.querySelector(
+      `.${CAR_CALENDAR_DIALOG_CONST.CALENDAR_CLASS}`
+    );
     if (calendarElement) {
       const observer = new MutationObserver(() => {
         // Small delay to ensure DOM is updated
         setTimeout(() => {
           colorCalendarDays();
-        }, 100);
+        }, CAR_CALENDAR_DIALOG_CONST.TIMEOUT_DELAY);
       });
 
       observer.observe(calendarElement, {
@@ -253,7 +225,7 @@ export function CarCalendarDialog({
       // Small delay to ensure DOM is updated
       const timer = setTimeout(() => {
         colorCalendarDays();
-      }, 50);
+      }, CAR_CALENDAR_DIALOG_CONST.OBSERVER_DELAY);
 
       return () => {
         clearTimeout(timer);
@@ -264,74 +236,77 @@ export function CarCalendarDialog({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        Календар за {car?.brand} {car?.model}
+        {CAR_CALENDAR_DIALOG_CONST.TEXTS.title} {car?.brand} {car?.model}
       </DialogTitle>
 
       <DialogContent>
         {isLoading && (
-          <Box display="flex" justifyContent="center" p={3}>
+          <Box sx={carCalendarDialogStyles.loadingContainer}>
             <CircularProgress />
           </Box>
         )}
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Грешка при зареждане на резервациите
+          <Alert severity="error" sx={carCalendarDialogStyles.errorAlert}>
+            {CAR_CALENDAR_DIALOG_CONST.TEXTS.loadingError}
           </Alert>
         )}
 
         {!isLoading && !error && (
           <Box>
             {/* Calendar */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Календар на наличност
+            <Box sx={carCalendarDialogStyles.calendarSection}>
+              <Typography
+                variant="h6"
+                sx={carCalendarDialogStyles.calendarTitle}
+              >
+                {CAR_CALENDAR_DIALOG_CONST.TEXTS.availabilityCalendar}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={carCalendarDialogStyles.legendContainer}>
+                <Box sx={carCalendarDialogStyles.legendItem}>
                   <Box
                     sx={{
-                      width: 20,
-                      height: 20,
-                      backgroundColor: '#4caf50',
-                      borderRadius: 1,
+                      ...carCalendarDialogStyles.legendColor,
+                      backgroundColor:
+                        CAR_CALENDAR_DIALOG_CONST.COLORS.available,
                     }}
                   />
-                  <Typography variant="body2">Свободни дати</Typography>
+                  <Typography variant="body2">
+                    {CAR_CALENDAR_DIALOG_CONST.TEXTS.availableDates}
+                  </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={carCalendarDialogStyles.legendItem}>
                   <Box
                     sx={{
-                      width: 20,
-                      height: 20,
-                      backgroundColor: '#f44336',
-                      borderRadius: 1,
+                      ...carCalendarDialogStyles.legendColor,
+                      backgroundColor: CAR_CALENDAR_DIALOG_CONST.COLORS.booked,
                     }}
                   />
-                  <Typography variant="body2">Запазени дати</Typography>
+                  <Typography variant="body2">
+                    {CAR_CALENDAR_DIALOG_CONST.TEXTS.bookedDates}
+                  </Typography>
                 </Box>
               </Box>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateCalendar
-                  className="car-calendar"
+                  className={CAR_CALENDAR_DIALOG_CONST.CALENDAR_CLASS}
                   readOnly
-                  sx={{
-                    '& .MuiPickersDay-root': {
-                      '&.Mui-selected': {
-                        backgroundColor: 'transparent',
-                      },
-                    },
-                  }}
+                  sx={carCalendarDialogStyles.calendar}
                 />
               </LocalizationProvider>
             </Box>
 
             {/* Current Month Bookings List */}
-            <Box>
-              <Typography variant="h6" gutterBottom>
+            <Box sx={carCalendarDialogStyles.bookingsSection}>
+              <Typography
+                variant="h6"
+                sx={carCalendarDialogStyles.bookingsTitle}
+              >
                 <strong>{currentMonthBookings.length}</strong>{' '}
-                {currentMonthBookings.length > 1 ? 'Резервации' : 'Резервация'}{' '}
-                за{' '}
+                {currentMonthBookings.length > 1
+                  ? CAR_CALENDAR_DIALOG_CONST.TEXTS.bookings
+                  : CAR_CALENDAR_DIALOG_CONST.TEXTS.booking}{' '}
+                {CAR_CALENDAR_DIALOG_CONST.TEXTS.for}{' '}
                 {dayjs()
                   .year(currentMonth.year)
                   .month(currentMonth.month)
@@ -344,15 +319,8 @@ export function CarCalendarDialog({
                     (booking: Booking, index: number) => (
                       <React.Fragment key={booking.id}>
                         <ListItem>
-                          <Box sx={{ width: '100%' }}>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                mb: 1,
-                              }}
-                            >
+                          <Box sx={carCalendarDialogStyles.bookingItem}>
+                            <Box sx={carCalendarDialogStyles.bookingHeader}>
                               <Typography variant="subtitle1">
                                 {booking.customer_name}
                               </Typography>
@@ -369,7 +337,7 @@ export function CarCalendarDialog({
                             <Typography
                               variant="body2"
                               color="text.secondary"
-                              sx={{ mb: 0.5 }}
+                              sx={carCalendarDialogStyles.bookingDates}
                             >
                               {dayjs(booking.start_date).format('DD.MM.YYYY')} -{' '}
                               {dayjs(booking.end_date).format('DD.MM.YYYY')}
@@ -377,13 +345,14 @@ export function CarCalendarDialog({
                             <Typography
                               variant="caption"
                               color="text.secondary"
+                              sx={carCalendarDialogStyles.bookingPeriod}
                             >
-                              Период:{' '}
+                              {CAR_CALENDAR_DIALOG_CONST.TEXTS.period}{' '}
                               {dayjs(booking.end_date).diff(
                                 dayjs(booking.start_date),
                                 'days'
                               ) + 1}{' '}
-                              дни
+                              {CAR_CALENDAR_DIALOG_CONST.TEXTS.days}
                             </Typography>
                           </Box>
                         </ListItem>
@@ -393,8 +362,11 @@ export function CarCalendarDialog({
                   )}
                 </List>
               ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Няма резервации за този автомобил.
+                <Typography
+                  variant="body2"
+                  sx={carCalendarDialogStyles.noBookingsText}
+                >
+                  {CAR_CALENDAR_DIALOG_CONST.TEXTS.noBookings}
                 </Typography>
               )}
             </Box>
@@ -403,7 +375,9 @@ export function CarCalendarDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Затвори</Button>
+        <Button onClick={onClose}>
+          {CAR_CALENDAR_DIALOG_CONST.TEXTS.close}
+        </Button>
       </DialogActions>
     </Dialog>
   );
