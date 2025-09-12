@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useScrollLock } from '@/hooks/useScrollLock';
 import { SUPPORTED_LANGUAGES } from '@/utils/constants';
 import { styles } from './LanguageSwitcher.styles';
+import { setLangToStorage } from '@/utils/localStorage';
 
 export function LanguageSwitcher({ isMobile }: { isMobile: boolean }) {
   const router = useRouter();
@@ -17,10 +18,11 @@ export function LanguageSwitcher({ isMobile }: { isMobile: boolean }) {
   // Use custom scroll lock hook
   useScrollLock(Boolean(anchorEl));
 
-  const handleLanguageChange = (langCode: string) => {
+  const handleLanguageChange = (langCode: 'bg' | 'en') => {
     const currentPath = pathname.replace(/^\/[a-z]{2}/, '');
     const newPath = `/${langCode}${currentPath}`;
     router.push(newPath);
+    setLangToStorage(langCode);
     setAnchorEl(null);
   };
 
@@ -61,7 +63,7 @@ export function LanguageSwitcher({ isMobile }: { isMobile: boolean }) {
         {SUPPORTED_LANGUAGES.map((lang) => (
           <MenuItem
             key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
+            onClick={() => handleLanguageChange(lang.code as 'bg' | 'en')}
             selected={lang.code === currentLang}
             sx={styles.menuItem}
           >

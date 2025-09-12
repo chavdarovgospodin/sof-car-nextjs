@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { LanguageInit } from '@/components/LanguageInit';
 import { APP_CONFIG } from '@/utils/constants';
 import { Providers } from '../providers';
 import Script from 'next/script';
@@ -203,6 +204,7 @@ export default async function LangLayout({
 
   return (
     <Providers>
+      <LanguageInit />
       <Script
         id="structured-data"
         type="application/ld+json"
