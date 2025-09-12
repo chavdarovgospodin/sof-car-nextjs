@@ -16,25 +16,31 @@ import { CarCard } from '../CarCard/CarCard';
 import type { CarData } from '../../types/api';
 import { useCars, useCreateBooking } from '../../hooks/useApi';
 import { BookingForm } from '../BookingForm';
-import bgTranslations from '../../locales/bg/common.json';
-import enTranslations from '../../locales/en/common.json';
+import { useTranslations } from '../../hooks/useTranslations';
+import { BOOKING_PAGE_CLIENT_CONST } from './BookingPageClient.const';
+import { bookingPageClientStyles } from './BookingPageClient.styles';
+import {
+  BookingPageClientProps,
+  SearchDates,
+  SnackbarState,
+  BookingFormData,
+} from './BookingPageClient.types';
 
-interface BookingPageClientProps {
-  lang: string;
-}
-
-export function BookingPageClient({ lang }: BookingPageClientProps) {
+export default function BookingPageClient({ lang }: BookingPageClientProps) {
+  const { t, currentLang } = useTranslations();
   const isSmallDevice = useMediaQuery('(max-width: 480px)');
   const [selectedCar, setSelectedCar] = useState<CarData | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [searchDates, setSearchDates] = useState<{
-    start: Date | null;
-    end: Date | null;
-  }>(() => {
+  const [searchDates, setSearchDates] = useState<SearchDates>(() => {
     // Дефолтен час 9:00 сутринта
     const getDefaultTime = (date: Date): Date => {
       const defaultDate = new Date(date);
-      defaultDate.setHours(9, 0, 0, 0);
+      defaultDate.setHours(
+        BOOKING_PAGE_CLIENT_CONST.DEFAULT_TIME.hour,
+        BOOKING_PAGE_CLIENT_CONST.DEFAULT_TIME.minute,
+        BOOKING_PAGE_CLIENT_CONST.DEFAULT_TIME.second,
+        BOOKING_PAGE_CLIENT_CONST.DEFAULT_TIME.millisecond
+      );
       return defaultDate;
     };
 
@@ -50,11 +56,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
   const [showDevelopmentBanner, setShowDevelopmentBanner] = useState(false);
 
   // Snackbar state (commented for development)
-  // const [snackbar, setSnackbar] = useState<{
-  //   open: boolean;
-  //   message: string;
-  //   severity: 'success' | 'error';
-  // }>({
+  // const [snackbar, setSnackbar] = useState<SnackbarState>({
   //   open: false,
   //   message: '',
   //   severity: 'success',
@@ -111,13 +113,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
     setSelectedCar(null);
   };
 
-  const handleBookingSubmit = async (formData: {
-    clientFirstName: string;
-    clientLastName: string;
-    clientPhone: string;
-    clientEmail: string;
-    paymentMethod: string;
-  }) => {
+  const handleBookingSubmit = async (formData: BookingFormData) => {
     if (!selectedCar || !searchDates.start || !searchDates.end) return;
 
     setShowDevelopmentBanner(true);
@@ -176,34 +172,8 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
   //   setSnackbar((prev) => ({ ...prev, open: false }));
   // };
 
-  // Създаваме t функцията локално с подадения lang
-  const t = (key: string, values?: Record<string, unknown>): string => {
-    const keys = key.split('.');
-    let value: unknown = lang === 'en' ? enTranslations : bgTranslations;
-
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = (value as Record<string, unknown>)[k];
-      } else {
-        console.warn(`Translation key not found: ${key} for language: ${lang}`);
-        return key;
-      }
-    }
-
-    let result = typeof value === 'string' ? value : key;
-
-    // Заменяме placeholders с реални стойности
-    if (values) {
-      Object.keys(values).forEach((k) => {
-        result = result.replace(`{${k}}`, String(values[k]));
-      });
-    }
-
-    return result;
-  };
-
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#f8f9fa', paddingY: 4 }}>
+    <Box sx={bookingPageClientStyles.container}>
       <Container maxWidth="xl">
         <Suspense fallback={<CircularProgress />}>
           <DateSearch
@@ -216,134 +186,109 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
 
         {error && (
           <Alert severity="error" sx={{ marginBottom: 3 }}>
-            {lang === 'en'
-              ? 'Error searching cars'
-              : 'Грешка при търсене на автомобили'}
+            {t(BOOKING_PAGE_CLIENT_CONST.TEXTS.errorSearchingCars)}
           </Alert>
         )}
 
         {!shouldSearch ? (
-          <Box sx={{ textAlign: 'center', padding: 4 }}>
+          <Box sx={bookingPageClientStyles.selectDatesContainer}>
             <Typography
               variant="h6"
               color="text.secondary"
               sx={{ marginBottom: 2 }}
             >
-              {t('booking.selectDatesMessage')}
+              {t(BOOKING_PAGE_CLIENT_CONST.TEXTS.selectDatesMessage)}
             </Typography>
           </Box>
         ) : isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
-            <CircularProgress size={60} />
+          <Box sx={bookingPageClientStyles.loadingContainer}>
+            <CircularProgress
+              size={BOOKING_PAGE_CLIENT_CONST.CIRCULAR_PROGRESS_SIZE}
+            />
           </Box>
         ) : filteredCars.length > 0 ? (
           <>
-            <Box sx={{ marginBottom: 3 }}>
+            <Box sx={bookingPageClientStyles.carsContainer}>
               <Typography variant="h5" sx={{ marginBottom: 1 }}>
-                {t('booking.foundCars', { count: filteredCars.length })}
+                {t(BOOKING_PAGE_CLIENT_CONST.TEXTS.foundCars, {
+                  count: filteredCars.length,
+                })}
                 {searchDates.start && searchDates.end && (
                   <Box
                     component="span"
-                    sx={{
-                      display: isSmallDevice ? 'block' : 'inline-flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      marginLeft: isSmallDevice ? 0 : 1,
-                      padding: isSmallDevice ? '8px 8px' : '8px 16px',
-                      backgroundColor: '#f8f9fa',
-                      borderRadius: 2,
-                      border: '1px solid #e0e0e0',
-                      fontSize: '0.9rem',
-                      color: '#666',
-                    }}
+                    sx={
+                      isSmallDevice
+                        ? bookingPageClientStyles.periodContainerMobile
+                        : bookingPageClientStyles.periodContainer
+                    }
                   >
                     <Typography
                       component="span"
-                      sx={{ color: '#1976d2', fontWeight: 600 }}
+                      sx={bookingPageClientStyles.periodLabel}
                     >
-                      {t('booking.forPeriod')}
+                      {t(BOOKING_PAGE_CLIENT_CONST.TEXTS.forPeriod)}
                     </Typography>
                     <Box>
                       <Box
-                        sx={{
-                          display: isSmallDevice ? 'grid' : 'flex',
-                          gridTemplateColumns: isSmallDevice
-                            ? 'auto auto auto auto auto'
-                            : 'unset',
-                          alignItems: 'center',
-                          gap: isSmallDevice ? 0.25 : 2,
-                          padding: isSmallDevice
-                            ? '4px 8px 4px 8px'
-                            : '4px 8px',
-                          backgroundColor: '#fff',
-                          borderRadius: 1,
-                          border: '1px solid #e0e0e0',
-                          marginTop: isSmallDevice ? 1 : 0,
-                        }}
+                        sx={
+                          isSmallDevice
+                            ? bookingPageClientStyles.dateContainerMobile
+                            : bookingPageClientStyles.dateContainer
+                        }
                       >
                         <Typography
                           variant="body2"
-                          sx={{
-                            fontWeight: 600,
-                            color: '#333',
-                            display: isSmallDevice ? 'block' : 'inline',
-                            marginBottom: isSmallDevice ? 0.5 : 0,
-                          }}
+                          sx={
+                            isSmallDevice
+                              ? bookingPageClientStyles.dateTextMobile
+                              : bookingPageClientStyles.dateText
+                          }
                         >
                           {searchDates.start.toLocaleDateString(
-                            lang === 'en' ? 'en-US' : 'bg-BG'
+                            currentLang === 'en' ? 'en-US' : 'bg-BG'
                           )}
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{
-                            color: '#1976d2',
-                            fontWeight: 600,
-                            backgroundColor: '#e3f2fd',
-                            padding: isSmallDevice ? '2px 2px' : '2px 6px',
-                            borderRadius: 1,
-                            fontSize: '0.8rem',
-                            display: isSmallDevice ? 'block' : 'inline',
-                          }}
+                          sx={
+                            isSmallDevice
+                              ? bookingPageClientStyles.timeTextMobile
+                              : bookingPageClientStyles.timeText
+                          }
                         >
                           {searchDates.start.toLocaleTimeString(
-                            lang === 'en' ? 'en-US' : 'bg-BG',
+                            currentLang === 'en' ? 'en-US' : 'bg-BG',
                             { hour: '2-digit', minute: '2-digit' }
                           )}
                         </Typography>
                         <Typography
                           component="span"
-                          sx={{ color: '#666', fontWeight: 400 }}
+                          sx={bookingPageClientStyles.separator}
                         >
                           -
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{
-                            fontWeight: 600,
-                            color: '#333',
-                            display: isSmallDevice ? 'block' : 'inline',
-                            marginBottom: isSmallDevice ? 0.5 : 0,
-                          }}
+                          sx={
+                            isSmallDevice
+                              ? bookingPageClientStyles.dateTextMobile
+                              : bookingPageClientStyles.dateText
+                          }
                         >
                           {searchDates.end.toLocaleDateString(
-                            lang === 'en' ? 'en-US' : 'bg-BG'
+                            currentLang === 'en' ? 'en-US' : 'bg-BG'
                           )}
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{
-                            color: '#1976d2',
-                            fontWeight: 600,
-                            backgroundColor: '#e3f2fd',
-                            padding: isSmallDevice ? '2px 2px' : '2px 6px',
-                            borderRadius: 1,
-                            fontSize: '0.8rem',
-                            display: isSmallDevice ? 'block' : 'inline',
-                          }}
+                          sx={
+                            isSmallDevice
+                              ? bookingPageClientStyles.timeTextMobile
+                              : bookingPageClientStyles.timeText
+                          }
                         >
                           {searchDates.end.toLocaleTimeString(
-                            lang === 'en' ? 'en-US' : 'bg-BG',
+                            currentLang === 'en' ? 'en-US' : 'bg-BG',
                             { hour: '2-digit', minute: '2-digit' }
                           )}
                         </Typography>
@@ -354,7 +299,7 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
               </Typography>
             </Box>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={BOOKING_PAGE_CLIENT_CONST.GRID_SPACING}>
               {filteredCars.map((car) => {
                 return (
                   <Grid key={car.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
@@ -370,13 +315,13 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
             </Grid>
           </>
         ) : (
-          <Box sx={{ textAlign: 'center', padding: 4 }}>
+          <Box sx={bookingPageClientStyles.noCarsContainer}>
             <Typography
               variant="h6"
               color="text.secondary"
               sx={{ marginBottom: 2 }}
             >
-              {t('booking.noCarsFound')}
+              {t(BOOKING_PAGE_CLIENT_CONST.TEXTS.noCarsFound)}
             </Typography>
           </Box>
         )}
@@ -397,9 +342,9 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
         {/* Snackbar (commented for development) */}
         {/* <Snackbar
           open={snackbar.open}
-          autoHideDuration={6000}
+          autoHideDuration={BOOKING_PAGE_CLIENT_CONST.SNACKBAR_DURATION}
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={BOOKING_PAGE_CLIENT_CONST.SNACKBAR_ANCHOR}
         >
           <Alert
             onClose={handleCloseSnackbar}
@@ -415,27 +360,14 @@ export function BookingPageClient({ lang }: BookingPageClientProps) {
           <Alert
             severity="warning"
             onClose={handleCloseDevelopmentBanner}
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 9999,
-              borderRadius: 0,
-              boxShadow: 3,
-              '& .MuiAlert-message': {
-                fontSize: '1.1rem',
-                fontWeight: 500,
-              },
-            }}
+            sx={bookingPageClientStyles.developmentBanner}
           >
-            <Box sx={{ textAlign: 'center', py: 1 }}>
+            <Box sx={bookingPageClientStyles.developmentBannerContent}>
               <Typography variant="h6" component="div" gutterBottom>
-                🚧 Функционалност в процес на разработване
+                {t(BOOKING_PAGE_CLIENT_CONST.TEXTS.developmentBannerTitle)}
               </Typography>
               <Typography variant="body1">
-                За момента резервациите не са активни. Моля, свържете се с нас
-                директно за резервация.
+                {t(BOOKING_PAGE_CLIENT_CONST.TEXTS.developmentBannerMessage)}
               </Typography>
             </Box>
           </Alert>

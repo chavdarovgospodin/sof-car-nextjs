@@ -142,6 +142,7 @@ export const styles = {
 
   termsContainer: {
     mb: 3,
+    alignItems: 'center',
   } as SxProps<Theme>,
 
   termsButton: {
@@ -197,5 +198,10 @@ export const styles = {
 
   confirmButton: {
     // No specific styles needed for the confirm button
+  } as SxProps<Theme>,
+  checkbox: {
+    marginRight: 8,
+    cursor: 'pointer',
+    outline: 'none',
   } as SxProps<Theme>,
 };

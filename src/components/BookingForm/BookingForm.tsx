@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { CSSProperties, useState } from 'react';
 import {
   Box,
   Typography,
@@ -332,7 +332,7 @@ export function BookingForm({
                             field.onChange(e.target.checked);
                             setTermsAccepted(e.target.checked);
                           }}
-                          style={{ marginRight: 8 }}
+                          style={styles.checkbox as CSSProperties}
                         />
                       }
                       label={

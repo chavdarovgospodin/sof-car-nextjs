@@ -18,7 +18,7 @@ export function useTranslations() {
     return lang === 'en' ? 'en' : 'bg';
   }, [pathname]);
 
-  const t = (key: string): string => {
+  const t = (key: string, values?: Record<string, unknown>): string => {
     const keys = key.split('.');
     let value: unknown = translations[currentLang];
 
@@ -33,7 +33,16 @@ export function useTranslations() {
       }
     }
 
-    return typeof value === 'string' ? value : key;
+    let result = typeof value === 'string' ? value : key;
+
+    // Заменяме placeholders с реални стойности
+    if (values) {
+      Object.keys(values).forEach((k) => {
+        result = result.replace(`{${k}}`, String(values[k]));
+      });
+    }
+
+    return result;
   };
 
   return {

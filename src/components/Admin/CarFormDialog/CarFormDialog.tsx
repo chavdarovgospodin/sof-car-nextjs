@@ -255,17 +255,17 @@ export default function CarFormDialog({
         CAR_FORM_DIALOG_CONST.VALIDATION.invalidDeposit;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (
-      !CAR_FORM_DIALOG_CONST.ALLOWED_CLASSES.includes(formData.class as any)
+      !CAR_FORM_DIALOG_CONST.ALLOWED_CLASSES.includes(
+        formData.class as (typeof CAR_FORM_DIALOG_CONST.ALLOWED_CLASSES)[number]
+      )
     ) {
       newErrors.class = CAR_FORM_DIALOG_CONST.VALIDATION.invalidClass;
     }
 
     if (
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       !CAR_FORM_DIALOG_CONST.ALLOWED_FUEL_TYPES.includes(
-        formData.fuel_type as any
+        formData.fuel_type as (typeof CAR_FORM_DIALOG_CONST.ALLOWED_FUEL_TYPES)[number]
       )
     ) {
       newErrors.fuel_type = CAR_FORM_DIALOG_CONST.VALIDATION.invalidFuelType;
@@ -273,8 +273,7 @@ export default function CarFormDialog({
 
     if (
       !CAR_FORM_DIALOG_CONST.ALLOWED_TRANSMISSIONS.includes(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        formData.transmission as any
+        formData.transmission as (typeof CAR_FORM_DIALOG_CONST.ALLOWED_TRANSMISSIONS)[number]
       )
     ) {
       newErrors.transmission =

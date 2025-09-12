@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookingPageClient } from '../../../components/BookingPageClient/BookingPageClient';
+import { BookingPageClient } from '../../../components/BookingPageClient';
 
 // Generate static params for static export
 export async function generateStaticParams() {
